@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'otp',              // Add this line
+        'otp_expires_at',   // Add this line
     ];
 
     /**
@@ -45,4 +47,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function submissions()
+{
+    return $this->hasMany(Submission::class, 'user_id'); 
+}
+
 }

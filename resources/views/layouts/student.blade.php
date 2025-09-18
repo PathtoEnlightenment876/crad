@@ -23,32 +23,32 @@
     <div class="d-flex">
         <div id="sidebar" class="d-flex flex-column flex-shrink-0 sidebar">
             <div class="user-profile">
-                <img src="{{ asset('img/sms.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
+                <img src="{{ asset('img/avatar.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
                     style="width: 60px; height: 60px;">
-                <h5 class="mb-0">CRAD</h5>
-                <small>ADMIN</small>
+                <h5 class="mb-0">Student</h5>
+                <small>Juan Dela Cruz</small>
             </div>
 
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ url('/dashboard') }}" class="nav-link text-white">
+                    <a href="{{ url('/std-dashboard') }}" class="nav-link text-white">
                         <i class="bi bi-speedometer fs-5"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{{ url('/track-proposal') }}" class="nav-link">
+                    <a href="{{ route('submission') }}" class="nav-link">
                         <i class="bi bi-cloud-upload fs-5"></i>
-                        <span>Proposal Submission & Tracking </span>
+                        <span>Submission</span>
                     </a>
 
                 </li>
 
                 <li>
-                    <a href="{{ url('/panel-adviser') }}" class="nav-link">
+                    <a href="{{url('/view-panel-adviser')}}" class="nav-link">
                         <i class="bi bi-person-plus-fill fs-5"></i>
-                        <span>Adviser & Panel Assignment </span>
+                        <span>View Assigned Adviser & Panel </span>
                     </a>
 
                 </li>
@@ -56,18 +56,11 @@
                 <li>
                     <a href="#module6drop" class="nav-link">
                         <i class="bi bi-calendar4-week fs-5"></i>
-                        <span>Defense Scheduling </span>
+                        <span>View Schedules </span>
                     </a>
 
                 </li>
 
-
-                <li>
-                    <a href="{{ url('/analytics') }}" class="nav-link">
-                        <i class="bi bi-bar-chart-line fs-5"></i>
-                        <span>Analytics & Reporting</span>
-                    </a>
-                </li>
 
 
             </ul>
@@ -83,38 +76,43 @@
                         <a href="#" class="text-dark position-relative" id="notificationDropdown"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell fs-5"></i>
-                            <span
-                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                3
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ $notifications->where('read', false)->count() }}
                             </span>
                         </a>
-
+                    
                         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown"
                             style="width: 300px; max-height: 400px; overflow-y: auto;">
                             <li class="dropdown-header fw-bold">Notifications</li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-
-                            <li class="dropdown-item">
-                                <i class="bi bi-check-circle text-success"></i> Proposal submitted successfully
-                                <br><small class="text-muted">2 mins ago</small>
-                            </li>
-                            <li class="dropdown-item">
-                                <i class="bi bi-exclamation-circle text-warning"></i> Panel assigned to your project
-                                <br><small class="text-muted">10 mins ago</small>
-                            </li>
-                            <li class="dropdown-item">
-                                <i class="bi bi-calendar-event text-primary"></i> Defense scheduled for Sept 10
-                                <br><small class="text-muted">1 hr ago</small>
-                            </li>
-
+                    
+                            @forelse($notifications ?? collect() as $notification)
+                            <li class="dropdown-item d-flex align-items-start">
+                                    @if($notification->type == 'Approved')
+                                        <i class="bi bi-check-circle text-success me-2 fs-5"></i>
+                                    @elseif($notification->type == 'Rejected')
+                                        <i class="bi bi-x-circle text-danger me-2 fs-5"></i>
+                                    @else
+                                        <i class="bi bi-chat-left-text text-primary me-2 fs-5"></i>
+                                    @endif
+                                    <div>
+                                        <div>{{ $notification->message }}</div>
+                                        <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="dropdown-item text-center text-muted">No notifications</li>
+                            @endforelse
+                    
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a href="#" class="dropdown-item text-center">View all</a></li>
+                            <li><a href="{{ route('student.notifications') }}" class="dropdown-item text-center">View all</a></li>
                         </ul>
                     </div>
+                    
 
                     <a href="#" class="text-dark me-3"><i class="bi bi-search fs-5"></i></a>
 
@@ -124,7 +122,7 @@
                             <i class="bi bi-person-circle fs-4"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <h6 class="dropdown-header">{{ Auth::user()->name ?? 'Admin' }}</h6>
+                            <h6 class="dropdown-header">{{ Auth::user()->name ?? 'Juan Dela Cruz' }}</h6>
                             <li><a class="dropdown-item" href="#">Profile</a></li>
                             <li>
                                 <hr class="dropdown-divider">
@@ -143,43 +141,15 @@
             <main class="content-area">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ url('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url('std-dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
                     </ol>
                 </nav>
-
-                @hasSection('content')
+              
+                <div class="container-fluid">
                     @yield('content')
-                @else
-                    <div class="row mb-4">
-                        <div class="col-md-4 mb-3">
-                            <div class="card bg-primary text-white h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Pending Proposals</h5>
-                                    <h2 class="card-text">12</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card bg-success text-white h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Approved</h5>
-                                    <h2 class="card-text">24</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card bg-warning text-dark h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Upcoming Defenses</h5>
-                                    <h2 class="card-text">5</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </main>
-
+              
+                </div>
             <footer class="footer">
                 Center for Research And Development &copy;
             </footer>
