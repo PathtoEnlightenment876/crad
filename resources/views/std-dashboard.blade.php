@@ -19,7 +19,7 @@
     <!-- Welcome Card -->
     <div class="col-lg-8">
         <div class="dashboard-card">
-            <h2 class="welcome-title mb-3">Welcome Back, {{ auth()->user()->name }}!</h2>
+            <h2 class="welcome-title mb-3">Welcome!</h2>
             <p class="center-info">You have {{ $upcomingSubmissions->count() }} upcoming task{{ $upcomingSubmissions->count() > 1 ? 's' : '' }}. Keep pushing your research forward!</p>
         </div>
     </div>

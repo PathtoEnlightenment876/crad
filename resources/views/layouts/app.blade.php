@@ -31,7 +31,7 @@
 
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ url('/dashboard') }}" class="nav-link text-white">
+                    <a href="{{ url('/admin-dashboard') }}" class="nav-link text-white">
                         <i class="bi bi-speedometer fs-5"></i>
                         <span>Dashboard</span>
                     </a>
@@ -143,7 +143,7 @@
             <main class="content-area">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ url('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url('admin-dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
                     </ol>
                 </nav>

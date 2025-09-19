@@ -39,13 +39,14 @@ class CommitteeController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'adviser_name'  => 'nullable|string|max:255',
-            'panel1'        => 'nullable|string|max:255',
-            'panel2'        => 'nullable|string|max:255',
-            'panel3'        => 'nullable|string|max:255',
+            'adviser_name' => 'nullable|string|max:255',
+            'panel1'       => 'nullable|string|max:255',
+            'panel2'       => 'nullable|string|max:255',
+            'panel3'       => 'nullable|string|max:255',
         ]);
 
         $committee = Committee::findOrFail($id);
+
         $committee->update([
             'adviser_name' => $request->adviser_name,
             'panel1'       => $request->panel1,

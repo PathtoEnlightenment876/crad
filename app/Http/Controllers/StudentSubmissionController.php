@@ -11,7 +11,7 @@ class StudentSubmissionController extends Controller
 {
     public function index()
     {
-        $submissions = Submission::where('submitted_by', Auth::id())->get();
+        $submissions = Submission::where('user_id', Auth::id())->get();
         return view('std-dashboard', compact('submissions'));
     }
 
@@ -57,23 +57,28 @@ class StudentSubmissionController extends Controller
 
 public function resubmit(Request $request, $id)
 {
-    // Find the submission
     $submission = Submission::findOrFail($id);
 
-    // Handle the new file upload (example)
-    if ($request->hasFile('file')) {
-        $file = $request->file('file');
-        $path = $file->store('submissions');
+    // validate
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'file'  => 'required|mimes:pdf,doc,docx|max:2048',
+    ]);
 
-        // Optionally delete old file
+    // update title
+    $submission->title = $request->title;
+
+    // upload new file
+    if ($request->hasFile('file')) {
+        $path = $request->file('file')->store('submissions', 'public');
+
         if ($submission->file_path) {
-            Storage::delete($submission->file_path);
+            Storage::disk('public')->delete($submission->file_path);
         }
 
         $submission->file_path = $path;
     }
 
-    // Update status if needed
     $submission->status = 'Resubmitted';
     $submission->save();
 

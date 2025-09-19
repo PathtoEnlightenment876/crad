@@ -25,9 +25,9 @@ Route::get('/otp-verify', [OtpAuthController::class, 'showVerifyForm'])->name('o
 Route::post('/otp-verify', [OtpAuthController::class, 'verifyOtp'])->name('otp.verify.submit');
 
 // Dashboard
-Route::get('/dashboard', fn() => view('dashboard'))
+Route::get('/admin-dashboard', fn() => view('admin-dashboard'))
     ->middleware(['auth'])
-    ->name('dashboard');
+    ->name('admin-dashboard');
 
     
 // Proposals
@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
 // Admin routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('admin-dashboard', [AdminController::class, 'admin-dashboard'])->name('admin.dashboard');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
 
     Route::get('/track-proposal', [AdminSubmissionController::class, 'index'])->name('admin.track-proposal');

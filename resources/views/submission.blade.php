@@ -85,18 +85,32 @@
                         <p><i class="bi bi-people text-primary"></i> <strong>Group:</strong> {{ $submission->group_no }}</p>
                         <p><i class="bi bi-building text-primary"></i> <strong>Department:</strong> {{ $submission->department }}</p>
                         <p><i class="bi bi-calendar-event text-primary"></i> <strong>Submitted:</strong> {{ $submission->created_at->format('M d, Y') }}</p>
-                        <p><i class="bi bi-chat-left-dots text-primary"></i> <strong>Feedback:</strong> {{ $submission->feedback ?? '—' }}</p>
+                        <p><i class="bi bi-chat-left-dots text-primary"></i> <strong>Remarks:</strong> {{ $submission->feedback ?? '—' }}</p>
 
                         @if($submission->committee)
-                            <hr>
-                            <h6 class="fw-bold text-primary"><i class="bi bi-person-badge"></i> Committee</h6>
-                            <p><strong>Adviser:</strong> {{ $submission->committee->adviser_name ?? '—' }} ({{ $submission->committee->adviser_affiliation ?? '—' }})</p>
-                            <ul class="ps-3">
-                                @if($submission->committee->panel1_name)<li>{{ $submission->committee->panel1_name }} ({{ $submission->committee->panel1_affiliation ?? '—' }})</li>@endif
-                                @if($submission->committee->panel2_name)<li>{{ $submission->committee->panel2_name }} ({{ $submission->committee->panel2_affiliation ?? '—' }})</li>@endif
-                                @if($submission->committee->panel3_name)<li>{{ $submission->committee->panel3_name }} ({{ $submission->committee->panel3_affiliation ?? '—' }})</li>@endif
-                            </ul>
-                        @endif
+    <hr>
+    <h6 class="fw-bold text-primary"><i class="bi bi-person-badge"></i> Committee</h6>
+
+    <p>
+        <strong>Adviser:</strong>
+        {{ $submission->committee->adviser_name }} 
+        ({{ $submission->committee->adviser_affiliation }})
+    </p>
+
+    <ul class="ps-3">
+        @if(!empty($submission->committee->panel1_name))
+            <li><strong>Panel 1:</strong> {{ $submission->committee->panel1_name }} ({{ $submission->committee->panel1_affiliation }})</li>
+        @endif
+        @if(!empty($submission->committee->panel2_name))
+            <li><strong>Panel 2:</strong> {{ $submission->committee->panel2_name }} ({{ $submission->committee->panel2_affiliation }})</li>
+        @endif
+        @if(!empty($submission->committee->panel3_name))
+            <li><strong>Panel 3:</strong> {{ $submission->committee->panel3_name }} ({{ $submission->committee->panel3_affiliation }})</li>
+        @endif
+    </ul>
+@endif
+
+                    
 
                         @if($submission->resubmissions->count() > 0)
                             <hr>
