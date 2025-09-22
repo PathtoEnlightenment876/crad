@@ -7,6 +7,9 @@ class Committee extends Model
 {
     protected $fillable = [
         'submission_id',
+        'role',
+        'name',
+        'department',
         'adviser_name',
         'panel1',
         'panel2',

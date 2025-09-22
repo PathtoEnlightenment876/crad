@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'department',
+        'cluster',
+        'group_no',
         'otp',              // Add this line
         'otp_expires_at',   // Add this line
     ];

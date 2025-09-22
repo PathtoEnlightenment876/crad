@@ -20,10 +20,8 @@ class Submission extends Model
         'submitted_by'
     ];
 
-    // Add this relationship
     public function committee()
     {
-        // use hasOne because each submission has one committee record
         return $this->hasOne(Committee::class);
     }
 

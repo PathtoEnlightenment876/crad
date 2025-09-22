@@ -4,62 +4,106 @@ namespace App\Http\Controllers;
 
 use App\Models\Submission;
 use App\Models\Committee;
+use App\Models\SubmissionHistory;
 use Illuminate\Http\Request;
 use App\Models\Notification;
 
 class AdminSubmissionController extends Controller
 {
-    public function index()
-{
-    $submissions = Submission::with('committee')->get();
-    return view('track-proposal', compact('submissions'));
-}
-
-
-    public function updateStatus(Request $request, $id)
+    public function index(Request $request)
     {
-        $submission = Submission::findOrFail($id);
-
-        // Update status or feedback
-    $submission->status = $request->input('status', $submission->status);
-    $submission->feedback = $request->input('feedback', $submission->feedback);
-    $submission->save();
-      // Create notification for the student
-    $message = "Your submission '{$submission->title}' ";
-    if ($request->has('status')) {
-        $message .= "has been {$submission->status}. ";
-    }
-    if ($request->has('feedback') && $submission->feedback) {
-        $message .= "Feedback: {$submission->feedback}";
-    }
-    Notification::create([
-        'user_id' => $submission->user_id,
-        'type' => $request->has('feedback') ? 'feedback' : 'status',
-        'message' => $message,
-    ]);
-
-        $request->validate([
-            'status' => 'required|in:Pending,Approved,Rejected',
-            'feedback' => 'nullable|string|max:1000',
-            'committee_id' => 'nullable|exists:committees,id'
-        ]);
-
-        $submission->status = $request->status;
-        $submission->feedback = $request->feedback ?? $submission->feedback;
-
-        if ($request->committee_id) {
-            $submission->committee_id = $request->committee_id;
+        $departments = Submission::distinct()->pluck('department');
+        $clusters = Submission::distinct()->pluck('cluster');
+        $groups = Submission::distinct()->pluck('group_no');
+    
+        // Show submissions if any filter is applied (including "All")
+        if ($request->has('department') || $request->has('cluster') || $request->has('group_no')) {
+            $query = Submission::with('user');
+        
+            if ($request->filled('department')) {
+                $query->where('department', $request->department);
+            }
+            if ($request->filled('cluster')) {
+                $query->where('cluster', $request->cluster);
+            }
+            if ($request->filled('group_no')) {
+                $query->where('group_no', $request->group_no);
+            }
+        
+            $submissions = $query->orderBy('created_at', 'desc')->get();
+        } else {
+            $submissions = collect();
         }
-
-        $submission->save();
-
-        return redirect()->back()->with('success', 'Submission updated successfully.');
+        
+        // Add empty histories for each submission to prevent null errors
+        $submissions->each(function($submission) {
+            $submission->histories = collect();
+        });
+        
+        // Get history logs from submissions that have been processed
+        $historyLogs = Submission::with('user')
+            ->whereNotNull('feedback')
+            ->orWhere('status', '!=', 'Pending')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+    
+        return view('track-proposal', compact('departments', 'clusters', 'groups', 'submissions', 'historyLogs'));
     }
+    
+
+
+public function updateStatus(Request $request, $id)
+{
+    $submission = Submission::findOrFail($id);
+    
+    // Only update status if provided
+    if ($request->has('status')) {
+        $submission->status = $request->status;
+        
+        // Create notification for status change
+        $message = match($request->status) {
+            'Approved' => "Your proposal '{$submission->title}' has been approved.",
+            'Rejected' => "Your proposal '{$submission->title}' has been rejected.",
+            default => "Your proposal '{$submission->title}' status has been updated to {$request->status}."
+        };
+        
+        Notification::create([
+            'user_id' => $submission->user_id,
+            'type' => 'status',
+            'message' => $message,
+        ]);
+    }
+    
+    // Only update feedback if provided
+    if ($request->has('feedback')) {
+        $submission->feedback = $request->feedback;
+        
+        // Create notification for feedback
+        Notification::create([
+            'user_id' => $submission->user_id,
+            'type' => 'feedback',
+            'message' => "New feedback received for '{$submission->title}': {$request->feedback}",
+        ]);
+    }
+    
+    $submission->save();
+
+    return back()->with('success', 'Submission updated successfully.');
+}
 
     public function viewFile($id)
     {
         $submission = Submission::findOrFail($id);
-        return response()->file(storage_path('app/public/' . $submission->file_path));
+        $filePath = storage_path('app/public/' . $submission->file_path);
+        
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found');
+        }
+        
+        return response()->file($filePath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($submission->file_path) . '"'
+        ]);
     }
 
     public function assignCommittee(Request $request, $submissionId)

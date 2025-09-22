@@ -88,7 +88,36 @@ public function dashboard()
         }
     }
 
-    return view('std-dashboard', compact('upcomingSubmissions', 'chapters'));
+    $submissions = Submission::with('committee')->where('user_id', $userId)->get();
+    $submissionWithCommittee = $submissions->first(function($submission) {
+        return $submission->committee !== null;
+    });
+    
+    $latestSubmission = $submissions->last();
+    $submissionStatus = $latestSubmission ? $latestSubmission->status : 'PENDING';
+    
+    $approvedCount = $submissions->where('status', 'APPROVED')->count();
+    $progress = min($approvedCount, 6);
+    
+    $committee = $submissionWithCommittee ? $submissionWithCommittee->committee : null;
+    
+    $adviser = $committee ? (object) ['name' => $committee->adviser_name] : (object) ['name' => 'N/A'];
+    
+    $panels = collect();
+    if ($committee) {
+        if ($committee->panel1) $panels->push((object) ['name' => $committee->panel1, 'role' => 'Panel Member 1']);
+        if ($committee->panel2) $panels->push((object) ['name' => $committee->panel2, 'role' => 'Panel Member 2']);
+        if ($committee->panel3) $panels->push((object) ['name' => $committee->panel3, 'role' => 'Panel Member 3']);
+    }
+    
+    $group = (object) [
+        'group_no' => auth()->user()->group_no ?? 'N/A', 
+        'department' => auth()->user()->department ?? 'N/A',
+        'adviser' => $adviser,
+        'panels' => $panels
+    ];
+
+    return view('std-dashboard', compact('upcomingSubmissions', 'chapters', 'submissionStatus', 'progress', 'group'));
 }
 
     public function submission()

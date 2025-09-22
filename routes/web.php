@@ -52,15 +52,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/std-dashboard', [StudentController::class, 'dashboard'])->name('std-dashboard');
     Route::get('/submission', [StudentController::class, 'submission'])->name('submission');
     Route::post('/files', [StudentController::class, 'store'])->name('student.files.store');
+    Route::post('/submission', [StudentSubmissionController::class, 'store'])->name('student.submission.store');
+    Route::post('/submissions', [StudentSubmissionController::class, 'store'])->name('student.submissions.store');
     Route::get('/notifications', [StudentController::class, 'notifications'])->name('student.notifications');
 });
 
 // Admin routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('admin-dashboard', [AdminController::class, 'admin-dashboard'])->name('admin.dashboard');
+    Route::get('/admin-dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
 
     Route::get('/track-proposal', [AdminSubmissionController::class, 'index'])->name('admin.track-proposal');
+    Route::get('/admin/submissions', [AdminSubmissionController::class, 'index'])->name('admin.submissions.index');
     Route::post('/submissions/{id}/update-status', [AdminSubmissionController::class, 'updateStatus'])->name('admin.submissions.updateStatus');
     Route::post('/submission/{id}/approve', [AdminSubmissionController::class, 'approve'])->name('admin.submission.approve');
     Route::post('/submission/{id}/reject', [AdminSubmissionController::class, 'reject'])->name('admin.submission.reject');

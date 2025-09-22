@@ -14,7 +14,11 @@ class StudentSeeder extends Seeder
             'email' => 'juandelacruz@gmail.com',
             'password' => bcrypt('password123'),
             'role' => 'student',
+            'department' => 'BSIT',
+            'cluster'   => 1,
+            'group_no'  => 4,
         ]);
+        
     }
 }
 

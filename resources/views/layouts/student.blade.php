@@ -123,7 +123,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <h6 class="dropdown-header">{{ Auth::user()->name ?? 'Juan Dela Cruz' }}</h6>
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -156,6 +156,40 @@
         </div>
         <div class="sidebar-overlay"></div>
     </div>
+    
+<!-- Profile Modal Trigger -->
+<li>
+    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+        Profile
+    </a>
+</li>
+
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">Student Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img src="{{ asset('img/avatar.png') }}" alt="Profile Picture"
+                         class="rounded-circle" width="100" height="100">
+                </div>
+                <p><strong>Name:</strong> {{ Auth::user()->name ?? 'N/A' }}</p>
+                <p><strong>Email:</strong> {{ Auth::user()->email ?? 'N/A' }}</p>
+                <p><strong>Department:</strong> {{ Auth::user()->department ?? 'N/A' }}</p>
+                <p><strong>Cluster:</strong> {{ Auth::user()->cluster ?? 'N/A' }}</p>
+                <p><strong>Group No:</strong> {{ Auth::user()->group_no ?? 'N/A' }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
