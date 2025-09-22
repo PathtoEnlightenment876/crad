@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 18, 2025 at 12:43 PM
+-- Generation Time: Sep 22, 2025 at 10:54 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -70,8 +70,11 @@ CREATE TABLE `committees` (
 --
 
 INSERT INTO `committees` (`id`, `submission_id`, `role`, `name`, `department`, `created_at`, `updated_at`, `adviser_name`, `panel1`, `panel2`, `panel3`) VALUES
-(4, 1, NULL, NULL, NULL, '2025-09-18 06:05:08', '2025-09-18 06:05:08', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
-(5, 10, NULL, NULL, NULL, '2025-09-18 15:49:52', '2025-09-18 15:49:52', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe');
+(6, 1, NULL, NULL, NULL, '2025-09-20 02:58:53', '2025-09-20 02:58:53', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
+(7, 10, NULL, NULL, NULL, '2025-09-22 14:33:46', '2025-09-22 14:33:46', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
+(8, 13, NULL, NULL, NULL, '2025-09-22 14:46:29', '2025-09-22 14:46:29', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
+(9, 14, NULL, NULL, NULL, '2025-09-23 02:48:32', '2025-09-23 02:48:32', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
+(11, 17, NULL, NULL, NULL, '2025-09-23 03:10:51', '2025-09-23 03:10:51', 'bret', 'Doc John Doe', 'Doc. John Doe', 'Doc John Doe');
 
 -- --------------------------------------------------------
 
@@ -181,7 +184,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (27, '2025_09_17_212419_create_resubmission_histories_table', 9),
 (28, '2025_09_17_220633_create_notifications_table', 10),
 (29, '2025_09_17_230035_add_due_date_to_submissions_table', 11),
-(30, '2025_09_17_230404_add_chapter_to_submissions_table', 12);
+(30, '2025_09_17_230404_add_chapter_to_submissions_table', 12),
+(31, '2025_09_22_181526_add_department_cluster_group_to_users_table', 13),
+(32, '2025_09_22_191852_create_submission_histories_table', 14);
 
 -- --------------------------------------------------------
 
@@ -213,7 +218,56 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `message`, `read`, `create
 (7, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Approved. ', 0, '2025-09-18 06:08:49', '2025-09-18 06:08:49'),
 (8, 2, 'status', 'Your submission \'HAHAHAHA\' has been Rejected. ', 0, '2025-09-18 15:47:09', '2025-09-18 15:47:09'),
 (9, 2, 'status', 'Your submission \'HAHAHAHA\' has been Approved. ', 0, '2025-09-18 15:48:18', '2025-09-18 15:48:18'),
-(10, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Approved. Feedback: Nice One', 0, '2025-09-18 15:48:39', '2025-09-18 15:48:39');
+(10, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Approved. Feedback: Nice One', 0, '2025-09-18 15:48:39', '2025-09-18 15:48:39'),
+(11, 2, 'status', 'Your submission \'HAHAHAHA\' has been Rejected. ', 0, '2025-09-20 01:47:53', '2025-09-20 01:47:53'),
+(12, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Rejected. Feedback: Change your Title', 0, '2025-09-20 01:49:51', '2025-09-20 01:49:51'),
+(13, 1, 'status', 'Your submission \'Proposal 1\' has been Rejected. ', 0, '2025-09-20 02:03:08', '2025-09-20 02:03:08'),
+(14, 1, 'status', 'Your submission \'Proposal 1\' has been Approved. ', 0, '2025-09-20 02:08:00', '2025-09-20 02:08:00'),
+(15, 1, 'feedback', 'Your submission \'Proposal 1\' has been Approved. Feedback: Good', 0, '2025-09-20 02:08:14', '2025-09-20 02:08:14'),
+(16, 2, 'feedback', 'Your submission \'Proposal 2\' has been Resubmitted. Feedback: Ok', 0, '2025-09-20 02:22:06', '2025-09-20 02:22:06'),
+(17, 2, 'status', 'Your submission \'Proposal 2\' has been Approved. ', 0, '2025-09-20 02:22:26', '2025-09-20 02:22:26'),
+(18, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Rejected. ', 0, '2025-09-22 14:12:11', '2025-09-22 14:12:11'),
+(19, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Rejected. ', 0, '2025-09-22 14:12:15', '2025-09-22 14:12:15'),
+(20, 2, 'feedback', 'Your submission \'Stoic Philosophy\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:12:31', '2025-09-22 14:12:31'),
+(21, 2, 'status', 'Your submission \'HAHAHAH\' has been Rejected. ', 0, '2025-09-22 14:12:41', '2025-09-22 14:12:41'),
+(22, 2, 'feedback', 'Your submission \'HAHAHAH\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:12:51', '2025-09-22 14:12:51'),
+(23, 2, 'status', 'Your submission \'Dark Psych\' has been Rejected. ', 0, '2025-09-22 14:12:58', '2025-09-22 14:12:58'),
+(24, 2, 'status', 'Your submission \'Dark Psych\' has been Rejected. ', 0, '2025-09-22 14:13:00', '2025-09-22 14:13:00'),
+(25, 2, 'feedback', 'Your submission \'Dark Psych\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:13:09', '2025-09-22 14:13:09'),
+(26, 2, 'status', 'Your submission \'HAHAH\' has been Rejected. ', 0, '2025-09-22 14:13:17', '2025-09-22 14:13:17'),
+(27, 2, 'feedback', 'Your submission \'HAHAH\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:13:26', '2025-09-22 14:13:26'),
+(28, 2, 'feedback', 'Your submission \'Proposal 1\' has been Resubmitted. Feedback: Good', 0, '2025-09-22 14:16:12', '2025-09-22 14:16:12'),
+(29, 2, 'status', 'Your submission \'Proposal 1\' has been Approved. ', 0, '2025-09-22 14:16:34', '2025-09-22 14:16:34'),
+(30, 2, 'status', 'Your submission \'Proposal 3\' has been Approved. ', 0, '2025-09-22 14:16:41', '2025-09-22 14:16:41'),
+(31, 2, 'feedback', 'Your submission \'Proposal 3\' has been Approved. Feedback: Good', 0, '2025-09-22 14:16:51', '2025-09-22 14:16:51'),
+(32, 2, 'status', 'Your submission \'Proposal 4\' has been Approved. ', 0, '2025-09-22 14:16:58', '2025-09-22 14:16:58'),
+(33, 2, 'feedback', 'Your submission \'Proposal 4\' has been Approved. Feedback: Good', 0, '2025-09-22 14:17:15', '2025-09-22 14:17:15'),
+(34, 2, 'status', 'Your submission \'Proposal 5\' has been Approved. ', 0, '2025-09-22 14:17:26', '2025-09-22 14:17:26'),
+(35, 2, 'feedback', 'Your submission \'Proposal 5\' has been Approved. Feedback: Good', 0, '2025-09-22 14:17:39', '2025-09-22 14:17:39'),
+(36, 2, 'feedback', 'Your submission \'Proposal 6\' has been Pending. Feedback: Ok', 0, '2025-09-22 14:35:43', '2025-09-22 14:35:43'),
+(37, 2, 'status', 'Your submission \'Proposal 6\' has been Approved. ', 0, '2025-09-22 14:35:52', '2025-09-22 14:35:52'),
+(38, 2, 'status', 'Your submission \'Proposal 6\' has been Rejected. ', 0, '2025-09-22 14:40:31', '2025-09-22 14:40:31'),
+(39, 2, 'status', 'Your submission \'Proposal 7 -revised\' has been Approved. ', 0, '2025-09-22 14:41:47', '2025-09-22 14:41:47'),
+(40, 2, 'feedback', 'Your submission \'Proposal 7 -revised\' has been Approved. Feedback: Good', 0, '2025-09-22 14:41:59', '2025-09-22 14:41:59'),
+(41, 2, 'status', 'Your submission \'Proposal 8\' has been Approved. ', 0, '2025-09-22 14:45:42', '2025-09-22 14:45:42'),
+(42, 2, 'feedback', 'Your submission \'Proposal 8\' has been Approved. Feedback: Good', 0, '2025-09-22 14:45:58', '2025-09-22 14:45:58'),
+(43, 2, 'status', 'Your submission \'Proposal 2\' has been Pending. ', 0, '2025-09-22 15:14:43', '2025-09-22 15:14:43'),
+(44, 2, 'status', 'Your submission \'Proposal 2\' has been Rejected. ', 0, '2025-09-22 21:20:22', '2025-09-22 21:20:22'),
+(45, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:45', '2025-09-23 01:16:45'),
+(46, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:46', '2025-09-23 01:16:46'),
+(47, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:46', '2025-09-23 01:16:46'),
+(48, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:47', '2025-09-23 01:16:47'),
+(49, 2, 'status', 'Your submission \'Research Title Proposal\' has been Rejected. ', 0, '2025-09-23 01:16:56', '2025-09-23 01:16:56'),
+(50, 2, 'feedback', 'Your submission \'Proposal 9\' has been Resubmitted. Feedback: Good', 0, '2025-09-23 01:22:30', '2025-09-23 01:22:30'),
+(51, 2, 'status', 'Your submission \'Proposal 9\' has been Approved. ', 0, '2025-09-23 01:22:38', '2025-09-23 01:22:38'),
+(52, 2, 'status', 'Your submission \'Proposal 9\' has been Approved. ', 0, '2025-09-23 01:22:39', '2025-09-23 01:22:39'),
+(53, 2, 'status', 'Your proposal \'Research Forum\' has been rejected.', 0, '2025-09-23 02:46:07', '2025-09-23 02:46:07'),
+(54, 2, 'feedback', 'New feedback received for \'Research Forum\': hhhghghgh', 0, '2025-09-23 02:46:08', '2025-09-23 02:46:08'),
+(55, 2, 'status', 'Your proposal \'Clearance\' status has been updated to Pending.', 0, '2025-09-23 03:05:36', '2025-09-23 03:05:36'),
+(56, 2, 'feedback', 'New feedback received for \'Clearance\': Nice', 0, '2025-09-23 03:05:36', '2025-09-23 03:05:36'),
+(57, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 0, '2025-09-23 03:05:52', '2025-09-23 03:05:52'),
+(58, 2, 'status', 'Your proposal \'Research Forum\' has been approved.', 0, '2025-09-23 03:17:32', '2025-09-23 03:17:32'),
+(59, 2, 'status', 'Your proposal \'Research Forum\' has been approved.', 0, '2025-09-23 03:19:14', '2025-09-23 03:19:14');
 
 -- --------------------------------------------------------
 
@@ -298,12 +352,39 @@ CREATE TABLE `submissions` (
 
 INSERT INTO `submissions` (`id`, `user_id`, `title`, `file_path`, `department`, `cluster`, `group_no`, `status`, `submitted_by`, `feedback`, `created_at`, `updated_at`, `due_date`, `chapter`) VALUES
 (1, 2, 'SMS 3', 'submissions/gTKs7NNLynkdeeohn42v5IOKd6nGjSDyNPSK0W7L.docx', 'BLIS', 1, 9, 'Approved', 'Unknown', 'Good job', '2025-09-17 05:42:23', '2025-09-17 07:29:14', NULL, NULL),
-(4, 2, 'HAHAH', 'submissions/msxyPjaknOcLWfDDDyV51jBBuIYvUv2yIwHatVbg.docx', 'BSP', 3, 9, 'Approved', 'Unknown', 'Good', '2025-09-17 06:56:26', '2025-09-18 00:57:12', NULL, NULL),
+(4, 2, 'Proposal 1', 'submissions/2LBTMB8W9nmqccuIN5Ib2jLG5b3NlWBWHOkMjCmO.docx', 'BSP', 3, 9, 'Approved', 'Unknown', 'Good', '2025-09-17 06:56:26', '2025-09-22 14:16:34', NULL, NULL),
 (5, 2, 'Hotel And Restaurant Services System with Smart Booking', 'submissions/5xVnAXyZGjSovOzXsn0vCPCQ8IIH4O4Pi4RorAy2.docx', 'BSIT', 7, 10, 'Approved', 'Unknown', 'Nice', '2025-09-17 08:02:29', '2025-09-17 08:03:11', NULL, NULL),
-(7, 2, 'Dark Psych', 'submissions/4v2KIQjwXw3WGj3ePBkF0qUtN11lMxzCr98Cc87p.docx', 'BSP', 1, 1, 'Approved', 'Juan DelaCruz', 'Ok', '2025-09-18 04:43:52', '2025-09-18 05:45:36', NULL, NULL),
-(8, 2, 'HAHAHAH', 'submissions/74B3KuFvM8jJHeWxzDdegkj6J6y2TekxB7slPUSD.docx', 'ENTREP', 9, 8, 'Approved', 'Juan DelaCruz', 'Nice', '2025-09-18 04:56:31', '2025-09-18 05:38:43', NULL, NULL),
-(9, 2, 'Stoic Philosophy', 'submissions/F5HLx3ECt1nTQaM5uP2WqtxMz6X8zOo6kH5vO1lY.docx', 'BSP', 10, 10, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 06:08:17', '2025-09-18 06:08:49', NULL, NULL),
-(10, 2, 'HAHAHAHA', 'submissions/jbCddJpvdZh7TL0FfQpv3CytWNIHjsdUxzttXeZb.docx', 'BSOA', 8, 7, 'Approved', 'Juan DelaCruz', 'Nice One', '2025-09-18 15:46:28', '2025-09-18 15:48:39', NULL, NULL);
+(7, 2, 'Proposal 3', 'submissions/2zp4epWtcMUgX5PqLjiYtSHDWIg4lymg0z61G8MR.docx', 'BSP', 1, 1, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 04:43:52', '2025-09-22 14:16:51', NULL, NULL),
+(8, 2, 'Proposal 4', 'submissions/M9n6mxAOonfirRS7C6pXt4luYC7DV2WkRcZ2fR14.docx', 'ENTREP', 9, 8, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 04:56:31', '2025-09-22 14:17:15', NULL, NULL),
+(9, 2, 'Proposal 5', 'submissions/lwScsM649EZM5fhNGtxVcTVPrwtmgTnbJgp5E0bd.docx', 'BSP', 10, 10, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 06:08:17', '2025-09-22 14:17:38', NULL, NULL),
+(10, 2, 'Proposal 2-revised', 'submissions/b1pdmgXU7ef1FjHezbHe5hUd0UqHPgYWV6Ibrj7J.docx', 'BSOA', 8, 7, 'Resubmitted', 'Juan DelaCruz', 'Ok', '2025-09-18 15:46:28', '2025-09-22 21:21:14', NULL, NULL),
+(12, 2, 'Proposal 7 -revised', 'submissions/YNOSpcb9Nz1xhl8tNuj0XQbFT1ay0Tc71hvyW6Ox.docx', 'BSCPE', 7, 6, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-22 14:35:16', '2025-09-22 14:41:58', NULL, NULL),
+(13, 2, 'Proposal 8', 'submissions/o7hNENHJJGU8TnXQgJ4w4f6N8z9DF10XCJR9m3fl.docx', 'BSIT', 1, 2, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-22 14:45:22', '2025-09-22 14:45:58', NULL, NULL),
+(14, 2, 'Proposal 9', 'submissions/TL5l4LUWKmGaAYI88fUnprYRMMg2bIMSWQ6TSP2m.docx', 'N/A', 0, 0, 'Approved', 'Unknown', 'Good', '2025-09-23 00:33:58', '2025-09-23 01:22:38', NULL, NULL),
+(15, 2, 'Research Forum', 'submissions/zD4NTqAGwGLywx8q1IzyHAXQonLWc7Xuv7XzIaSe.docx', 'N/A', 0, 0, 'Approved', 'Unknown', 'Good', '2025-09-23 01:37:45', '2025-09-23 02:43:03', NULL, NULL),
+(16, 2, 'Research Forum', 'submissions/MjNynkhwcfalAAlSXNhjUs9c3Jast2D9UlFnLZvi.docx', 'N/A', 0, 0, 'Approved', 'Unknown', 'hhhghghgh', '2025-09-23 02:45:00', '2025-09-23 03:19:14', NULL, NULL),
+(17, 2, 'Clearance', 'submissions/4e3B20NWCtRZhr1u0i9L00HX0AT2cMYdgfg7cIUi.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', 'Nice', '2025-09-23 02:51:21', '2025-09-23 03:05:52', NULL, NULL),
+(18, 2, 'Research Forum', 'submissions/2bfF8zQyWey0Hzigi20fm09N60iYWQV3ErtaZA8z.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', NULL, '2025-09-23 03:14:38', '2025-09-23 03:17:32', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `submission_histories`
+--
+
+CREATE TABLE `submission_histories` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `submission_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `department` varchar(255) DEFAULT NULL,
+  `cluster` varchar(255) DEFAULT NULL,
+  `group_no` varchar(255) DEFAULT NULL,
+  `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
+  `feedback` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -323,16 +404,19 @@ CREATE TABLE `users` (
   `otp_expires_at` timestamp NULL DEFAULT NULL,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `department` varchar(255) DEFAULT NULL,
+  `cluster` int(11) DEFAULT NULL,
+  `group_no` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `role`, `otp`, `otp_expires_at`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'bretbaa12@gmail.com', '2025-09-18 15:44:45', '$2y$12$oo2oGMnoPbW2eBRlh4NgY.OqPWJHmtpfbRxlsLixLwGHtF8iFCa.G', 1, 'admin', NULL, NULL, NULL, '2025-09-17 05:35:04', '2025-09-18 15:44:45'),
-(2, 'Juan DelaCruz', 'juandelacruz@gmail.com', NULL, '$2y$12$YZ15IPHlvcfGhp5RA3etB.jSapoGVxvKyv1uC5toksWSHOy.qvw6K', 0, 'student', NULL, NULL, NULL, '2025-09-17 05:35:32', '2025-09-17 05:35:32');
+INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `role`, `otp`, `otp_expires_at`, `remember_token`, `created_at`, `updated_at`, `department`, `cluster`, `group_no`) VALUES
+(1, 'Admin', 'bretbaa12@gmail.com', '2025-09-23 01:16:11', '$2y$12$oo2oGMnoPbW2eBRlh4NgY.OqPWJHmtpfbRxlsLixLwGHtF8iFCa.G', 1, 'admin', NULL, NULL, NULL, '2025-09-17 05:35:04', '2025-09-23 01:16:11', NULL, NULL, NULL),
+(2, 'Juan DelaCruz', 'juandelacruz@gmail.com', NULL, '$2y$12$YZ15IPHlvcfGhp5RA3etB.jSapoGVxvKyv1uC5toksWSHOy.qvw6K', 0, 'student', NULL, NULL, NULL, '2025-09-17 05:35:32', '2025-09-17 05:35:32', 'BSIT', 1, 4);
 
 --
 -- Indexes for dumped tables
@@ -432,6 +516,14 @@ ALTER TABLE `submissions`
   ADD KEY `submissions_user_id_foreign` (`user_id`);
 
 --
+-- Indexes for table `submission_histories`
+--
+ALTER TABLE `submission_histories`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `submission_histories_submission_id_foreign` (`submission_id`),
+  ADD KEY `submission_histories_user_id_foreign` (`user_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -446,7 +538,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `committees`
 --
 ALTER TABLE `committees`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -470,13 +562,13 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `otps`
@@ -494,7 +586,13 @@ ALTER TABLE `resubmission_histories`
 -- AUTO_INCREMENT for table `submissions`
 --
 ALTER TABLE `submissions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- AUTO_INCREMENT for table `submission_histories`
+--
+ALTER TABLE `submission_histories`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -535,6 +633,13 @@ ALTER TABLE `resubmission_histories`
 --
 ALTER TABLE `submissions`
   ADD CONSTRAINT `submissions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `submission_histories`
+--
+ALTER TABLE `submission_histories`
+  ADD CONSTRAINT `submission_histories_submission_id_foreign` FOREIGN KEY (`submission_id`) REFERENCES `submissions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `submission_histories_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
