@@ -23,7 +23,7 @@ class OtpAuthController extends Controller
 
         // Optional: Pass remaining time to the view for countdown
         $expiresAt = session('otp_expires_at');
-        $remainingSeconds = $expiresAt ? Carbon::now()->diffInSeconds(new Carbon($expiresAt)) : 0;
+        $remainingSeconds = $expiresAt ? Carbon::createFromTimestamp($expiresAt)->diffInSeconds(Carbon::now()) : 0;
         
         return view('auth.otp_verify', ['remainingSeconds' => $remainingSeconds]);
     }
@@ -33,36 +33,39 @@ class OtpAuthController extends Controller
      */
     public function sendOtp(Request $request)
     {
-        // Find the user. In a real-world scenario, you'd find this user based on their login attempt.
-        // For this example, let's assume the user's email is submitted.
+        
         $request->validate(['email' => 'required|email|exists:users,email']);
         $user = User::where('email', $request->email)->first();
 
-        // 1. Generate the OTP
-        $otp = rand(100000, 999999);
-
-        // 2. Set the expiration time (e.g., 2 minutes from now)
-        $expiresAt = now()->addMinutes(2);
-
-        // 3. Update the user record with the new OTP and its expiration
-        $user->otp = $otp;
-        $user->otp_expires_at = $expiresAt;
-        $user->save();
+        // Check if user already has a valid OTP
+        if ($user->otp && $user->otp_expires_at && $user->otp_expires_at > now()) {
+            // Use existing OTP
+            $otp = $user->otp;
+            $expiresAt = $user->otp_expires_at;
+        } else {
+            // Generate new OTP
+            $otp = rand(100000, 999999);
+            $expiresAt = now()->addDays(3);
+            
+            // Update the user record with the new OTP and its expiration
+            $user->otp = $otp;
+            $user->otp_expires_at = $expiresAt;
+            $user->save();
+            
+            // Send the OTP via email only for new OTP
+            try {
+                Mail::to($user->email)->send(new OtpMail($otp));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send OTP email: ' . $e->getMessage());
+                return back()->with('error', 'Failed to send OTP. Please try again.');
+            }
+        }
         
-        // 4. Store user ID and expiration time in the session
+        // Store user ID and expiration time in the session
         session([
             'otp_user_id' => $user->id,
             'otp_expires_at' => $expiresAt->timestamp
         ]);
-
-        // 5. Send the OTP via email
-        try {
-            Mail::to($user->email)->send(new OtpMail($otp));
-        } catch (\Exception $e) {
-            // Log the error for debugging purposes
-            \Log::error('Failed to send OTP email: ' . $e->getMessage());
-            return back()->with('error', 'Failed to send OTP. Please try again.');
-        }
 
         // Return a response, maybe redirect to the verification form
         return redirect()->route('otp.verify.form');
@@ -97,7 +100,7 @@ class OtpAuthController extends Controller
             ]);
         }
 
-        if ($user->otp !== $request->otp) {
+        if ((string)$user->otp !== (string)$request->otp) {
             return response()->json([
                 'success' => false,
                 'message' => 'Incorrect OTP. Please try again.'
@@ -107,14 +110,13 @@ class OtpAuthController extends Controller
         // OTP is valid
         Auth::login($user);
 
-        $user->otp = null;
-        $user->otp_expires_at = null;
-        $user->email_verified_at = now(); // Add this line to mark the email as verified
+        // Keep OTP valid for 3 days - don't clear it
+        $user->email_verified_at = now();
         $user->save();
         
         session()->forget('otp_user_id');
 
-        $redirectUrl = $user->role === 'admin' ? route('admin.dashboard') : route('student.dashboard');
+        $redirectUrl = $user->role === 'admin' ? route('admin.dashboard') : route('std-dashboard');
         
         return response()->json([
             'success' => true,

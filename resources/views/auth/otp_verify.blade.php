@@ -127,7 +127,7 @@
                 </div>
 
                 <div class="text-center mb-4 text-secondary">
-                    Your OTP is valid for <span id="countdown">60</span> seconds.
+                    Your OTP is valid for 3 days.
                 </div>
 
                 <form method="POST" action="{{ route('otp.verify.submit') }}">
@@ -171,18 +171,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Countdown timer script (keep this as is)
-        let timeLeft = 60;
-        const countdownEl = document.getElementById('countdown');
-        const timer = setInterval(() => {
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                countdownEl.textContent = 'Expired';
-            } else {
-                countdownEl.textContent = timeLeft;
-                timeLeft--;
-            }
-        }, 1000);
+        // No countdown timer needed for 3-day OTP
     
         // Get the form and the modal element
         const otpForm = document.querySelector('form');

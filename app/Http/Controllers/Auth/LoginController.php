@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class LoginController extends Controller
 {
@@ -35,14 +36,27 @@ class LoginController extends Controller
     // ✅ Check role before sending OTP
     if ($user->role === 'admin') {
         // Admin → require OTP
-        $otp = rand(100000, 999999);
-        $user->otp = $otp;
-        $user->otp_expires_at = now()->addMinutes(5);
-        $user->save();
+        // Check if user already has a valid OTP
+        if ($user->otp && $user->otp_expires_at && $user->otp_expires_at > now()) {
+            // Use existing OTP
+            $expiresAt = Carbon::parse($user->otp_expires_at);
+        } else {
+            // Generate new OTP
+            $otp = rand(100000, 999999);
+            $expiresAt = now()->addDays(3);
+            
+            $user->otp = $otp;
+            $user->otp_expires_at = $expiresAt;
+            $user->save();
+            
+            // Send email only for new OTP
+            Mail::to($user->email)->send(new OtpMail($otp));
+        }
 
-        Mail::to($user->email)->send(new OtpMail($otp));
-
-        session(['otp_user_id' => $user->id]);
+        session([
+            'otp_user_id' => $user->id,
+            'otp_expires_at' => $expiresAt->timestamp
+        ]);
 
         return redirect()->route('otp.verify.form');
     } elseif ($user->role === 'student') {
