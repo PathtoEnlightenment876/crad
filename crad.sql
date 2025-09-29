@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 22, 2025 at 10:54 PM
+-- Generation Time: Sep 29, 2025 at 10:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -70,11 +70,8 @@ CREATE TABLE `committees` (
 --
 
 INSERT INTO `committees` (`id`, `submission_id`, `role`, `name`, `department`, `created_at`, `updated_at`, `adviser_name`, `panel1`, `panel2`, `panel3`) VALUES
-(6, 1, NULL, NULL, NULL, '2025-09-20 02:58:53', '2025-09-20 02:58:53', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
-(7, 10, NULL, NULL, NULL, '2025-09-22 14:33:46', '2025-09-22 14:33:46', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
-(8, 13, NULL, NULL, NULL, '2025-09-22 14:46:29', '2025-09-22 14:46:29', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
-(9, 14, NULL, NULL, NULL, '2025-09-23 02:48:32', '2025-09-23 02:48:32', 'Prof John Doe', 'Doc John Doe', 'Doc John Doe', 'Doc John Doe'),
-(11, 17, NULL, NULL, NULL, '2025-09-23 03:10:51', '2025-09-23 03:10:51', 'bret', 'Doc John Doe', 'Doc. John Doe', 'Doc John Doe');
+(11, 17, NULL, NULL, NULL, '2025-09-23 03:10:51', '2025-09-23 03:10:51', 'bret', 'Doc John Doe', 'Doc. John Doe', 'Doc John Doe'),
+(12, 18, NULL, NULL, NULL, '2025-09-30 01:47:55', '2025-09-30 01:47:55', 'bret', 'Doc John Doe', 'Doc. John Doe', 'Doc John Doe');
 
 -- --------------------------------------------------------
 
@@ -186,7 +183,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (29, '2025_09_17_230035_add_due_date_to_submissions_table', 11),
 (30, '2025_09_17_230404_add_chapter_to_submissions_table', 12),
 (31, '2025_09_22_181526_add_department_cluster_group_to_users_table', 13),
-(32, '2025_09_22_191852_create_submission_histories_table', 14);
+(32, '2025_09_22_191852_create_submission_histories_table', 14),
+(33, '2025_09_29_174814_add_user_id_to_otps_table', 1);
 
 -- --------------------------------------------------------
 
@@ -351,20 +349,12 @@ CREATE TABLE `submissions` (
 --
 
 INSERT INTO `submissions` (`id`, `user_id`, `title`, `file_path`, `department`, `cluster`, `group_no`, `status`, `submitted_by`, `feedback`, `created_at`, `updated_at`, `due_date`, `chapter`) VALUES
-(1, 2, 'SMS 3', 'submissions/gTKs7NNLynkdeeohn42v5IOKd6nGjSDyNPSK0W7L.docx', 'BLIS', 1, 9, 'Approved', 'Unknown', 'Good job', '2025-09-17 05:42:23', '2025-09-17 07:29:14', NULL, NULL),
-(4, 2, 'Proposal 1', 'submissions/2LBTMB8W9nmqccuIN5Ib2jLG5b3NlWBWHOkMjCmO.docx', 'BSP', 3, 9, 'Approved', 'Unknown', 'Good', '2025-09-17 06:56:26', '2025-09-22 14:16:34', NULL, NULL),
-(5, 2, 'Hotel And Restaurant Services System with Smart Booking', 'submissions/5xVnAXyZGjSovOzXsn0vCPCQ8IIH4O4Pi4RorAy2.docx', 'BSIT', 7, 10, 'Approved', 'Unknown', 'Nice', '2025-09-17 08:02:29', '2025-09-17 08:03:11', NULL, NULL),
-(7, 2, 'Proposal 3', 'submissions/2zp4epWtcMUgX5PqLjiYtSHDWIg4lymg0z61G8MR.docx', 'BSP', 1, 1, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 04:43:52', '2025-09-22 14:16:51', NULL, NULL),
-(8, 2, 'Proposal 4', 'submissions/M9n6mxAOonfirRS7C6pXt4luYC7DV2WkRcZ2fR14.docx', 'ENTREP', 9, 8, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 04:56:31', '2025-09-22 14:17:15', NULL, NULL),
-(9, 2, 'Proposal 5', 'submissions/lwScsM649EZM5fhNGtxVcTVPrwtmgTnbJgp5E0bd.docx', 'BSP', 10, 10, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-18 06:08:17', '2025-09-22 14:17:38', NULL, NULL),
-(10, 2, 'Proposal 2-revised', 'submissions/b1pdmgXU7ef1FjHezbHe5hUd0UqHPgYWV6Ibrj7J.docx', 'BSOA', 8, 7, 'Resubmitted', 'Juan DelaCruz', 'Ok', '2025-09-18 15:46:28', '2025-09-22 21:21:14', NULL, NULL),
-(12, 2, 'Proposal 7 -revised', 'submissions/YNOSpcb9Nz1xhl8tNuj0XQbFT1ay0Tc71hvyW6Ox.docx', 'BSCPE', 7, 6, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-22 14:35:16', '2025-09-22 14:41:58', NULL, NULL),
-(13, 2, 'Proposal 8', 'submissions/o7hNENHJJGU8TnXQgJ4w4f6N8z9DF10XCJR9m3fl.docx', 'BSIT', 1, 2, 'Approved', 'Juan DelaCruz', 'Good', '2025-09-22 14:45:22', '2025-09-22 14:45:58', NULL, NULL),
-(14, 2, 'Proposal 9', 'submissions/TL5l4LUWKmGaAYI88fUnprYRMMg2bIMSWQ6TSP2m.docx', 'N/A', 0, 0, 'Approved', 'Unknown', 'Good', '2025-09-23 00:33:58', '2025-09-23 01:22:38', NULL, NULL),
-(15, 2, 'Research Forum', 'submissions/zD4NTqAGwGLywx8q1IzyHAXQonLWc7Xuv7XzIaSe.docx', 'N/A', 0, 0, 'Approved', 'Unknown', 'Good', '2025-09-23 01:37:45', '2025-09-23 02:43:03', NULL, NULL),
-(16, 2, 'Research Forum', 'submissions/MjNynkhwcfalAAlSXNhjUs9c3Jast2D9UlFnLZvi.docx', 'N/A', 0, 0, 'Approved', 'Unknown', 'hhhghghgh', '2025-09-23 02:45:00', '2025-09-23 03:19:14', NULL, NULL),
 (17, 2, 'Clearance', 'submissions/4e3B20NWCtRZhr1u0i9L00HX0AT2cMYdgfg7cIUi.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', 'Nice', '2025-09-23 02:51:21', '2025-09-23 03:05:52', NULL, NULL),
-(18, 2, 'Research Forum', 'submissions/2bfF8zQyWey0Hzigi20fm09N60iYWQV3ErtaZA8z.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', NULL, '2025-09-23 03:14:38', '2025-09-23 03:17:32', NULL, NULL);
+(18, 2, 'Research Forum', 'submissions/2bfF8zQyWey0Hzigi20fm09N60iYWQV3ErtaZA8z.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', NULL, '2025-09-23 03:14:38', '2025-09-23 03:17:32', NULL, NULL),
+(19, 2, 'Research Title Proposal', 'submissions/QzGGpfqavyX1jEIbKJ38hptWNLpXBWj77o5RffXd.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:41:47', '2025-09-30 02:41:47', NULL, NULL),
+(20, 2, 'Clearance', 'submissions/ENLoHqfL8iW5CrXsPkZfmBoRIleMC8r7449BTlgz.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:42:21', '2025-09-30 02:42:21', NULL, NULL),
+(21, 2, 'Clearance', 'submissions/hb5Y8blcwP3TkkI8BjAiNvZh7ItPDFVkikcDEcVg.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:42:39', '2025-09-30 02:42:39', NULL, NULL),
+(22, 2, 'Clearance', 'submissions/ZOq0dSnSJG7UiPhIlYg6ivk2JHxdRVxbU8ka3tyW.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:43:01', '2025-09-30 02:43:01', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -415,7 +405,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `role`, `otp`, `otp_expires_at`, `remember_token`, `created_at`, `updated_at`, `department`, `cluster`, `group_no`) VALUES
-(1, 'Admin', 'bretbaa12@gmail.com', '2025-09-23 01:16:11', '$2y$12$oo2oGMnoPbW2eBRlh4NgY.OqPWJHmtpfbRxlsLixLwGHtF8iFCa.G', 1, 'admin', NULL, NULL, NULL, '2025-09-17 05:35:04', '2025-09-23 01:16:11', NULL, NULL, NULL),
+(1, 'Admin', 'bretbaa12@gmail.com', '2025-09-30 02:34:57', '$2y$12$oo2oGMnoPbW2eBRlh4NgY.OqPWJHmtpfbRxlsLixLwGHtF8iFCa.G', 1, 'admin', '364948', '2025-10-03 02:32:58', NULL, '2025-09-17 05:35:04', '2025-09-30 02:34:57', NULL, NULL, NULL),
 (2, 'Juan DelaCruz', 'juandelacruz@gmail.com', NULL, '$2y$12$YZ15IPHlvcfGhp5RA3etB.jSapoGVxvKyv1uC5toksWSHOy.qvw6K', 0, 'student', NULL, NULL, NULL, '2025-09-17 05:35:32', '2025-09-17 05:35:32', 'BSIT', 1, 4);
 
 --
@@ -538,7 +528,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `committees`
 --
 ALTER TABLE `committees`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -562,7 +552,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -586,7 +576,7 @@ ALTER TABLE `resubmission_histories`
 -- AUTO_INCREMENT for table `submissions`
 --
 ALTER TABLE `submissions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `submission_histories`
