@@ -54,7 +54,7 @@
                 </li>
 
                 <li>
-                    <a href="#module6drop" class="nav-link">
+                    <a href="{{ url('/def-sched') }}" class="nav-link">
                         <i class="bi bi-calendar4-week fs-5"></i>
                         <span>Defense Scheduling </span>
                     </a>

@@ -11,7 +11,7 @@ class Submission extends Model
 {
     protected $fillable = [
         'user_id',
-        'title',
+        'documents',
         'department',
         'cluster',
         'group_no',

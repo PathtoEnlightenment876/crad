@@ -72,45 +72,13 @@
                 </div>
                 <div class="d-flex align-items-center">
                     <span id="current-time" class="me-3 d-none d-sm-inline"></span>
-                    <div class="dropdown me-3">
-                        <a href="#" class="text-dark position-relative" id="notificationDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="me-3">
+                        <a href="#" class="text-dark position-relative" data-bs-toggle="modal" data-bs-target="#notificationModal">
                             <i class="bi bi-bell fs-5"></i>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ $notifications->where('read', false)->count() }}
                             </span>
                         </a>
-                    
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown"
-                            style="width: 300px; max-height: 400px; overflow-y: auto;">
-                            <li class="dropdown-header fw-bold">Notifications</li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                    
-                            @forelse($notifications ?? collect() as $notification)
-                            <li class="dropdown-item d-flex align-items-start">
-                                    @if($notification->type == 'Approved')
-                                        <i class="bi bi-check-circle text-success me-2 fs-5"></i>
-                                    @elseif($notification->type == 'Rejected')
-                                        <i class="bi bi-x-circle text-danger me-2 fs-5"></i>
-                                    @else
-                                        <i class="bi bi-chat-left-text text-primary me-2 fs-5"></i>
-                                    @endif
-                                    <div>
-                                        <div>{{ $notification->message }}</div>
-                                        <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
-                                    </div>
-                                </li>
-                            @empty
-                                <li class="dropdown-item text-center text-muted">No notifications</li>
-                            @endforelse
-                    
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a href="{{ route('student.notifications') }}" class="dropdown-item text-center">View all</a></li>
-                        </ul>
                     </div>
                     
 
@@ -190,8 +158,84 @@
     </div>
 </div>
 
+<!-- Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="notificationModalLabel">
+                    <i class="bi bi-bell me-2"></i>Notifications
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="max-height: 500px; overflow-y: auto;">
+                @forelse($notifications ?? collect() as $notification)
+                    <div class="notification-item p-3 border-bottom {{ $notification->read ? '' : 'bg-light' }}">
+                        <div class="d-flex align-items-start">
+                            <div class="notification-icon me-3">
+                                @if($notification->type == 'Approved')
+                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-check-circle text-white"></i>
+                                    </div>
+                                @elseif($notification->type == 'Rejected')
+                                    <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-x-circle text-white"></i>
+                                    </div>
+                                @else
+                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-chat-left-text text-white"></i>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="notification-content flex-grow-1">
+                                <div class="notification-message fw-semibold mb-1">
+                                    {{ $notification->message }}
+                                </div>
+                                <div class="notification-meta d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ $notification->created_at->diffForHumans() }}
+                                    </small>
+                                    @if(!$notification->read)
+                                        <span class="badge bg-primary">New</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-5">
+                        <i class="bi bi-bell-slash text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">No notifications yet</p>
+                    </div>
+                @endforelse
+            </div>
+            <div class="modal-footer">
+                <a href="{{ route('student.notifications') }}" class="btn btn-success">
+                    <i class="bi bi-check-all me-1"></i>Mark All as Read
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+        .notification-item:hover {
+            background-color: #f8f9fa !important;
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none !important;
+        }
+        
+        .notification-icon {
+            flex-shrink: 0;
+        }
+    </style>
 
 
     <script>

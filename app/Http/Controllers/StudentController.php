@@ -96,8 +96,17 @@ public function dashboard()
     $latestSubmission = $submissions->last();
     $submissionStatus = $latestSubmission ? $latestSubmission->status : 'PENDING';
     
-    $approvedCount = $submissions->where('status', 'APPROVED')->count();
-    $progress = min($approvedCount, 6);
+    // Calculate progress based on submission types and status
+    $progressSteps = [
+        1 => $submissions->where('type', 'proposal')->where('status', 'Approved')->count() > 0,
+        2 => $submissions->where('type', 'research_forum')->where('status', 'Approved')->count() > 0,
+        3 => $submissions->where('type', 'clearance_1')->where('status', 'Approved')->count() > 0,
+        4 => $submissions->where('type', 'pre_oral')->where('status', 'Approved')->count() > 0,
+        5 => $submissions->where('type', 'clearance_2')->where('status', 'Approved')->count() > 0,
+        6 => $submissions->where('type', 'final_defense')->where('status', 'Approved')->count() > 0,
+    ];
+    
+    $progress = collect($progressSteps)->filter()->count();
     
     $committee = $submissionWithCommittee ? $submissionWithCommittee->committee : null;
     
@@ -117,7 +126,7 @@ public function dashboard()
         'panels' => $panels
     ];
 
-    return view('std-dashboard', compact('upcomingSubmissions', 'chapters', 'submissionStatus', 'progress', 'group'));
+    return view('std-dashboard', compact('upcomingSubmissions', 'chapters', 'submissionStatus', 'progress', 'progressSteps', 'group'));
 }
 
     public function submission()
@@ -148,7 +157,7 @@ public function dashboard()
     Submission::create([
         'user_id' => auth()->id(),
         'submitted_by' => auth()->user()->name, // or whichever field you want
-        'title' => $request->title,
+        'documents' => $request->documents,
         'department' => $request->department,
         'cluster' => $request->cluster,
         'group_no' => $request->group_no,
@@ -160,6 +169,18 @@ public function dashboard()
     return back()->with('success', 'Submission uploaded successfully!');
 }
 
-
+public function notifications()
+{
+    $notifications = Notification::where('user_id', auth()->id())
+                                 ->orderBy('created_at', 'desc')
+                                 ->get();
+    
+    // Mark all notifications as read
+    Notification::where('user_id', auth()->id())
+                ->where('read', false)
+                ->update(['read' => true]);
+    
+    return redirect()->back()->with('success', 'All notifications marked as read!');
+}
 
 }

@@ -68,23 +68,46 @@
                 <div class="card-header bg-dark text-white fw-bold">
                     <i class="fas fa-chart-line me-2"></i> Research Progress
                 </div>
-                <div class="card-body text-center">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        @for($i = 1; $i <= 6; $i++)
-                            <div class="flex-fill mx-1">
-                                <div class="progress-step {{ $progress >= $i ? 'completed' : '' }}" 
-                                     style="height: 20px; border-radius: 10px; background-color: {{ $progress >= $i ? '#28a745' : '#dee2e6' }};">
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-12">
+                            <h6 class="mb-3">Progress: {{ $progress }}/6 Steps Completed</h6>
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ ($progress/6)*100 }}%" 
+                                     aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="6">
+                                    {{ round(($progress/6)*100) }}%
                                 </div>
-                                <small class="d-block mt-1">
-                                    @switch($i)
-                                        @case(1) Proposal @break
-                                        @case(2) Research Forum @break
-                                        @case(3) Clearance @break
-                                        @case(4) Pre-Oral @break
-                                        @case(5) Clearance @break
-                                        @case(6) Final Defense @break
-                                    @endswitch
-                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2">
+                        @php
+                            $stepNames = [
+                                1 => 'Proposal',
+                                2 => 'Research Forum', 
+                                3 => 'Clearance 1',
+                                4 => 'Pre-Oral',
+                                5 => 'Clearance 2',
+                                6 => 'Final Defense'
+                            ];
+                        @endphp
+                        
+                        @for($i = 1; $i <= 6; $i++)
+                            <div class="col-md-4 col-sm-6 mb-2">
+                                <div class="card border-0 {{ ($progressSteps[$i] ?? false) ? 'bg-success text-white' : 'bg-light' }}">
+                                    <div class="card-body py-2 px-3 text-center">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            @if($progressSteps[$i] ?? false)
+                                                <i class="bi bi-check-circle-fill me-2"></i>
+                                            @else
+                                                <i class="bi bi-circle me-2 text-muted"></i>
+                                            @endif
+                                            <small class="fw-semibold">{{ $stepNames[$i] }}</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         @endfor
                     </div>

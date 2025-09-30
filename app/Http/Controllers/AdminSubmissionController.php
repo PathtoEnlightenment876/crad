@@ -100,9 +100,23 @@ public function updateStatus(Request $request, $id)
             abort(404, 'File not found');
         }
         
+        $fileExtension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $fileName = basename($submission->file_path);
+        
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        
+        $contentType = $mimeTypes[$fileExtension] ?? 'application/octet-stream';
+        
+        // For PDFs, display inline; for others, force download
+        $disposition = ($fileExtension === 'pdf') ? 'inline' : 'attachment';
+        
         return response()->file($filePath, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($submission->file_path) . '"'
+            'Content-Type' => $contentType,
+            'Content-Disposition' => $disposition . '; filename="' . $fileName . '"'
         ]);
     }
 

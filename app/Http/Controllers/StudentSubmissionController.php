@@ -55,7 +55,7 @@ class StudentSubmissionController extends Controller
     public function store(Request $request)
 {
     $request->validate([
-        'title' => 'required|string|max:255',
+        'documents' => 'required|string|max:255',
         'file'  => 'required|mimes:pdf,doc,docx|max:2048',
     ]);
     $path = $request->file('file')->store('submissions', 'public');
@@ -64,7 +64,7 @@ class StudentSubmissionController extends Controller
 
     Submission::create([
         'user_id' => $user->id,
-        'title' => $request->title,
+        'documents' => $request->documents,
         'department' => $user->department ?? $request->department ?? 'N/A',
         'cluster' => $user->cluster ?? $request->cluster ?? 0,
         'group_no' => $user->group_no ?? $request->group_no ?? 0,
@@ -96,12 +96,12 @@ public function resubmit(Request $request, $id)
 
     // validate
     $request->validate([
-        'title' => 'required|string|max:255',
+        'documents' => 'required|string|max:255',
         'file'  => 'required|mimes:pdf,doc,docx|max:2048',
     ]);
 
     // update title
-    $submission->title = $request->title;
+    $submission->documents = $request->documents;
 
     // upload new file
     if ($request->hasFile('file')) {

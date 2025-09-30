@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 29, 2025 at 10:03 PM
+-- Generation Time: Sep 30, 2025 at 07:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -64,14 +64,6 @@ CREATE TABLE `committees` (
   `panel2` varchar(255) DEFAULT NULL,
   `panel3` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `committees`
---
-
-INSERT INTO `committees` (`id`, `submission_id`, `role`, `name`, `department`, `created_at`, `updated_at`, `adviser_name`, `panel1`, `panel2`, `panel3`) VALUES
-(11, 17, NULL, NULL, NULL, '2025-09-23 03:10:51', '2025-09-23 03:10:51', 'bret', 'Doc John Doe', 'Doc. John Doe', 'Doc John Doe'),
-(12, 18, NULL, NULL, NULL, '2025-09-30 01:47:55', '2025-09-30 01:47:55', 'bret', 'Doc John Doe', 'Doc. John Doe', 'Doc John Doe');
 
 -- --------------------------------------------------------
 
@@ -207,65 +199,78 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `message`, `read`, `created_at`, `updated_at`) VALUES
-(1, 2, 'status', 'Your submission \'HAHAHAH\' has been Approved. ', 0, '2025-09-18 05:38:33', '2025-09-18 05:38:33'),
-(2, 2, 'feedback', 'Your submission \'HAHAHAH\' has been Approved. Feedback: Nice', 0, '2025-09-18 05:38:44', '2025-09-18 05:38:44'),
-(3, 2, 'feedback', 'Your submission \'Dark Psych\' has been Resubmitted. Feedback: Ok', 0, '2025-09-18 05:45:27', '2025-09-18 05:45:27'),
-(4, 2, 'feedback', 'Your submission \'Dark Psych\' has been Resubmitted. Feedback: Ok', 0, '2025-09-18 05:45:28', '2025-09-18 05:45:28'),
-(5, 2, 'status', 'Your submission \'Dark Psych\' has been Approved. ', 0, '2025-09-18 05:45:36', '2025-09-18 05:45:36'),
-(6, 2, 'feedback', 'Your submission \'Stoic Philosophy\' has been Pending. Feedback: Good', 0, '2025-09-18 06:08:40', '2025-09-18 06:08:40'),
-(7, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Approved. ', 0, '2025-09-18 06:08:49', '2025-09-18 06:08:49'),
-(8, 2, 'status', 'Your submission \'HAHAHAHA\' has been Rejected. ', 0, '2025-09-18 15:47:09', '2025-09-18 15:47:09'),
-(9, 2, 'status', 'Your submission \'HAHAHAHA\' has been Approved. ', 0, '2025-09-18 15:48:18', '2025-09-18 15:48:18'),
-(10, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Approved. Feedback: Nice One', 0, '2025-09-18 15:48:39', '2025-09-18 15:48:39'),
-(11, 2, 'status', 'Your submission \'HAHAHAHA\' has been Rejected. ', 0, '2025-09-20 01:47:53', '2025-09-20 01:47:53'),
-(12, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Rejected. Feedback: Change your Title', 0, '2025-09-20 01:49:51', '2025-09-20 01:49:51'),
+(1, 2, 'status', 'Your submission \'HAHAHAH\' has been Approved. ', 1, '2025-09-18 05:38:33', '2025-09-30 22:39:04'),
+(2, 2, 'feedback', 'Your submission \'HAHAHAH\' has been Approved. Feedback: Nice', 1, '2025-09-18 05:38:44', '2025-09-30 22:39:04'),
+(3, 2, 'feedback', 'Your submission \'Dark Psych\' has been Resubmitted. Feedback: Ok', 1, '2025-09-18 05:45:27', '2025-09-30 22:39:04'),
+(4, 2, 'feedback', 'Your submission \'Dark Psych\' has been Resubmitted. Feedback: Ok', 1, '2025-09-18 05:45:28', '2025-09-30 22:39:04'),
+(5, 2, 'status', 'Your submission \'Dark Psych\' has been Approved. ', 1, '2025-09-18 05:45:36', '2025-09-30 22:39:04'),
+(6, 2, 'feedback', 'Your submission \'Stoic Philosophy\' has been Pending. Feedback: Good', 1, '2025-09-18 06:08:40', '2025-09-30 22:39:04'),
+(7, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Approved. ', 1, '2025-09-18 06:08:49', '2025-09-30 22:39:04'),
+(8, 2, 'status', 'Your submission \'HAHAHAHA\' has been Rejected. ', 1, '2025-09-18 15:47:09', '2025-09-30 22:39:04'),
+(9, 2, 'status', 'Your submission \'HAHAHAHA\' has been Approved. ', 1, '2025-09-18 15:48:18', '2025-09-30 22:39:04'),
+(10, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Approved. Feedback: Nice One', 1, '2025-09-18 15:48:39', '2025-09-30 22:39:04'),
+(11, 2, 'status', 'Your submission \'HAHAHAHA\' has been Rejected. ', 1, '2025-09-20 01:47:53', '2025-09-30 22:39:04'),
+(12, 2, 'feedback', 'Your submission \'HAHAHAHA\' has been Rejected. Feedback: Change your Title', 1, '2025-09-20 01:49:51', '2025-09-30 22:39:04'),
 (13, 1, 'status', 'Your submission \'Proposal 1\' has been Rejected. ', 0, '2025-09-20 02:03:08', '2025-09-20 02:03:08'),
 (14, 1, 'status', 'Your submission \'Proposal 1\' has been Approved. ', 0, '2025-09-20 02:08:00', '2025-09-20 02:08:00'),
 (15, 1, 'feedback', 'Your submission \'Proposal 1\' has been Approved. Feedback: Good', 0, '2025-09-20 02:08:14', '2025-09-20 02:08:14'),
-(16, 2, 'feedback', 'Your submission \'Proposal 2\' has been Resubmitted. Feedback: Ok', 0, '2025-09-20 02:22:06', '2025-09-20 02:22:06'),
-(17, 2, 'status', 'Your submission \'Proposal 2\' has been Approved. ', 0, '2025-09-20 02:22:26', '2025-09-20 02:22:26'),
-(18, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Rejected. ', 0, '2025-09-22 14:12:11', '2025-09-22 14:12:11'),
-(19, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Rejected. ', 0, '2025-09-22 14:12:15', '2025-09-22 14:12:15'),
-(20, 2, 'feedback', 'Your submission \'Stoic Philosophy\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:12:31', '2025-09-22 14:12:31'),
-(21, 2, 'status', 'Your submission \'HAHAHAH\' has been Rejected. ', 0, '2025-09-22 14:12:41', '2025-09-22 14:12:41'),
-(22, 2, 'feedback', 'Your submission \'HAHAHAH\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:12:51', '2025-09-22 14:12:51'),
-(23, 2, 'status', 'Your submission \'Dark Psych\' has been Rejected. ', 0, '2025-09-22 14:12:58', '2025-09-22 14:12:58'),
-(24, 2, 'status', 'Your submission \'Dark Psych\' has been Rejected. ', 0, '2025-09-22 14:13:00', '2025-09-22 14:13:00'),
-(25, 2, 'feedback', 'Your submission \'Dark Psych\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:13:09', '2025-09-22 14:13:09'),
-(26, 2, 'status', 'Your submission \'HAHAH\' has been Rejected. ', 0, '2025-09-22 14:13:17', '2025-09-22 14:13:17'),
-(27, 2, 'feedback', 'Your submission \'HAHAH\' has been Rejected. Feedback: Change your Title', 0, '2025-09-22 14:13:26', '2025-09-22 14:13:26'),
-(28, 2, 'feedback', 'Your submission \'Proposal 1\' has been Resubmitted. Feedback: Good', 0, '2025-09-22 14:16:12', '2025-09-22 14:16:12'),
-(29, 2, 'status', 'Your submission \'Proposal 1\' has been Approved. ', 0, '2025-09-22 14:16:34', '2025-09-22 14:16:34'),
-(30, 2, 'status', 'Your submission \'Proposal 3\' has been Approved. ', 0, '2025-09-22 14:16:41', '2025-09-22 14:16:41'),
-(31, 2, 'feedback', 'Your submission \'Proposal 3\' has been Approved. Feedback: Good', 0, '2025-09-22 14:16:51', '2025-09-22 14:16:51'),
-(32, 2, 'status', 'Your submission \'Proposal 4\' has been Approved. ', 0, '2025-09-22 14:16:58', '2025-09-22 14:16:58'),
-(33, 2, 'feedback', 'Your submission \'Proposal 4\' has been Approved. Feedback: Good', 0, '2025-09-22 14:17:15', '2025-09-22 14:17:15'),
-(34, 2, 'status', 'Your submission \'Proposal 5\' has been Approved. ', 0, '2025-09-22 14:17:26', '2025-09-22 14:17:26'),
-(35, 2, 'feedback', 'Your submission \'Proposal 5\' has been Approved. Feedback: Good', 0, '2025-09-22 14:17:39', '2025-09-22 14:17:39'),
-(36, 2, 'feedback', 'Your submission \'Proposal 6\' has been Pending. Feedback: Ok', 0, '2025-09-22 14:35:43', '2025-09-22 14:35:43'),
-(37, 2, 'status', 'Your submission \'Proposal 6\' has been Approved. ', 0, '2025-09-22 14:35:52', '2025-09-22 14:35:52'),
-(38, 2, 'status', 'Your submission \'Proposal 6\' has been Rejected. ', 0, '2025-09-22 14:40:31', '2025-09-22 14:40:31'),
-(39, 2, 'status', 'Your submission \'Proposal 7 -revised\' has been Approved. ', 0, '2025-09-22 14:41:47', '2025-09-22 14:41:47'),
-(40, 2, 'feedback', 'Your submission \'Proposal 7 -revised\' has been Approved. Feedback: Good', 0, '2025-09-22 14:41:59', '2025-09-22 14:41:59'),
-(41, 2, 'status', 'Your submission \'Proposal 8\' has been Approved. ', 0, '2025-09-22 14:45:42', '2025-09-22 14:45:42'),
-(42, 2, 'feedback', 'Your submission \'Proposal 8\' has been Approved. Feedback: Good', 0, '2025-09-22 14:45:58', '2025-09-22 14:45:58'),
-(43, 2, 'status', 'Your submission \'Proposal 2\' has been Pending. ', 0, '2025-09-22 15:14:43', '2025-09-22 15:14:43'),
-(44, 2, 'status', 'Your submission \'Proposal 2\' has been Rejected. ', 0, '2025-09-22 21:20:22', '2025-09-22 21:20:22'),
-(45, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:45', '2025-09-23 01:16:45'),
-(46, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:46', '2025-09-23 01:16:46'),
-(47, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:46', '2025-09-23 01:16:46'),
-(48, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 0, '2025-09-23 01:16:47', '2025-09-23 01:16:47'),
-(49, 2, 'status', 'Your submission \'Research Title Proposal\' has been Rejected. ', 0, '2025-09-23 01:16:56', '2025-09-23 01:16:56'),
-(50, 2, 'feedback', 'Your submission \'Proposal 9\' has been Resubmitted. Feedback: Good', 0, '2025-09-23 01:22:30', '2025-09-23 01:22:30'),
-(51, 2, 'status', 'Your submission \'Proposal 9\' has been Approved. ', 0, '2025-09-23 01:22:38', '2025-09-23 01:22:38'),
-(52, 2, 'status', 'Your submission \'Proposal 9\' has been Approved. ', 0, '2025-09-23 01:22:39', '2025-09-23 01:22:39'),
-(53, 2, 'status', 'Your proposal \'Research Forum\' has been rejected.', 0, '2025-09-23 02:46:07', '2025-09-23 02:46:07'),
-(54, 2, 'feedback', 'New feedback received for \'Research Forum\': hhhghghgh', 0, '2025-09-23 02:46:08', '2025-09-23 02:46:08'),
-(55, 2, 'status', 'Your proposal \'Clearance\' status has been updated to Pending.', 0, '2025-09-23 03:05:36', '2025-09-23 03:05:36'),
-(56, 2, 'feedback', 'New feedback received for \'Clearance\': Nice', 0, '2025-09-23 03:05:36', '2025-09-23 03:05:36'),
-(57, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 0, '2025-09-23 03:05:52', '2025-09-23 03:05:52'),
-(58, 2, 'status', 'Your proposal \'Research Forum\' has been approved.', 0, '2025-09-23 03:17:32', '2025-09-23 03:17:32'),
-(59, 2, 'status', 'Your proposal \'Research Forum\' has been approved.', 0, '2025-09-23 03:19:14', '2025-09-23 03:19:14');
+(16, 2, 'feedback', 'Your submission \'Proposal 2\' has been Resubmitted. Feedback: Ok', 1, '2025-09-20 02:22:06', '2025-09-30 22:39:04'),
+(17, 2, 'status', 'Your submission \'Proposal 2\' has been Approved. ', 1, '2025-09-20 02:22:26', '2025-09-30 22:39:04'),
+(18, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Rejected. ', 1, '2025-09-22 14:12:11', '2025-09-30 22:39:04'),
+(19, 2, 'status', 'Your submission \'Stoic Philosophy\' has been Rejected. ', 1, '2025-09-22 14:12:15', '2025-09-30 22:39:04'),
+(20, 2, 'feedback', 'Your submission \'Stoic Philosophy\' has been Rejected. Feedback: Change your Title', 1, '2025-09-22 14:12:31', '2025-09-30 22:39:04'),
+(21, 2, 'status', 'Your submission \'HAHAHAH\' has been Rejected. ', 1, '2025-09-22 14:12:41', '2025-09-30 22:39:04'),
+(22, 2, 'feedback', 'Your submission \'HAHAHAH\' has been Rejected. Feedback: Change your Title', 1, '2025-09-22 14:12:51', '2025-09-30 22:39:04'),
+(23, 2, 'status', 'Your submission \'Dark Psych\' has been Rejected. ', 1, '2025-09-22 14:12:58', '2025-09-30 22:39:04'),
+(24, 2, 'status', 'Your submission \'Dark Psych\' has been Rejected. ', 1, '2025-09-22 14:13:00', '2025-09-30 22:39:04'),
+(25, 2, 'feedback', 'Your submission \'Dark Psych\' has been Rejected. Feedback: Change your Title', 1, '2025-09-22 14:13:09', '2025-09-30 22:39:04'),
+(26, 2, 'status', 'Your submission \'HAHAH\' has been Rejected. ', 1, '2025-09-22 14:13:17', '2025-09-30 22:39:04'),
+(27, 2, 'feedback', 'Your submission \'HAHAH\' has been Rejected. Feedback: Change your Title', 1, '2025-09-22 14:13:26', '2025-09-30 22:39:04'),
+(28, 2, 'feedback', 'Your submission \'Proposal 1\' has been Resubmitted. Feedback: Good', 1, '2025-09-22 14:16:12', '2025-09-30 22:39:04'),
+(29, 2, 'status', 'Your submission \'Proposal 1\' has been Approved. ', 1, '2025-09-22 14:16:34', '2025-09-30 22:39:04'),
+(30, 2, 'status', 'Your submission \'Proposal 3\' has been Approved. ', 1, '2025-09-22 14:16:41', '2025-09-30 22:39:04'),
+(31, 2, 'feedback', 'Your submission \'Proposal 3\' has been Approved. Feedback: Good', 1, '2025-09-22 14:16:51', '2025-09-30 22:39:04'),
+(32, 2, 'status', 'Your submission \'Proposal 4\' has been Approved. ', 1, '2025-09-22 14:16:58', '2025-09-30 22:39:04'),
+(33, 2, 'feedback', 'Your submission \'Proposal 4\' has been Approved. Feedback: Good', 1, '2025-09-22 14:17:15', '2025-09-30 22:39:04'),
+(34, 2, 'status', 'Your submission \'Proposal 5\' has been Approved. ', 1, '2025-09-22 14:17:26', '2025-09-30 22:39:04'),
+(35, 2, 'feedback', 'Your submission \'Proposal 5\' has been Approved. Feedback: Good', 1, '2025-09-22 14:17:39', '2025-09-30 22:39:04'),
+(36, 2, 'feedback', 'Your submission \'Proposal 6\' has been Pending. Feedback: Ok', 1, '2025-09-22 14:35:43', '2025-09-30 22:39:04'),
+(37, 2, 'status', 'Your submission \'Proposal 6\' has been Approved. ', 1, '2025-09-22 14:35:52', '2025-09-30 22:39:04'),
+(38, 2, 'status', 'Your submission \'Proposal 6\' has been Rejected. ', 1, '2025-09-22 14:40:31', '2025-09-30 22:39:04'),
+(39, 2, 'status', 'Your submission \'Proposal 7 -revised\' has been Approved. ', 1, '2025-09-22 14:41:47', '2025-09-30 22:39:04'),
+(40, 2, 'feedback', 'Your submission \'Proposal 7 -revised\' has been Approved. Feedback: Good', 1, '2025-09-22 14:41:59', '2025-09-30 22:39:04'),
+(41, 2, 'status', 'Your submission \'Proposal 8\' has been Approved. ', 1, '2025-09-22 14:45:42', '2025-09-30 22:39:04'),
+(42, 2, 'feedback', 'Your submission \'Proposal 8\' has been Approved. Feedback: Good', 1, '2025-09-22 14:45:58', '2025-09-30 22:39:04'),
+(43, 2, 'status', 'Your submission \'Proposal 2\' has been Pending. ', 1, '2025-09-22 15:14:43', '2025-09-30 22:39:04'),
+(44, 2, 'status', 'Your submission \'Proposal 2\' has been Rejected. ', 1, '2025-09-22 21:20:22', '2025-09-30 22:39:04'),
+(45, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 1, '2025-09-23 01:16:45', '2025-09-30 22:39:04'),
+(46, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 1, '2025-09-23 01:16:46', '2025-09-30 22:39:04'),
+(47, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 1, '2025-09-23 01:16:46', '2025-09-30 22:39:04'),
+(48, 2, 'status', 'Your submission \'Research Title Proposal\' has been Approved. ', 1, '2025-09-23 01:16:47', '2025-09-30 22:39:04'),
+(49, 2, 'status', 'Your submission \'Research Title Proposal\' has been Rejected. ', 1, '2025-09-23 01:16:56', '2025-09-30 22:39:04'),
+(50, 2, 'feedback', 'Your submission \'Proposal 9\' has been Resubmitted. Feedback: Good', 1, '2025-09-23 01:22:30', '2025-09-30 22:39:04'),
+(51, 2, 'status', 'Your submission \'Proposal 9\' has been Approved. ', 1, '2025-09-23 01:22:38', '2025-09-30 22:39:04'),
+(52, 2, 'status', 'Your submission \'Proposal 9\' has been Approved. ', 1, '2025-09-23 01:22:39', '2025-09-30 22:39:04'),
+(53, 2, 'status', 'Your proposal \'Research Forum\' has been rejected.', 1, '2025-09-23 02:46:07', '2025-09-30 22:39:04'),
+(54, 2, 'feedback', 'New feedback received for \'Research Forum\': hhhghghgh', 1, '2025-09-23 02:46:08', '2025-09-30 22:39:04'),
+(55, 2, 'status', 'Your proposal \'Clearance\' status has been updated to Pending.', 1, '2025-09-23 03:05:36', '2025-09-30 22:39:04'),
+(56, 2, 'feedback', 'New feedback received for \'Clearance\': Nice', 1, '2025-09-23 03:05:36', '2025-09-30 22:39:04'),
+(57, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 1, '2025-09-23 03:05:52', '2025-09-30 22:39:04'),
+(58, 2, 'status', 'Your proposal \'Research Forum\' has been approved.', 1, '2025-09-23 03:17:32', '2025-09-30 22:39:04'),
+(59, 2, 'status', 'Your proposal \'Research Forum\' has been approved.', 1, '2025-09-23 03:19:14', '2025-09-30 22:39:04'),
+(60, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 1, '2025-09-30 21:42:22', '2025-09-30 22:39:04'),
+(61, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 1, '2025-09-30 21:42:32', '2025-09-30 22:39:04'),
+(62, 2, 'feedback', 'New feedback received for \'Clearance\': Good', 1, '2025-09-30 21:42:32', '2025-09-30 22:39:04'),
+(63, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 1, '2025-09-30 21:42:38', '2025-09-30 22:39:04'),
+(64, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 1, '2025-09-30 21:42:46', '2025-09-30 22:39:04'),
+(65, 2, 'feedback', 'New feedback received for \'Clearance\': Good', 1, '2025-09-30 21:42:46', '2025-09-30 22:39:04'),
+(66, 2, 'status', 'Your proposal \'Clearance\' has been approved.', 1, '2025-09-30 21:42:50', '2025-09-30 22:39:04'),
+(67, 2, 'status', 'Your proposal \'Research Title Proposal\' has been approved.', 1, '2025-09-30 21:42:54', '2025-09-30 22:39:04'),
+(68, 2, 'status', 'Your proposal \'Research Title Proposal\' has been rejected.', 1, '2025-09-30 22:52:13', '2025-09-30 22:52:54'),
+(69, 2, 'feedback', 'New feedback received for \'Research Title Proposal\': Revise it', 1, '2025-09-30 22:52:13', '2025-09-30 22:52:54'),
+(70, 2, 'status', 'Your proposal \'Research Title Proposal\' status has been updated to Resubmitted.', 1, '2025-09-30 22:54:22', '2025-09-30 23:05:04'),
+(71, 2, 'feedback', 'New feedback received for \'Research Title Proposal\': Good', 1, '2025-09-30 22:54:22', '2025-09-30 23:05:04'),
+(72, 2, 'status', 'Your proposal \'Research Title Proposal\' has been approved.', 1, '2025-09-30 22:54:27', '2025-09-30 23:05:04');
 
 -- --------------------------------------------------------
 
@@ -330,7 +335,7 @@ CREATE TABLE `sessions` (
 CREATE TABLE `submissions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
-  `title` varchar(255) NOT NULL,
+  `documents` varchar(255) DEFAULT NULL,
   `file_path` varchar(255) NOT NULL,
   `department` varchar(255) NOT NULL,
   `cluster` int(11) NOT NULL,
@@ -348,13 +353,13 @@ CREATE TABLE `submissions` (
 -- Dumping data for table `submissions`
 --
 
-INSERT INTO `submissions` (`id`, `user_id`, `title`, `file_path`, `department`, `cluster`, `group_no`, `status`, `submitted_by`, `feedback`, `created_at`, `updated_at`, `due_date`, `chapter`) VALUES
+INSERT INTO `submissions` (`id`, `user_id`, `documents`, `file_path`, `department`, `cluster`, `group_no`, `status`, `submitted_by`, `feedback`, `created_at`, `updated_at`, `due_date`, `chapter`) VALUES
 (17, 2, 'Clearance', 'submissions/4e3B20NWCtRZhr1u0i9L00HX0AT2cMYdgfg7cIUi.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', 'Nice', '2025-09-23 02:51:21', '2025-09-23 03:05:52', NULL, NULL),
 (18, 2, 'Research Forum', 'submissions/2bfF8zQyWey0Hzigi20fm09N60iYWQV3ErtaZA8z.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', NULL, '2025-09-23 03:14:38', '2025-09-23 03:17:32', NULL, NULL),
-(19, 2, 'Research Title Proposal', 'submissions/QzGGpfqavyX1jEIbKJ38hptWNLpXBWj77o5RffXd.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:41:47', '2025-09-30 02:41:47', NULL, NULL),
-(20, 2, 'Clearance', 'submissions/ENLoHqfL8iW5CrXsPkZfmBoRIleMC8r7449BTlgz.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:42:21', '2025-09-30 02:42:21', NULL, NULL),
-(21, 2, 'Clearance', 'submissions/hb5Y8blcwP3TkkI8BjAiNvZh7ItPDFVkikcDEcVg.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:42:39', '2025-09-30 02:42:39', NULL, NULL),
-(22, 2, 'Clearance', 'submissions/ZOq0dSnSJG7UiPhIlYg6ivk2JHxdRVxbU8ka3tyW.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-09-30 02:43:01', '2025-09-30 02:43:01', NULL, NULL);
+(19, 2, 'Research Title Proposal', 'submissions/sbWs3O6qdgSfzVGLre2bSTMG3EiwRIC4fXiSThEF.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', 'Good', '2025-09-30 02:41:47', '2025-09-30 22:54:27', NULL, NULL),
+(20, 2, 'Clearance', 'submissions/ENLoHqfL8iW5CrXsPkZfmBoRIleMC8r7449BTlgz.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', NULL, '2025-09-30 02:42:21', '2025-09-30 21:42:50', NULL, NULL),
+(21, 2, 'Clearance', 'submissions/hb5Y8blcwP3TkkI8BjAiNvZh7ItPDFVkikcDEcVg.docx', 'BSIT', 1, 4, 'Approved', 'Unknown', 'Good', '2025-09-30 02:42:39', '2025-09-30 21:42:46', NULL, NULL),
+(24, 2, 'Title Proposal', 'submissions/ecpHQQSLlbweyZGO7Y0CsVyEeRBjhi0pIraOD6Cj.docx', 'BSIT', 1, 4, 'Pending', 'Unknown', NULL, '2025-10-01 00:13:05', '2025-10-01 00:13:05', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -405,7 +410,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `role`, `otp`, `otp_expires_at`, `remember_token`, `created_at`, `updated_at`, `department`, `cluster`, `group_no`) VALUES
-(1, 'Admin', 'bretbaa12@gmail.com', '2025-09-30 02:34:57', '$2y$12$oo2oGMnoPbW2eBRlh4NgY.OqPWJHmtpfbRxlsLixLwGHtF8iFCa.G', 1, 'admin', '364948', '2025-10-03 02:32:58', NULL, '2025-09-17 05:35:04', '2025-09-30 02:34:57', NULL, NULL, NULL),
+(1, 'Admin', 'bretbaa12@gmail.com', '2025-10-01 00:14:12', '$2y$12$oo2oGMnoPbW2eBRlh4NgY.OqPWJHmtpfbRxlsLixLwGHtF8iFCa.G', 1, 'admin', '364948', '2025-10-03 02:32:58', NULL, '2025-09-17 05:35:04', '2025-10-01 00:14:12', NULL, NULL, NULL),
 (2, 'Juan DelaCruz', 'juandelacruz@gmail.com', NULL, '$2y$12$YZ15IPHlvcfGhp5RA3etB.jSapoGVxvKyv1uC5toksWSHOy.qvw6K', 0, 'student', NULL, NULL, NULL, '2025-09-17 05:35:32', '2025-09-17 05:35:32', 'BSIT', 1, 4);
 
 --
@@ -558,7 +563,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT for table `otps`
@@ -576,7 +581,7 @@ ALTER TABLE `resubmission_histories`
 -- AUTO_INCREMENT for table `submissions`
 --
 ALTER TABLE `submissions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `submission_histories`

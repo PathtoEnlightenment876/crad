@@ -28,7 +28,7 @@
             <div class="upload-form-container">
                 <form action="{{ route('student.submissions.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <input type="hidden" name="title" value="{{ $docTitle }}">
+                    <input type="hidden" name="documents" value="{{ $docTitle }}">
                     <input type="hidden" name="department" value="N/A">
                     <input type="hidden" name="cluster" value="0">
                     <input type="hidden" name="group_no" value="0">
@@ -75,7 +75,7 @@
 
                     <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                         <div>
-                            <h6 class="mb-1">{{ $submission->title }}</h6>
+                            <h6 class="mb-1">{{ $submission->documents }}</h6>
                             <small class="text-muted d-block">Submitted: {{ $submission->created_at->format('Y-m-d') }}</small>
                             <small class="text-muted d-block">Approval:
                                 {{ $submission->updated_at->format('Y-m-d') ?? 'N/A' }}
@@ -112,8 +112,8 @@
                                         <div class="modal-body">
                                             <div class="mb-3">
                                                 <label class="form-label fw-semibold">Proposal Title</label>
-                                                <input type="text" name="title" class="form-control rounded-3"
-                                                       value="{{ $submission->title }}" required>
+                                                <input type="text" name="documents" class="form-control rounded-3"
+                                                       value="{{ $submission->documents }}" required>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label fw-semibold">Upload New File</label>

@@ -9,7 +9,32 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        return view('admin-dashboard');
+        // Key statistics
+        $totalSubmissions = Submission::count();
+        $pendingSubmissions = Submission::where('status', 'Pending')->count();
+        $approvedSubmissions = Submission::where('status', 'Approved')->count();
+        $rejectedSubmissions = Submission::where('status', 'Rejected')->count();
+        
+        // Recent submissions
+        $recentSubmissions = Submission::with('user')->latest()->take(5)->get();
+        
+        // Department breakdown
+        $departmentStats = Submission::selectRaw('department, COUNT(*) as count')
+            ->groupBy('department')
+            ->get();
+            
+        // Monthly submission trends (last 6 months)
+        $monthlyStats = Submission::selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, COUNT(*) as count')
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->get();
+            
+        return view('admin-dashboard', compact(
+            'totalSubmissions', 'pendingSubmissions', 'approvedSubmissions', 'rejectedSubmissions',
+            'recentSubmissions', 'departmentStats', 'monthlyStats'
+        ));
     }
 
     public function analytics(Request $request)
@@ -27,9 +52,9 @@ class AdminController extends Controller
         
         // Key metrics
         $totalSubmissions = $query->count();
-        $approvedSubmissions = $query->where('status', 'APPROVED')->count();
-        $rejectedSubmissions = $query->where('status', 'REJECTED')->count();
-        $pendingSubmissions = $query->where('status', 'PENDING')->count();
+        $approvedSubmissions = (clone $query)->where('status', 'Approved')->count();
+        $rejectedSubmissions = (clone $query)->where('status', 'Rejected')->count();
+        $pendingSubmissions = (clone $query)->where('status', 'Pending')->count();
         
         // Completion rate
         $completionRate = $totalSubmissions > 0 ? round(($approvedSubmissions / $totalSubmissions) * 100, 1) : 0;
@@ -37,9 +62,9 @@ class AdminController extends Controller
         // Department statistics
         $departmentStats = Submission::selectRaw('department, 
             COUNT(*) as total,
-            SUM(CASE WHEN status = "APPROVED" THEN 1 ELSE 0 END) as approved,
-            SUM(CASE WHEN status = "REJECTED" THEN 1 ELSE 0 END) as rejected,
-            SUM(CASE WHEN status = "PENDING" THEN 1 ELSE 0 END) as pending')
+            SUM(CASE WHEN status = "Approved" THEN 1 ELSE 0 END) as approved,
+            SUM(CASE WHEN status = "Rejected" THEN 1 ELSE 0 END) as rejected,
+            SUM(CASE WHEN status = "Pending" THEN 1 ELSE 0 END) as pending')
             ->groupBy('department')
             ->get();
         

@@ -176,12 +176,12 @@
                         @forelse($recentSubmissions as $submission)
                             <tr>
                                 <td>{{ $submission->user->name ?? 'Unknown' }}</td>
-                                <td>{{ $submission->title }}</td>
+                                <td>{{ $submission->documents ?? $submission->title ?? 'N/A' }}</td>
                                 <td>{{ $submission->department }}</td>
                                 <td>
                                     <span class="badge 
-                                        {{ $submission->status == 'APPROVED' ? 'bg-success' : 
-                                           ($submission->status == 'REJECTED' ? 'bg-danger' : 'bg-warning') }}">
+                                        {{ $submission->status == 'Approved' ? 'bg-success' : 
+                                           ($submission->status == 'Rejected' ? 'bg-danger' : 'bg-warning') }}">
                                         {{ $submission->status }}
                                     </span>
                                 </td>
