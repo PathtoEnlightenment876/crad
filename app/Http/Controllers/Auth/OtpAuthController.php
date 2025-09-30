@@ -116,7 +116,7 @@ class OtpAuthController extends Controller
         
         session()->forget('otp_user_id');
 
-        $redirectUrl = $user->role === 'admin' ? route('admin.dashboard') : route('std-dashboard');
+        $redirectUrl = $user->is_admin ? '/admin-dashboard' : '/std-dashboard';
         
         return response()->json([
             'success' => true,

@@ -19,6 +19,7 @@ Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 // Login & Authentication Routes
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/check-lockout', [LoginController::class, 'checkLockout'])->name('check.lockout');
 
 // One-Time Password (OTP) Routes
 Route::get('/otp-verify', [OtpAuthController::class, 'showVerifyForm'])->name('otp.verify.form');
@@ -31,7 +32,7 @@ Route::get('/admin-dashboard', fn() => view('admin-dashboard'))
 
     
 // Proposals
-Route::get('/track-proposal', fn() => view('track-proposal'));
+Route::get('/track-proposal', action: fn() => view('track-proposal'));
 
 // Adviser & Panel Assignment
 Route::get('/panel-adviser', fn() => view('panel-adviser'));
@@ -44,7 +45,9 @@ Route::get('/analytics', fn() => view('analytics'));
 
 
 
-//Submission for Student Portal
+//Def Sched
+Route::get('/def-sched', action: fn() => view('def-sched'));
+
 
 
 // Student routes

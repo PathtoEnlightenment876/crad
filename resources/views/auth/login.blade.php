@@ -63,6 +63,11 @@
       background-color: #3f38b7;
     }
 
+    .btn-custom-login:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
     .form-control {
       border-radius: 0.5rem;
     }
@@ -97,7 +102,6 @@
       color: #6c757d;
     }
 
-    /* Desktop Layout */
     @media (min-width: 992px) {
       .main-container {
         flex-direction: row;
@@ -153,7 +157,7 @@
           <h2 class="mt-3 fw-bold">Sign in</h2>
         </div>
 
-        <form method="POST" action="{{ url('/login') }}">
+        <form method="POST" action="{{ url('/login') }}" id="loginForm">
           @if ($errors->any())
             <div class="alert alert-danger">
               <ul class="mb-0">
@@ -166,7 +170,7 @@
           @csrf
           <div class="mb-3">
             <label for="email" class="form-label">Username <span class="text-danger">*</span></label>
-            <input type="email" class="form-control" id="email" name="email" required autofocus>
+            <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required autofocus>
           </div>
 
           <div class="mb-4">
@@ -177,7 +181,7 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-custom-login">Sign in</button>
+          <button type="submit" id="loginBtn" class="btn btn-custom-login">Sign in</button>
         </form>
       </div>
     </div>
@@ -189,11 +193,14 @@
     </div>
   </div>
 
-  <!-- Toggle Password Visibility -->
   <script>
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     const emailInput = document.getElementById('email');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginForm = document.getElementById('loginForm');
+    
+    let lockoutTimer = null;
 
     togglePassword.addEventListener('click', function () {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -202,13 +209,96 @@
       this.classList.toggle('bi-eye-slash');
     });
 
-    document.querySelector("form").addEventListener("submit", function (e) {
-      if (emailInput.value.trim() === "" || passwordInput.value.trim() === "") {
+    // Check for lockout on page load
+    function checkLockout() {
+      const email = emailInput.value.trim();
+      if (!email) return;
+      
+      fetch('/check-lockout?email=' + encodeURIComponent(email))
+        .then(response => response.json())
+        .then(data => {
+          if (data.locked && data.seconds > 0) {
+            startLockoutTimer(data.seconds);
+          } else {
+            clearLockout();
+          }
+        })
+        .catch(() => clearLockout());
+    }
+
+    // Start lockout timer
+    function startLockoutTimer(seconds) {
+      clearLockout();
+      
+      // Create lockout message
+      const lockoutDiv = document.createElement('div');
+      lockoutDiv.id = 'lockout-message';
+      lockoutDiv.className = 'alert alert-danger text-center mt-3';
+      loginForm.appendChild(lockoutDiv);
+      
+      // Disable form
+      loginBtn.disabled = true;
+      emailInput.disabled = true;
+      passwordInput.disabled = true;
+      
+      // Update timer
+      function updateTimer() {
+        if (seconds <= 0) {
+          clearLockout();
+          return;
+        }
+        lockoutDiv.innerHTML = `🔒 Too many attempts. Try again in <strong>${seconds}</strong> seconds.`;
+        seconds--;
+      }
+      
+      updateTimer();
+      lockoutTimer = setInterval(updateTimer, 1000);
+    }
+
+    // Clear lockout
+    function clearLockout() {
+      if (lockoutTimer) {
+        clearInterval(lockoutTimer);
+        lockoutTimer = null;
+      }
+      
+      const lockoutDiv = document.getElementById('lockout-message');
+      if (lockoutDiv) {
+        lockoutDiv.remove();
+      }
+      
+      loginBtn.disabled = false;
+      emailInput.disabled = false;
+      passwordInput.disabled = false;
+    }
+
+    // Form submission
+    loginForm.addEventListener('submit', function(e) {
+      if (loginBtn.disabled) {
         e.preventDefault();
-        alert("Please enter both username and password.");
+        return;
+      }
+      
+      if (!emailInput.value.trim() || !passwordInput.value.trim()) {
+        e.preventDefault();
+        alert('Please enter both username and password.');
+        return;
       }
     });
+
+    // Check lockout when email changes
+    emailInput.addEventListener('blur', checkLockout);
+
+    // Check on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkLockout();
+    });
+
+    // Handle server lockout response immediately
+    @if(session('lockout_seconds'))
+      startLockoutTimer({{ session('lockout_seconds') }});
+    @endif
+
   </script>
 </body>
-
 </html>
