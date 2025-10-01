@@ -12,7 +12,7 @@
                 <table class="table table-hover table-bordered align-middle">
                     <thead class="table-dark">
                         <tr>
-                            <th>Submission Title</th>
+                            <th>Documents</th>
                             <th>Department</th>
                             <th>Cluster</th>
                             <th>Committee</th>
@@ -22,7 +22,7 @@
                     <tbody>
                         @forelse($submissions as $submission)
                             <tr>
-                                <td><strong>{{ $submission->title }}</strong></td>
+                                <td><strong>{{ $submission->documents }}</strong></td>
                                 <td>{{ $submission->department }}</td>
                                 <td>{{ $submission->cluster }}</td>
                                 <td>
@@ -76,7 +76,7 @@
                                             <input type="hidden" name="submission_id" value="{{ $submission->id }}">
 
                                             <div class="modal-header bg-success text-white">
-                                                <h5 class="modal-title">Assign Committee ({{ $submission->title }})</h5>
+                                                <h5 class="modal-title">Assign Committee ({{ $submission->documents }})</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
 
@@ -132,7 +132,7 @@
                                                 @csrf
                                                 @method('PUT')
                                                 <div class="modal-header bg-primary text-white">
-                                                    <h5 class="modal-title">Edit Committee ({{ $submission->title }})</h5>
+                                                    <h5 class="modal-title">Edit Committee ({{ $submission->documents }})</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">

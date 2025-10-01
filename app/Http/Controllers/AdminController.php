@@ -94,9 +94,9 @@ public function updateStatus(Request $request, $submissionId)
 
     // Create notification
     $message = match($request->status) {
-        'Approved' => "Your proposal '{$submission->title}' has been approved.",
-        'Rejected' => "Your proposal '{$submission->title}' has been rejected. Please revise and resubmit.",
-        default => "Feedback received for '{$submission->title}': {$submission->feedback}",
+        'Approved' => "Your proposal '{$submission->documents}' has been approved.",
+        'Rejected' => "Your proposal '{$submission->documents}' has been rejected. Please revise and resubmit.",
+        default => "Feedback received for '{$submission->documents}': {$submission->feedback}",
     };
 
     Notification::create([

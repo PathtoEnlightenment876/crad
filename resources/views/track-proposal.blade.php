@@ -55,7 +55,7 @@
             <div class="col-md-6">
                 <div class="card p-4 shadow-sm h-100">
                     <h5 class="card-title text-center text-secondary mb-3">
-                        {{ $submission->title }}
+                        {{ $submission->documents }}
                     </h5>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -80,7 +80,7 @@
                             <div class="d-flex gap-2">
                                 <!-- View -->
                                 <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
-                                    data-bs-target="#fileModal{{ $submission->id }}" title="View File">
+                                    data-bs-target="#fileModal{{ $submission->id }}" documents="View File">
                                     <i class="fas fa-eye"></i>
                                 </button>
 
@@ -88,20 +88,20 @@
                                 <form action="{{ route('admin.submissions.updateStatus', $submission->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="status" value="Approved">
-                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Approve">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" documents="Approve">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 </form>
 
                                 <!-- Reject -->
                                 <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
-                                    data-bs-target="#rejectModal{{ $submission->id }}" title="Reject">
+                                    data-bs-target="#rejectModal{{ $submission->id }}" documents="Reject">
                                     <i class="fas fa-times"></i>
                                 </button>
 
                                 <!-- Feedback -->
                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
-                                    data-bs-target="#feedbackModal{{ $submission->id }}" title="Feedback">
+                                    data-bs-target="#feedbackModal{{ $submission->id }}" documents="Feedback">
                                     <i class="fas fa-comment-dots"></i>
                                 </button>
                             </div>
@@ -115,7 +115,7 @@
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">{{ $submission->title }}</h5>
+                            <h5 class="modal-title">{{ $submission->documents }}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body text-center">
@@ -155,7 +155,7 @@
                             @csrf
                             <input type="hidden" name="status" value="Rejected">
                             <div class="modal-header">
-                                <h5 class="modal-title">Reject Proposal: {{ $submission->title }}</h5>
+                                <h5 class="modal-title">Reject Proposal: {{ $submission->documents }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
@@ -178,7 +178,7 @@
                             @csrf
                             <input type="hidden" name="status" value="{{ $submission->status }}">
                             <div class="modal-header">
-                                <h5 class="modal-title">Feedback for {{ $submission->title }}</h5>
+                                <h5 class="modal-title">Feedback for {{ $submission->documents }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
@@ -219,7 +219,7 @@
                         <tr>
                             <th>#</th>
                             <th>Student</th>
-                            <th>Title</th>
+                            <th>Documents</th>
                             <th>Department</th>
                             <th>Cluster</th>
                             <th>Group</th>
@@ -233,7 +233,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $log->user->name ?? 'Unknown' }}</td>
-                                <td>{{ $log->title }}</td>
+                                <td>{{ $log->documents }}</td>
                                 <td>{{ $log->department }}</td>
                                 <td>{{ $log->cluster }}</td>
                                 <td>{{ $log->group_no }}</td>

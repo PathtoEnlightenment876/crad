@@ -9,7 +9,7 @@
     @forelse($files as $file)
         <div class="card border-0 shadow-lg mb-4 rounded-3">
             <div class="card-header bg-primary text-white rounded-top">
-                <h5 class="mb-0"><i class="fas fa-book"></i> {{ $file->title }}</h5>
+                <h5 class="mb-0"><i class="fas fa-book"></i> {{ $file->documents }}</h5>
             </div>
             <div class="card-body">
                 <div class="mb-3">

@@ -84,7 +84,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Student</th>
-                                    <th>Title</th>
+                                    <th>Documents</th>
                                     <th>Department</th>
                                     <th>Status</th>
                                     <th>Date</th>
@@ -95,7 +95,7 @@
                                 @forelse($recentSubmissions as $submission)
                                 <tr>
                                     <td>{{ $submission->user->name ?? 'N/A' }}</td>
-                                    <td>{{ Str::limit($submission->title, 30) }}</td>
+                                    <td>{{ Str::limit($submission->documents, 30) }}</td>
                                     <td>{{ $submission->department }}</td>
                                     <td>
                                         <span class="badge 

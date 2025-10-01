@@ -62,9 +62,9 @@ public function updateStatus(Request $request, $id)
         
         // Create notification for status change
         $message = match($request->status) {
-            'Approved' => "Your proposal '{$submission->title}' has been approved.",
-            'Rejected' => "Your proposal '{$submission->title}' has been rejected.",
-            default => "Your proposal '{$submission->title}' status has been updated to {$request->status}."
+            'Approved' => "Your proposal '{$submission->documents}' has been approved.",
+            'Rejected' => "Your proposal '{$submission->documents}' has been rejected.",
+            default => "Your proposal '{$submission->documents}' status has been updated to {$request->status}."
         };
         
         Notification::create([
@@ -82,7 +82,7 @@ public function updateStatus(Request $request, $id)
         Notification::create([
             'user_id' => $submission->user_id,
             'type' => 'feedback',
-            'message' => "New feedback received for '{$submission->title}': {$request->feedback}",
+            'message' => "New feedback received for '{$submission->documents}': {$request->feedback}",
         ]);
     }
     

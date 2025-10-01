@@ -166,7 +166,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Student</th>
-                            <th>Title</th>
+                            <th>Documents</th>
                             <th>Department</th>
                             <th>Status</th>
                             <th>Date</th>
@@ -176,7 +176,7 @@
                         @forelse($recentSubmissions as $submission)
                             <tr>
                                 <td>{{ $submission->user->name ?? 'Unknown' }}</td>
-                                <td>{{ $submission->documents ?? $submission->title ?? 'N/A' }}</td>
+                                <td>{{ $submission->documents ?? $submission->documents ?? 'N/A' }}</td>
                                 <td>{{ $submission->department }}</td>
                                 <td>
                                     <span class="badge 
