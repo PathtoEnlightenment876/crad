@@ -2,6 +2,7 @@
 
 @section('styles')
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     /* --- DESIGN TOKENS --- */
     :root {
@@ -80,13 +81,26 @@
     .table-custom {
         border-collapse: separate; 
         border-spacing: 0;
+        table-layout: fixed;
+        width: 100%;
     }
     .table-custom th, .table-custom td { 
         border: none;
         border-bottom: 1px solid #f0f4f8;
         padding: 0.8rem 0.5rem; 
-        font-size: 0.85rem; 
+        font-size: 0.85rem;
+        text-align: center;
+        box-sizing: border-box;
     }
+    
+    /* Ensure consistent column widths for all rows */
+    .table-custom tbody tr td:nth-child(1) { width: 8% !important; }
+    .table-custom tbody tr td:nth-child(2) { width: 8% !important; }
+    .table-custom tbody tr td:nth-child(3) { width: 8% !important; }
+    .table-custom tbody tr td:nth-child(4) { width: 12% !important; }
+    .table-custom tbody tr td:nth-child(5) { width: 35% !important; }
+    .table-custom tbody tr td:nth-child(6) { width: 15% !important; }
+    .table-custom tbody tr td:nth-child(7) { width: 14% !important; }
     .table-custom thead th { 
         background-color: var(--dark-blue-button);
         color: white; 
@@ -106,10 +120,11 @@
     }
     .panel-details-table {
         font-size: 0.85rem; 
-        text-align: left;
+        text-align: center;
         line-height: 1.6;
         border-right: 1px solid #f0f4f8; 
         border-left: 1px solid #f0f4f8;
+        vertical-align: middle;
     }
     .panel-details-table strong { 
         color: var(--dark-text); 
@@ -131,20 +146,48 @@
     /* Row Grouping Logic */
     #schedule-table-body tr[data-set="B"],
     #schedule-table-body tr[data-set="B"] .cluster-value,
-    #schedule-table-body tr[data-set="B"] .panel-details-table {
+    #schedule-table-body tr[data-set="B"] .panel-details-table,
+    #schedule-table-body tr[data-set="B"] .status-column {
         background-color: var(--group-stripe) !important;
     }
     
-    #schedule-table-body tr:not([data-group-id="A1"]):not([data-group-id="B6"]) .cluster-value,
-    #schedule-table-body tr:not([data-group-id="A1"]):not([data-group-id="B6"]) .panel-details-table {
+    #schedule-table-body tr:not([data-group-id="A1"]):not([data-group-id="B1"]) .cluster-value,
+    #schedule-table-body tr:not([data-group-id="A1"]):not([data-group-id="B1"]) .panel-details-table {
         border-top: none;
     }
-    #schedule-table-body tr[data-group-id="B6"] td {
-        border-top: 2px solid #a0a0a0; 
+    
+    /* Divider row styling */
+    .divider-row {
+        height: 1px;
+    }
+    .divider-row td {
+        height: 1px !important;
+        padding: 0 !important;
+        border-bottom: 1px solid #666 !important;
+        background-color: transparent !important;
     }
 
     /* Schedule Cell & Status Buttons */
-    .schedule-cell { padding: 0.5rem !important; text-align: center; } 
+    .schedule-cell { 
+        padding: 0.5rem !important; 
+        text-align: center; 
+        vertical-align: top;
+        width: 14%;
+    }
+    
+    /* Status Column Styles */
+    .status-column {
+        padding: 0.5rem !important;
+        text-align: center;
+        vertical-align: middle;
+        width: 15%;
+    }
+    
+    .status-pending { color: #6c757d; background-color: #f8f9fa; }
+    .status-ongoing { color: #0d6efd; background-color: #e7f1ff; }
+    .status-defended { color: var(--status-green); background-color: var(--status-light-green); }
+    .status-redefense { color: #fd7e14; background-color: #fff3cd; }
+    .status-failed { color: var(--status-red); background-color: var(--status-light-red); } 
     .status-badge { display: inline-block; padding: 0.3em 0.6em; font-size: 0.75rem; border-radius: 0.375rem; font-weight: 500;}
     .status-completed { color: var(--status-green); background-color: var(--status-light-green); }
     .status-incomplete { color: var(--status-yellow); background-color: #fef7e0; }
@@ -249,6 +292,39 @@
         100% { background-color: inherit; }
     }
 
+    /* Custom Alert Modal Styles */
+    .alert-modal .modal-header {
+        border-bottom: none;
+        padding: 1.5rem 1.5rem 0;
+    }
+    .alert-modal .modal-body {
+        padding: 1rem 1.5rem 1.5rem;
+        text-align: center;
+    }
+    .alert-modal .modal-footer {
+        border-top: none;
+        padding: 0 1.5rem 1.5rem;
+        justify-content: center;
+    }
+    .alert-modal .alert-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .alert-modal .alert-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .alert-modal .alert-text {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    .alert-modal.error .alert-icon { color: var(--status-red); }
+    .alert-modal.success .alert-icon { color: var(--status-green); }
+    .alert-modal.warning .alert-icon { color: var(--status-yellow); }
+    .alert-modal.info .alert-icon { color: var(--primary-blue); }
+    .alert-modal.question .alert-icon { color: var(--primary-blue); }
+
     /* Media Queries */
     @media (min-width: 992px) {
         #filter-bar {
@@ -343,6 +419,17 @@
                 <option value="4110">4110</option>
             </select>
         </div>
+
+        <div class="filter-group" id="redefense-type-group" style="display: none;">
+            <label for="redefense-type-select" class="form-label small fw-bold">Defense Type</label>
+            <select id="redefense-type-select" class="form-select">
+                <option selected disabled value="">Select Defense Type</option>
+                <option value="PRE-ORAL">Pre-oral Defense</option>
+                <option value="FINAL DEFENSE">Final Defense</option>
+            </select>
+        </div>
+
+        
         
         <button class="btn btn-custom-merged align-self-end py-2" id="enterButton">
             <i class="bi bi-arrow-right-circle"></i> View Schedule
@@ -357,21 +444,135 @@
                 <table class="table table-custom align-middle">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">Cluster</th>
-                            <th style="width: 5%;">Set</th> 
-                            <th style="width: 5%;">Group</th>
-                            <th style="width: 10%;">Documents</th>
-                            <th style="width: 45%;">Panels & Adviser</th>
-                            <th style="width: 25%;">Set Schedule</th>
+                            <th style="width: 8%;">Cluster</th>
+                            <th style="width: 8%;">Set</th> 
+                            <th style="width: 8%;">Group</th>
+                            <th style="width: 12%;">Documents</th>
+                            <th style="width: 35%;">Panels & Adviser</th>
+                            <th style="width: 15%;">Status</th>
+                            <th style="width: 14%;">Set Schedule</th>
                         </tr>
                     </thead>
                     <tbody id="schedule-table-body">
                         @php
-                            // This will be populated by JavaScript based on selected department and cluster
-                            $scheduleData = [];
+                            // Use first assignment for consistent data across all groups
+                            $assignment = isset($assignments) ? $assignments->first() : null;
+                            $adviser = 'No Adviser';
+                            $chairName = 'No Chairperson';
+                            $memberNames = 'No Members';
+                            
+                            if ($assignment) {
+                                $adviser = $assignment->adviser ? $assignment->adviser->name : 'No Adviser';
+                                $panels = $assignment->assignmentPanels ?? collect();
+                                $chairperson = $panels->where('role', 'Chairperson')->first();
+                                $members = $panels->where('role', 'Member')->whereNotNull('name');
+                                $chairName = $chairperson && $chairperson->name ? $chairperson->name : 'No Chairperson';
+                                $memberNames = $members->count() > 0 ? $members->pluck('name')->filter()->implode(', ') : 'No Members';
+                            }
                         @endphp
+                        
+                        {{-- Set A: Groups 1-5 --}}
+                        @for($groupNumber = 1; $groupNumber <= 5; $groupNumber++)
+                            @php
+                                $groupId = 'A' . $groupNumber;
+                            @endphp
+                            <tr data-group-id="{{ $groupId }}" data-set="A" @if($groupNumber == 5) class="set-divider" @endif>
+                                @if($groupNumber == 1)
+                                    <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
+                                @endif
+                                <td class="set-value">A</td> 
+                                <td>{{ $groupNumber }}</td> 
+                                <td><span class="status-badge status-completed">Completed</span></td>
+                                
+                                @if($groupNumber == 1)
+                                    <td class="panel-details-table" rowspan="5"
+                                        data-adviser="{{ $adviser }}" 
+                                        data-chair="{{ $chairName }}" 
+                                        data-members="{{ $memberNames }}" 
+                                        data-panel-set="A">
+                                        <div class="d-flex justify-content-center align-items-center position-relative">
+                                            <div>
+                                                <strong>Adviser:</strong> {{ $adviser }} <br>
+                                                <strong>Chairperson:</strong> {{ $chairName }} <br>
+                                                Members: {{ $memberNames }}
+                                            </div>
+                                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
+                                                style="top: 5px; right: 5px;"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#panelEditModal" 
+                                                data-panel-set="A">
+                                            </i>
+                                        </div>
+                                    </td>
+                                @endif
 
-                        <!-- Table rows will be generated by JavaScript based on selected department and cluster -->
+                                <td class="status-column" id="status-{{ $groupId }}">
+                                    <span class="status-badge status-pending">Pending</span>
+                                </td>
+
+                                <td class="schedule-cell" data-schedule-target="{{ $groupId }}">
+                                    <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                            data-group="{{ $groupNumber }}" data-cluster="" data-set="A" 
+                                            data-adviser="{{ $adviser }}" data-chair="{{ $chairName }}" data-members="{{ $memberNames }}">
+                                        <i class="bi bi-calendar-plus"></i> Set Schedule
+                                    </button>
+                                </td>
+                            </tr>
+                        @endfor
+                        
+                        {{-- Divider Row --}}
+                        <tr class="divider-row">
+                            <td colspan="7" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                        </tr>
+                        
+                        {{-- Set B: Groups 1-5 --}}
+                        @for($groupNumber = 1; $groupNumber <= 5; $groupNumber++)
+                            @php
+                                $groupId = 'B' . $groupNumber;
+                            @endphp
+                            <tr data-group-id="{{ $groupId }}" data-set="B" @if($groupNumber == 1) style="border-top: 3px solid #333;" @endif>
+                                @if($groupNumber == 1)
+                                    <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
+                                @endif
+                                <td class="set-value">B</td> 
+                                <td>{{ $groupNumber }}</td> 
+                                <td><span class="status-badge status-completed">Completed</span></td>
+                                
+                                @if($groupNumber == 1)
+                                    <td class="panel-details-table" rowspan="5"
+                                        data-adviser="{{ $adviser }}" 
+                                        data-chair="{{ $chairName }}" 
+                                        data-members="{{ $memberNames }}" 
+                                        data-panel-set="B">
+                                        <div class="d-flex justify-content-center align-items-center position-relative">
+                                            <div>
+                                                <strong>Adviser:</strong> {{ $adviser }} <br>
+                                                <strong>Chairperson:</strong> {{ $chairName }} <br>
+                                                Members: {{ $memberNames }}
+                                            </div>
+                                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
+                                                style="top: 5px; right: 5px;"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#panelEditModal" 
+                                                data-panel-set="B">
+                                            </i>
+                                        </div>
+                                    </td>
+                                @endif
+
+                                <td class="status-column" id="status-{{ $groupId }}">
+                                    <span class="status-badge status-pending">Pending</span>
+                                </td>
+
+                                <td class="schedule-cell" data-schedule-target="{{ $groupId }}">
+                                    <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                            data-group="{{ $groupNumber }}" data-cluster="" data-set="B" 
+                                            data-adviser="{{ $adviser }}" data-chair="{{ $chairName }}" data-members="{{ $memberNames }}">
+                                        <i class="bi bi-calendar-plus"></i> Set Schedule
+                                    </button>
+                                </td>
+                            </tr>
+                        @endfor
                         
                     </tbody>
                 </table>
@@ -512,12 +713,210 @@
         </div>
     </div>
 </div>
+
+{{-- Custom Alert Modals --}}
+<div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 alert-modal">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <i class="alert-icon"></i>
+                <h4 class="alert-title"></h4>
+                <p class="alert-text"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 alert-modal question">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <i class="bi bi-question-circle-fill alert-icon"></i>
+                <h4 class="alert-title"></h4>
+                <p class="alert-text"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
     let currentDefenseType = '';
-    const assignmentsData = @json($assignments ?? []);
+    let groupStatuses = {}; // Store group status data
+
+    // Custom alert functions to replace SweetAlert2
+    function showAlert(type, title, text, callback = null) {
+        const modal = document.getElementById('alertModal');
+        const modalElement = modal.querySelector('.alert-modal');
+        const icon = modal.querySelector('.alert-icon');
+        const titleEl = modal.querySelector('.alert-title');
+        const textEl = modal.querySelector('.alert-text');
+        const okBtn = modal.querySelector('.btn-primary');
+        
+        // Reset classes
+        modalElement.className = 'modal-content rounded-3 alert-modal ' + type;
+        
+        // Set icon based on type
+        const icons = {
+            error: 'bi bi-x-circle-fill',
+            success: 'bi bi-check-circle-fill',
+            warning: 'bi bi-exclamation-triangle-fill',
+            info: 'bi bi-info-circle-fill'
+        };
+        icon.className = 'alert-icon ' + icons[type];
+        
+        titleEl.textContent = title;
+        textEl.textContent = text;
+        
+        // Handle callback
+        if (callback) {
+            okBtn.onclick = () => {
+                bootstrap.Modal.getInstance(modal).hide();
+                callback();
+            };
+        } else {
+            okBtn.onclick = null;
+        }
+        
+        new bootstrap.Modal(modal).show();
+    }
+    
+    function showConfirm(title, text, confirmText = 'Confirm', cancelText = 'Cancel') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = modal.querySelector('.alert-title');
+            const textEl = modal.querySelector('.alert-text');
+            const confirmBtn = modal.querySelector('#confirmBtn');
+            const cancelBtn = modal.querySelector('.btn-secondary');
+            
+            titleEl.textContent = title;
+            textEl.textContent = text;
+            confirmBtn.textContent = confirmText;
+            cancelBtn.textContent = cancelText;
+            
+            confirmBtn.onclick = () => {
+                bootstrap.Modal.getInstance(modal).hide();
+                resolve(true);
+            };
+            
+            cancelBtn.onclick = () => {
+                bootstrap.Modal.getInstance(modal).hide();
+                resolve(false);
+            };
+            
+            modal.addEventListener('hidden.bs.modal', () => resolve(false), { once: true });
+            
+            new bootstrap.Modal(modal).show();
+        });
+    }
+
+    // Initialize group status tracking
+    function initializeGroupStatus(groupId) {
+        if (!groupStatuses[groupId]) {
+            groupStatuses[groupId] = {
+                preOralScheduled: false,
+                preOralResult: null,
+                preOralRedefenseScheduled: false,
+                preOralRedefenseResult: null,
+                finalDefenseScheduled: false,
+                finalDefenseResult: null,
+                finalRedefenseScheduled: false,
+                finalRedefenseResult: null
+            };
+        }
+    }
+
+    // Check if group can schedule final defense
+    function canScheduleFinalDefense(groupId) {
+        const status = groupStatuses[groupId];
+        if (!status) return false;
+        
+        // Must have passed pre-oral OR passed pre-oral redefense
+        return (status.preOralResult === 'Passed') || 
+               (status.preOralResult === 'Failed' && status.preOralRedefenseResult === 'Passed');
+    }
+
+    // Validate schedule attempt based on evaluation results
+    function validateScheduleAttempt(groupId, defenseType) {
+        initializeGroupStatus(groupId);
+        
+        if (defenseType === 'FINAL DEFENSE') {
+            const status = groupStatuses[groupId];
+            
+            // Check if pre-oral has been evaluated
+            if (!status.preOralResult) {
+                showAlert('error', 'Cannot Schedule Final Defense', 'Group has not been evaluated for Pre-oral Defense yet.');
+                return false;
+            }
+            
+            // Check if pre-oral failed and no redefense passed
+            if (status.preOralResult === 'Failed' && !status.preOralRedefenseResult) {
+                showAlert('error', 'Cannot Schedule Final Defense', 'Group failed Pre-oral Defense and has not passed Re-defense yet.');
+                return false;
+            }
+            
+            // Check if both pre-oral and redefense failed
+            if (status.preOralResult === 'Failed' && status.preOralRedefenseResult === 'Failed') {
+                showAlert('error', 'Cannot Schedule Final Defense', 'Group failed both Pre-oral Defense and Re-defense.');
+                return false;
+            }
+            
+            // Must have passed pre-oral OR passed pre-oral redefense
+            if (!canScheduleFinalDefense(groupId)) {
+                showAlert('error', 'Cannot Schedule Final Defense', 'Group has not passed Pre-oral Defense requirements.');
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    function getDefenseStatus(groupId, defenseType, isScheduled, statusResult) {
+        // Default status is Pending when no schedule is set
+        if (!isScheduled) {
+            return { text: 'Pending', class: 'status-pending' };
+        }
+        
+        // If scheduled but no result yet, status is Ongoing
+        if (!statusResult) {
+            return { text: 'Ongoing', class: 'status-ongoing' };
+        }
+        
+        // Handle status based on defense type and result
+        if (statusResult === 'Passed') {
+            return { text: 'Defended', class: 'status-defended' };
+        } else if (statusResult === 'Failed') {
+            if (defenseType === 'REDEFENSE') {
+                return { text: 'Failed', class: 'status-failed' };
+            } else {
+                return { text: 'Re-defense', class: 'status-redefense' };
+            }
+        }
+        
+        return { text: 'Pending', class: 'status-pending' };
+    }
+
+    function updateGroupStatus(groupId, defenseType, isScheduled, statusResult) {
+        const statusCell = document.getElementById(`status-${groupId}`);
+        if (statusCell) {
+            const status = getDefenseStatus(groupId, defenseType, isScheduled, statusResult);
+            statusCell.innerHTML = `<span class="status-badge ${status.class}">${status.text}</span>`;
+        }
+    }
 
     function setScheduledTime(dateString, timeString) {
         return new Date(`${dateString}T${timeString}:00`);
@@ -591,94 +990,23 @@
         const dept = document.getElementById('dept-select').value;
         const cluster = document.getElementById('cluster-select').value;
         
+        // Add to failed groups tracking
+        initializeGroupStatus(groupId);
+        
         console.log(`Group ${groupId} failed ${currentType}. Queued for REDEFENSE.`);
         console.log(`Details: Dept ${dept}, Cluster ${cluster}`);
         
-        alert(`🚨 Group ${groupId} has been recorded as FAILED for ${currentType} and has been successfully added to the REDEFENSE scheduling queue.`);
+        showAlert('info', 'Group Queued for Re-defense', `Group ${groupId} has been recorded as FAILED for ${currentType} and has been successfully added to the REDEFENSE scheduling queue.`);
     }
 
+    // Function no longer needed as status buttons are removed
     function enableStatusChecks() {
-        const now = new Date();
-        const statusButtons = document.querySelectorAll('.btn-status');
-
-        statusButtons.forEach(button => {
-            const targetId = button.id.split('-').pop();
-            const scheduleContainer = document.querySelector(`.scheduled-container[data-group="${targetId.substring(1)}"][data-set="${targetId.charAt(0)}"]`);
-            
-            if (!scheduleContainer) {
-                button.setAttribute('disabled', 'true');
-                return;
-            }
-
-            const endTimeString = scheduleContainer.getAttribute('data-sch-end');
-            const dateString = scheduleContainer.getAttribute('data-sch-date');
-
-            if (endTimeString && dateString) {
-                const isRecorded = button.classList.contains('status-recorded-passed') || button.classList.contains('status-recorded-failed');
-                
-                if (isRecorded) {
-                    button.setAttribute('disabled', 'true');
-                    return;
-                }
-
-                const scheduledDateTime = setScheduledTime(dateString, endTimeString);
-                scheduledDateTime.setMinutes(scheduledDateTime.getMinutes() + 10); 
-
-                if (now > scheduledDateTime) {
-                    button.removeAttribute('disabled');
-                } else {
-                    button.setAttribute('disabled', 'true');
-                }
-            } else {
-                 button.setAttribute('disabled', 'true');
-            }
-        });
+        // Status checking is now handled by the Defense Evaluation page
+        return;
     }
     
-    window.handleStatusUpdateConfirmation = function(groupId, status) {
-        const statusLower = status.toLowerCase();
-        const confirmMessage = `Are you absolutely sure you want to record Group ${groupId} as "${status.toUpperCase()}"? This action cannot be reversed.`;
-        const statusButton = document.getElementById(`status-${statusLower}-${groupId}`);
-        
-        const defenseTypeDisplay = document.getElementById('defense-type-display');
-        const currentDefenseType = defenseTypeDisplay ? defenseTypeDisplay.textContent.split(' ')[0] : 'UNKNOWN';
-
-        if (confirm(confirmMessage)) {
-            if (status === 'Failed' && (currentDefenseType === 'PRE-ORAL' || currentDefenseType === 'FINAL')) {
-                queueForRedefense(groupId, currentDefenseType);
-            } 
-            
-            const passedBtn = document.getElementById(`status-passed-${groupId}`);
-            const failedBtn = document.getElementById(`status-failed-${groupId}`);
-            
-            passedBtn.classList.remove('status-recorded-passed');
-            passedBtn.textContent = 'Passed';
-            
-            failedBtn.classList.remove('status-recorded-failed');
-            failedBtn.textContent = 'Failed';
-
-            statusButton.textContent = status.toUpperCase();
-            statusButton.classList.add(`status-recorded-${statusLower}`);
-            
-            passedBtn.setAttribute('disabled', 'true');
-            failedBtn.setAttribute('disabled', 'true');
-            
-            if (status === 'Passed') {
-                const documentCell = document.querySelector(`tr[data-group-id="${groupId}"] td:nth-child(4) span`); 
-                if (documentCell) {
-                    documentCell.textContent = 'Completed';
-                    documentCell.className = 'status-badge status-completed';
-                }
-                alert(`✅ Status recorded: Group ${groupId} is ${status}. (Simulated Submission)`);
-            } else if (status === 'Failed') {
-                const documentCell = document.querySelector(`tr[data-group-id="${groupId}"] td:nth-child(4) span`); 
-                if (documentCell) {
-                    documentCell.textContent = 'Revisions';
-                    documentCell.className = 'status-badge status-incomplete';
-                }
-            }
-        }
-    }
+    // Status updates are now handled by the Defense Evaluation page
+    // This function is no longer needed in the scheduling interface
     
     window.updatePanelDetails = function(panelSet) {
         const panelCell = document.querySelector(`.panel-details-table[data-panel-set="${panelSet}"]`);
@@ -713,7 +1041,7 @@
 
         const panelModalInstance = bootstrap.Modal.getInstance(document.getElementById('panelEditModal'));
         if (panelModalInstance) { panelModalInstance.hide(); }
-        alert(`✅ Panel details for Set ${panelSet} updated successfully. (Simulated Submission)`);
+        showAlert('success', 'Panel Updated', `Panel details for Set ${panelSet} updated successfully. (Simulated Submission)`);
     }
 
     function simulateScheduleSuccess(targetId) {
@@ -724,7 +1052,7 @@
         const newSet = document.getElementById('set-input').value; 
 
         if (!startTime || !endTime || !dateActual || !newSet) {
-            alert("Please select a Start Time, End Time, Date, and Set before scheduling.");
+            showAlert('warning', 'Missing Information', 'Please select a Start Time, End Time, Date, and Set before scheduling.');
             return;
         }
 
@@ -735,29 +1063,6 @@
         const modalTitle = document.getElementById('modal-title-display').textContent;
         const match = modalTitle.match(/C(\d) Set ([A-Z]) \(Group (\d+)\)/);
         const [_, cluster, originalSet, group] = match || [null, 'X', 'Y', targetId.substring(1)];
-
-        let passedClass = '';
-        let passedText = 'Passed';
-        let failedClass = '';
-        let failedText = 'Failed';
-        const existingPassedBtn = document.getElementById(`status-passed-${targetId}`);
-        const existingFailedBtn = document.getElementById(`status-failed-${targetId}`);
-
-        if (existingPassedBtn && existingFailedBtn) {
-             passedClass = existingPassedBtn.classList.contains('status-recorded-passed') ? 'status-recorded-passed' : '';
-             passedText = passedClass ? 'PASSED' : 'Passed';
-             failedClass = existingFailedBtn.classList.contains('status-recorded-failed') ? 'status-recorded-failed' : '';
-             failedText = failedClass ? 'FAILED' : 'Failed';
-        }
-
-        const statusButtonsHtml = `
-            <div class="d-flex justify-content-center mt-2" style="gap: 5px;">
-                <button class="btn btn-sm btn-status btn-status-passed ${passedClass}" id="status-passed-${targetId}" 
-                        data-schedule-time="${endTime}" data-schedule-date="${dateActual}" ${passedClass || failedClass ? 'disabled' : ''} onclick="handleStatusUpdateConfirmation('${targetId}', 'Passed')">${passedText}</button>
-                <button class="btn btn-sm btn-status btn-status-failed ${failedClass}" id="status-failed-${targetId}" 
-                        data-schedule-time="${endTime}" data-schedule-date="${dateActual}" ${passedClass || failedClass ? 'disabled' : ''} onclick="handleStatusUpdateConfirmation('${targetId}', 'Failed')">${failedText}</button>
-            </div>
-        `;
 
         const adviser = document.getElementById('modal-adviser').textContent;
         const chair = document.getElementById('modal-chairperson').textContent;
@@ -778,7 +1083,7 @@
             </div>
         `;
         
-        targetCell.innerHTML = scheduledTagHtml + statusButtonsHtml;
+        targetCell.innerHTML = scheduledTagHtml;
         
         const setCell = parentRow.querySelector('.set-value');
         if (setCell) {
@@ -786,19 +1091,20 @@
             parentRow.setAttribute('data-set', newSet); 
         }
         
+        // Update status to Ongoing when schedule is set
+        updateGroupStatus(targetId, currentDefenseType, true, null);
+        
         document.querySelectorAll('#schedule-table-body tr').forEach(row => {
             const isSetB = row.getAttribute('data-set') === 'B';
             row.style.backgroundColor = isSetB ? 'var(--group-stripe)' : '';
         });
 
-        alert(`✅ Schedule Updated! Group ${targetId} (New Set: ${newSet}) booked for ${dateDisplay} at ${startTime}. (Simulated Submission)`);
+        showAlert('success', 'Schedule Updated!', `Group ${targetId} (New Set: ${newSet}) booked for ${dateDisplay} at ${startTime}. (Simulated Submission)`);
 
         if (parentRow) {
             parentRow.classList.add('row-flash');
             setTimeout(() => parentRow.classList.remove('row-flash'), 2000);
         }
-
-        enableStatusChecks();
 
         const scheduleModal = document.getElementById('scheduleModal');
         const modalInstance = bootstrap.Modal.getInstance(scheduleModal);
@@ -820,112 +1126,287 @@
         const clusterSelect = document.getElementById('cluster-select');
         const dateDisplayInput = document.getElementById('date-display-input');
         const dateActualInput = document.getElementById('date-actual-input');
+        
+        // Check for URL parameters from panel-adviser redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        const department = urlParams.get('department');
+        const cluster = urlParams.get('cluster');
+        const assignmentId = urlParams.get('assignment_id');
+        
+        if (department && cluster) {
+            // Auto-select PRE-ORAL defense type and pre-populate form
+            currentDefenseType = 'PRE-ORAL';
+            typeSelectionView.style.display = 'none';
+            filterBar.style.display = 'grid';
+            scheduleView.style.display = 'block';
+            
+            document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
+            
+            // Pre-populate department and cluster
+            deptSelect.value = department;
+            clusterSelect.value = cluster;
+            
+            // Hide re-defense type dropdown
+            const redefenseTypeGroup = document.getElementById('redefense-type-group');
+            redefenseTypeGroup.style.display = 'none';
+            
+            updateScheduleView();
+            
+            // Clear URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
         function updateScheduleView() {
             const dept = deptSelect.value;
             const cluster = clusterSelect.value;
-            const defenseType = currentDefenseType; 
+            const defenseType = currentDefenseType;
+            const redefenseType = document.getElementById('redefense-type-select').value;
 
-            if (dept && cluster && defenseType) {
-                // Filter assignments for selected department and cluster
-                const filteredAssignments = assignmentsData.filter(assignment => 
-                    assignment.department === dept && assignment.section === cluster
-                );
+            let canShowSchedule = dept && cluster && defenseType;
+            
+            // For re-defense, also require defense type selection
+            if (defenseType === 'REDEFENSE') {
+                canShowSchedule = canShowSchedule && redefenseType;
+            }
+
+            if (canShowSchedule) {
+                const displayType = defenseType === 'REDEFENSE' ? `${defenseType} (${redefenseType})` : defenseType;
+                document.getElementById('dept-header').textContent = `${displayType}: DEPT. OF ${dept} (Cluster ${cluster})`;
                 
-                if (filteredAssignments.length > 0) {
-                    document.getElementById('dept-header').textContent = `${defenseType}: DEPT. OF ${dept} (Cluster ${cluster})`;
-                    generateScheduleTable(filteredAssignments);
-                    document.getElementById('schedule-content').style.display = 'block';
-                    document.getElementById('empty-state').style.display = 'none';
-                    enableStatusChecks();
-                } else {
-                    document.getElementById('dept-header').textContent = `No assignments found for ${dept} - Cluster ${cluster}`;
-                    document.getElementById('schedule-content').style.display = 'none';
-                    document.getElementById('empty-state').style.display = 'block';
-                }
+                // Filter and show assignments based on department and cluster
+                filterAssignments(dept, cluster);
+                
+                // Update cluster values in table
+                document.querySelectorAll('.cluster-value').forEach(cell => {
+                    cell.textContent = cluster;
+                });
+                
+                enableStatusChecks(); 
             } else {
-                document.getElementById('dept-header').textContent = `Select Department and Cluster to view the ${defenseType} schedule.`;
+                const requiredFields = defenseType === 'REDEFENSE' ? 'Department, Cluster, and Defense Type' : 'Department and Cluster';
+                document.getElementById('dept-header').textContent = `Select ${requiredFields} to view the ${defenseType} schedule.`;
                 document.getElementById('schedule-content').style.display = 'none';
                 document.getElementById('empty-state').style.display = 'block';
             }
         }
         
-        function generateScheduleTable(assignments) {
-            const tableBody = document.getElementById('schedule-table-body');
-            tableBody.innerHTML = '';
-            
-            let groupCounter = 1;
-            let setLetter = 'A';
-            
-            assignments.forEach(assignment => {
-                const adviser = assignment.adviser ? assignment.adviser.name : 'No Adviser';
-                const panelMembers = assignment.assignment_panels || [];
+        function filterAssignments(dept, cluster) {
+            // For REDEFENSE, only show groups that have failed
+            if (currentDefenseType === 'REDEFENSE') {
+                const redefenseType = document.getElementById('redefense-type-select').value;
+                const failedGroups = getFailedGroups(redefenseType);
                 
-                let chair = 'No Chair';
-                let members = [];
-                
-                panelMembers.forEach(panel => {
-                    if (panel.role === 'chairperson') {
-                        chair = panel.name;
+                if (failedGroups.length > 0) {
+                    document.getElementById('schedule-content').style.display = 'block';
+                    document.getElementById('empty-state').style.display = 'none';
+                    updateTableWithFailedGroups(failedGroups, dept, cluster);
+                } else {
+                    document.getElementById('schedule-content').style.display = 'none';
+                    document.getElementById('empty-state').style.display = 'block';
+                }
+                return;
+            }
+            
+            // Regular assignment fetching for PRE-ORAL and FINAL DEFENSE
+            fetch('/api/assignments')
+                .then(response => response.json())
+                .then(assignments => {
+                    const filteredAssignments = assignments.filter(assignment => 
+                        assignment.department === dept && assignment.section === cluster
+                    );
+                    
+                    if (filteredAssignments.length > 0) {
+                        document.getElementById('schedule-content').style.display = 'block';
+                        document.getElementById('empty-state').style.display = 'none';
+                        updateTableWithAssignments(filteredAssignments);
                     } else {
-                        members.push(panel.name);
+                        document.getElementById('schedule-content').style.display = 'none';
+                        document.getElementById('empty-state').style.display = 'block';
                     }
+                })
+                .catch(error => {
+                    console.error('Error fetching assignments:', error);
+                    document.getElementById('schedule-content').style.display = 'none';
+                    document.getElementById('empty-state').style.display = 'block';
                 });
+        }
+        
+        function getFailedGroups(defenseType) {
+            const failedGroups = [];
+            
+            Object.keys(groupStatuses).forEach(groupId => {
+                const status = groupStatuses[groupId];
                 
-                const membersStr = members.join(', ') || 'No Members';
+                if (defenseType === 'PRE-ORAL' && status.preOralResult === 'Failed') {
+                    failedGroups.push(groupId);
+                } else if (defenseType === 'FINAL DEFENSE' && status.finalDefenseResult === 'Failed') {
+                    failedGroups.push(groupId);
+                }
+            });
+            
+            return failedGroups;
+        }
+        
+        function updateTableWithFailedGroups(failedGroups, dept, cluster) {
+            const tbody = document.getElementById('schedule-table-body');
+            tbody.innerHTML = '';
+            
+            // Show only failed groups for redefense
+            failedGroups.forEach((groupId, index) => {
+                const set = groupId.charAt(0);
+                const group = groupId.substring(1);
                 
-                // Create 5 groups per assignment
-                for (let i = 1; i <= 5; i++) {
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-group-id', setLetter + groupCounter);
-                    row.setAttribute('data-set', setLetter);
-                    
-                    const isFirstInSet = i === 1;
-                    const groupId = setLetter + groupCounter;
-                    
-                    row.innerHTML = `
-                        ${isFirstInSet ? `<td rowspan="5" class="merged-cell cluster-value">${assignment.section}</td>` : ''}
-                        <td class="set-value"></td>
-                        <td>${groupCounter}</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        ${isFirstInSet ? `
-                        <td rowspan="5" class="panel-details-table" 
-                            data-adviser="${adviser}" 
-                            data-chair="${chair}" 
-                            data-members="${membersStr}" 
-                            data-panel-set="${setLetter}">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>Adviser:</strong> ${adviser} <br>
-                                    <strong>Chairperson:</strong> ${chair} <br>
-                                    Members: ${membersStr}
-                                </div>
-                                <i class="bi bi-pencil-square panel-edit-icon" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#panelEditModal" 
-                                    data-panel-set="${setLetter}">
-                                </i>
-                            </div>
-                        </td>` : ''}
-                        <td class="schedule-cell" data-schedule-target="${groupId}">
-                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
-                                    data-group="${groupCounter}" data-cluster="${assignment.section}" data-set="${setLetter}" 
-                                    data-adviser="${adviser}" data-chair="${chair}" data-members="${membersStr}">
-                                <i class="bi bi-calendar-plus"></i> Set Schedule
-                            </button>
-                            <div class="d-flex justify-content-center mt-2" style="gap: 5px;">
-                                <button class="btn btn-sm btn-status btn-status-passed" id="status-passed-${groupId}" disabled onclick="handleStatusUpdateConfirmation('${groupId}', 'Passed')">Passed</button>
-                                <button class="btn btn-sm btn-status btn-status-failed" id="status-failed-${groupId}" disabled onclick="handleStatusUpdateConfirmation('${groupId}', 'Failed')">Failed</button>
+                const row = `
+                    <tr data-group-id="${groupId}" data-set="${set}">
+                        <td class="cluster-value">${cluster}</td>
+                        <td class="set-value">${set}</td>
+                        <td>${group}</td>
+                        <td><span class="status-badge status-incomplete">Redefense Required</span></td>
+                        <td class="panel-details-table">
+                            <div>
+                                <strong>Adviser:</strong> No Adviser <br>
+                                <strong>Chairperson:</strong> No Chairperson <br>
+                                Members: No Members
                             </div>
                         </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                    groupCounter++;
-                }
-                
-                setLetter = String.fromCharCode(setLetter.charCodeAt(0) + 1);
+                        <td class="status-column" id="status-${groupId}">
+                            <span class="status-badge status-redefense">Re-defense</span>
+                        </td>
+                        <td class="schedule-cell" data-schedule-target="${groupId}">
+                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                    data-group="${group}" data-cluster="" data-set="${set}" 
+                                    data-adviser="No Adviser" data-chair="No Chairperson" data-members="No Members">
+                                <i class="bi bi-calendar-plus"></i> Set Schedule
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
             });
+        }
+        
+        function updateTableWithAssignments(assignments) {
+            const tbody = document.getElementById('schedule-table-body');
+            tbody.innerHTML = '';
+            
+            // Use first assignment for consistent data across all groups
+            const firstAssignment = assignments[0] || null;
+            let adviser = 'No Adviser';
+            let chairName = 'No Chairperson';
+            let memberNames = 'No Members';
+            
+            if (firstAssignment) {
+                const panels = firstAssignment.panels || [];
+                const chairperson = panels.find(p => p.role === 'Chairperson');
+                const members = panels.filter(p => p.role === 'Member' || (p.role && p.role !== 'Chairperson'));
+                adviser = firstAssignment.adviser || 'No Adviser';
+                chairName = chairperson ? chairperson.name : 'No Chairperson';
+                memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
+            }
+            
+            // Generate Set A: Groups 1-5
+            for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
+                const groupId = 'A' + groupNumber;
+                const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
+                const panelCell = groupNumber === 1 ? `
+                    <td class="panel-details-table" rowspan="5"
+                        data-adviser="${adviser}" 
+                        data-chair="${chairName}" 
+                        data-members="${memberNames}" 
+                        data-panel-set="A">
+                        <div class="d-flex justify-content-center align-items-center position-relative">
+                            <div>
+                                <strong>Adviser:</strong> ${adviser} <br>
+                                <strong>Chairperson:</strong> ${chairName} <br>
+                                Members: ${memberNames}
+                            </div>
+                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
+                                style="top: 5px; right: 5px;"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#panelEditModal" 
+                                data-panel-set="A">
+                            </i>
+                        </div>
+                    </td>` : '';
+                
+                const dividerClass = groupNumber === 5 ? 'class="set-divider"' : '';
+                const row = `
+                    <tr data-group-id="${groupId}" data-set="A" ${dividerClass}>
+                        ${clusterCell}
+                        <td class="set-value">A</td>
+                        <td>${groupNumber}</td>
+                        <td><span class="status-badge status-completed">Completed</span></td>
+                        ${panelCell}
+                        <td class="status-column" id="status-${groupId}">
+                            <span class="status-badge status-pending">Pending</span>
+                        </td>
+                        <td class="schedule-cell" data-schedule-target="${groupId}">
+                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                    data-group="${groupNumber}" data-cluster="" data-set="A" 
+                                    data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
+                                <i class="bi bi-calendar-plus"></i> Set Schedule
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            }
+            
+            // Add divider row
+            const dividerRow = `
+                <tr class="divider-row">
+                    <td colspan="7" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                </tr>
+            `;
+            tbody.innerHTML += dividerRow;
+            
+            // Generate Set B: Groups 6-10
+            for (let groupNumber = 6; groupNumber <= 10; groupNumber++) {
+                const groupId = 'B' + (groupNumber - 5);
+                const borderStyle = groupNumber === 6 ? 'style="border-top: 3px solid #333;"' : '';
+                const clusterCell = groupNumber === 6 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
+                const panelCell = groupNumber === 6 ? `
+                    <td class="panel-details-table" rowspan="5"
+                        data-adviser="${adviser}" 
+                        data-chair="${chairName}" 
+                        data-members="${memberNames}" 
+                        data-panel-set="B">
+                        <div class="d-flex justify-content-center align-items-center position-relative">
+                            <div>
+                                <strong>Adviser:</strong> ${adviser} <br>
+                                <strong>Chairperson:</strong> ${chairName} <br>
+                                Members: ${memberNames}
+                            </div>
+                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
+                                style="top: 5px; right: 5px;"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#panelEditModal" 
+                                data-panel-set="B">
+                            </i>
+                        </div>
+                    </td>` : '';
+                
+                const row = `
+                    <tr data-group-id="${groupId}" data-set="B" ${borderStyle}>
+                        ${clusterCell}
+                        <td class="set-value">B</td>
+                        <td>${groupNumber}</td>
+                        <td><span class="status-badge status-completed">Completed</span></td>
+                        ${panelCell}
+                        <td class="status-column" id="status-${groupId}">
+                            <span class="status-badge status-pending">Pending</span>
+                        </td>
+                        <td class="schedule-cell" data-schedule-target="${groupId}">
+                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                    data-group="${groupNumber - 5}" data-cluster="" data-set="B" 
+                                    data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
+                                <i class="bi bi-calendar-plus"></i> Set Schedule
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            }
         }
 
         document.querySelectorAll('.defense-type-button').forEach(button => {
@@ -938,13 +1419,23 @@
 
                 document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
                 
+                // Show/hide defense type dropdown for Re-defense
+                const redefenseTypeGroup = document.getElementById('redefense-type-group');
+                if (currentDefenseType === 'REDEFENSE') {
+                    redefenseTypeGroup.style.display = 'block';
+                } else {
+                    redefenseTypeGroup.style.display = 'none';
+                }
+                
                 deptSelect.value = '';
                 clusterSelect.value = '';
+                document.getElementById('redefense-type-select').value = '';
                 updateScheduleView();
             });
         });
 
         enterButton.addEventListener('click', updateScheduleView);
+        document.getElementById('redefense-type-select').addEventListener('change', updateScheduleView);
         
         document.getElementById('calendar-icon').addEventListener('click', () => {
              dateActualInput.focus();
@@ -968,9 +1459,16 @@
             const button = event.relatedTarget;
             const isEditing = button.classList.contains('scheduled-container');
             
-            const cluster = button.getAttribute('data-cluster');
+            const cluster = clusterSelect.value;
             const set = button.getAttribute('data-set'); 
             const group = button.getAttribute('data-group');
+            const targetId = set + group;
+            
+            // Validate scheduling attempt
+            if (!isEditing && !validateScheduleAttempt(targetId, currentDefenseType)) {
+                event.preventDefault();
+                return false;
+            }
             
             const panelCell = document.querySelector(`.panel-details-table[data-panel-set="${set}"]`);
 
@@ -983,7 +1481,6 @@
             document.getElementById('modal-chairperson').textContent = chair;
             document.getElementById('modal-members').textContent = members;
 
-            const targetId = set + group;
             scheduleButton.setAttribute('data-group-target', targetId); 
             scheduleButton.textContent = isEditing ? 'Update Schedule' : 'Set Schedule';
 
@@ -1030,6 +1527,22 @@
         
         scheduleButton.addEventListener('click', function() {
             const targetId = this.getAttribute('data-group-target');
+            
+            // Mark as scheduled in group status
+            initializeGroupStatus(targetId);
+            if (currentDefenseType === 'PRE-ORAL') {
+                groupStatuses[targetId].preOralScheduled = true;
+            } else if (currentDefenseType === 'FINAL DEFENSE') {
+                groupStatuses[targetId].finalDefenseScheduled = true;
+            } else if (currentDefenseType === 'REDEFENSE') {
+                const redefenseType = document.getElementById('redefense-type-select').value;
+                if (redefenseType === 'PRE-ORAL') {
+                    groupStatuses[targetId].preOralRedefenseScheduled = true;
+                } else if (redefenseType === 'FINAL DEFENSE') {
+                    groupStatuses[targetId].finalRedefenseScheduled = true;
+                }
+            }
+            
             simulateScheduleSuccess(targetId);
         });
 

@@ -18,23 +18,19 @@
                     <span class="badge bg-warning text-dark"><i class="fas fa-users"></i> Group {{ $file->group_no }}</span>
                 </div>
 
-                @if($file->committee)
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-success"><i class="fas fa-user-tie"></i> Adviser</h6>
-                        <p class="ms-3">{{ $file->committee->adviser_name ?? 'Not Assigned' }}</p>
-                    </div>
+                <div class="mb-4">
+                    <h6 class="fw-bold text-success"><i class="fas fa-user-tie"></i> Adviser</h6>
+                    <p class="ms-3">Not Assigned</p>
+                </div>
 
-                    <div>
-                        <h6 class="fw-bold text-primary"><i class="fas fa-users"></i> Panel Members</h6>
-                        <ul class="list-group list-group-flush ms-3">
-                            <li class="list-group-item"><i class="fas fa-user"></i> {{ $file->committee->panel1 ?? 'Not Assigned' }}</li>
-                            <li class="list-group-item"><i class="fas fa-user"></i> {{ $file->committee->panel2 ?? 'Not Assigned' }}</li>
-                            <li class="list-group-item"><i class="fas fa-user"></i> {{ $file->committee->panel3 ?? 'Not Assigned' }}</li>
-                        </ul>
-                    </div>
-                @else
-                    <p class="text-muted fst-italic">No adviser or panel assigned yet.</p>
-                @endif
+                <div>
+                    <h6 class="fw-bold text-primary"><i class="fas fa-users"></i> Panel Members</h6>
+                    <ul class="list-group list-group-flush ms-3">
+                        <li class="list-group-item"><i class="fas fa-user"></i> Not Assigned</li>
+                        <li class="list-group-item"><i class="fas fa-user"></i> Not Assigned</li>
+                        <li class="list-group-item"><i class="fas fa-user"></i> Not Assigned</li>
+                    </ul>
+                </div>
             </div>
         </div>
     @empty

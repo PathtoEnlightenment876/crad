@@ -61,7 +61,7 @@
                             <i class="bi bi-person-plus-fill me-1"></i> Add Adviser
                         </button>
                         <button class="btn btn-secondary ms-2" data-bs-toggle="modal" data-bs-target="#archiveAdviserModal">
-                            <i class="bi bi-archive me-1"></i> Archive
+                            <i class="bi bi-archive me-1"></i> Inactive
                         </button>
                     </div>
                 </div>
@@ -133,7 +133,7 @@
                                                     data-bs-target="#editAdviserModal{{ $adviser->id }}">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-danger" onclick="deleteAdviser({{ $adviser->id }})">
+                                                <button class="btn btn-sm btn-secondary" onclick="deleteAdviser({{ $adviser->id }})">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
@@ -156,7 +156,7 @@
                             <i class="bi bi-person-plus-fill me-1"></i> Add Panel Member
                         </button>
                         <button class="btn btn-secondary ms-2" data-bs-toggle="modal" data-bs-target="#archivePanelModal">
-                            <i class="bi bi-archive me-1"></i> Archive
+                            <i class="bi bi-archive me-1"></i> Inactive
                         </button>
                     </div>
                 </div>
@@ -183,6 +183,8 @@
                                         <th>Department</th>
                                         <th>Name</th>
                                         <th>Expertise</th>
+                                        <th>Role</th>
+                                        <th>Contact Number</th>
                                         <th>Availability</th>
                                         <th>Action</th>
                                     </tr>
@@ -193,6 +195,8 @@
                                             <td>{{ $panel->department }}</td>
                                             <td>{{ $panel->name }}</td>
                                             <td>{{ $panel->expertise }}</td>
+                                            <td>{{ $panel->role ?? 'N/A' }}</td>
+                                            <td>{{ $panel->contact_number ?? 'N/A' }}</td>
                                             <td>
                                                 @if(is_array($panel->availability) && count($panel->availability) > 0)
                                                     <ul class="list-unstyled mb-0">
@@ -261,6 +265,7 @@
                                         <th>Adviser</th>
                                         <th>Expertise</th>
                                         <th>Panel Members</th>
+                                        <th>Chairperson</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -273,14 +278,41 @@
                                             <td>{{ $assignment->adviser ? $assignment->adviser->expertise : 'N/A' }}</td>
                                             <td>
                                                 @if($assignment->assignmentPanels && $assignment->assignmentPanels->count() > 0)
-                                                    @foreach($assignment->assignmentPanels as $panel)
-                                                        <span class="badge bg-secondary me-1">{{ $panel->name }}</span>
-                                                    @endforeach
+                                                    @php
+                                                        $members = $assignment->assignmentPanels->where('role', '!=', 'Chairperson');
+                                                    @endphp
+                                                    @if($members->count() > 0)
+                                                        @foreach($members as $panel)
+                                                            <span class="badge bg-secondary me-1">{{ $panel->name }}</span>
+                                                        @endforeach
+                                                    @else
+                                                        <span class="text-muted">No members</span>
+                                                    @endif
                                                 @else
-                                                    <span class="text-muted">No panels</span>
+                                                    <span class="text-muted">No members</span>
                                                 @endif
                                             </td>
                                             <td>
+                                                @if($assignment->assignmentPanels && $assignment->assignmentPanels->count() > 0)
+                                                    @php
+                                                        $chairperson = $assignment->assignmentPanels->where('role', 'Chairperson')->first();
+                                                    @endphp
+                                                    @if($chairperson)
+                                                        {{ $chairperson->name }}
+                                                    @else
+                                                        <span class="text-muted">No chairperson</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted">No chairperson</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success me-1" onclick="scheduleDefense('{{ $assignment->department }}', '{{ $assignment->section }}', {{ $assignment->id }})" title="Schedule Defense">
+                                                    <i class="bi bi-calendar-plus"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-warning me-1" onclick="evaluateDefense('{{ $assignment->department }}', '{{ $assignment->section }}', {{ $assignment->id }})" title="Evaluate Defense">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
                                                 <button class="btn btn-sm btn-primary me-1" data-bs-toggle="modal" data-bs-target="#editAssignmentModal{{ $assignment->id }}">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
@@ -291,7 +323,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center py-3 text-muted">
+                                            <td colspan="7" class="text-center py-3 text-muted">
                                                 No assignments found. Click "Add Assignment" to create your first assignment.
                                             </td>
                                         </tr>
@@ -406,7 +438,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="expertise" class="form-label">Expertise *</label>
-                                    <select name="expertise" class="form-select" required>
+                                    <select name="expertise" class="form-select" required onchange="toggleOthersInput(this)">
                                         <option value="">Select Expertise</option>
                                         <option value="Instructor">Instructor</option>
                                         <option value="Assistant Professor">Assistant Professor</option>
@@ -415,7 +447,24 @@
                                         <option value="Doctoral">Doctoral</option>
                                         <option value="Industry Expert">Industry Expert</option>
                                         <option value="Research Specialist">Research Specialist</option>
+                                        <option value="Others">Others</option>
                                     </select>
+                                </div>
+                                <div class="mb-3" id="othersInputDiv" style="display: none;">
+                                    <label for="othersInput" class="form-label">Specify Other Expertise</label>
+                                    <input type="text" id="othersInput" name="others_expertise" class="form-control" placeholder="Enter specific expertise">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Role *</label>
+                                    <select name="role" class="form-select" required>
+                                        <option value="">Select Role</option>
+                                        <option value="Chairperson">Chairperson</option>
+                                        <option value="Member">Member</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="contact_number" class="form-label">Contact Number</label>
+                                    <input type="text" name="contact_number" class="form-control" placeholder="e.g., +63 912 345 6789" />
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Availability Summary</label>
@@ -559,7 +608,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Expertise *</label>
-                                        <select name="expertise" class="form-select" required>
+                                        <select name="expertise" class="form-select" required onchange="toggleEditOthersInput(this, {{ $panel->id }})">
                                             <option value="Instructor" {{ $panel->expertise == 'Instructor' ? 'selected' : '' }}>Instructor</option>
                                             <option value="Assistant Professor" {{ $panel->expertise == 'Assistant Professor' ? 'selected' : '' }}>Assistant Professor</option>
                                             <option value="Associate Professor" {{ $panel->expertise == 'Associate Professor' ? 'selected' : '' }}>Associate Professor</option>
@@ -567,7 +616,23 @@
                                             <option value="Doctoral" {{ $panel->expertise == 'Doctoral' ? 'selected' : '' }}>Doctoral</option>
                                             <option value="Industry Expert" {{ $panel->expertise == 'Industry Expert' ? 'selected' : '' }}>Industry Expert</option>
                                             <option value="Research Specialist" {{ $panel->expertise == 'Research Specialist' ? 'selected' : '' }}>Research Specialist</option>
+                                            <option value="Others" {{ !in_array($panel->expertise, ['Instructor', 'Assistant Professor', 'Associate Professor', 'Professor', 'Doctoral', 'Industry Expert', 'Research Specialist']) ? 'selected' : '' }}>Others</option>
                                         </select>
+                                    </div>
+                                    <div class="mb-3" id="editOthersInputDiv{{ $panel->id }}" style="display: {{ !in_array($panel->expertise, ['Instructor', 'Assistant Professor', 'Associate Professor', 'Professor', 'Doctoral', 'Industry Expert', 'Research Specialist']) ? 'block' : 'none' }};">
+                                        <label for="editOthersInput{{ $panel->id }}" class="form-label">Specify Other Expertise</label>
+                                        <input type="text" id="editOthersInput{{ $panel->id }}" name="others_expertise" class="form-control" placeholder="Enter specific expertise" value="{{ !in_array($panel->expertise, ['Instructor', 'Assistant Professor', 'Associate Professor', 'Professor', 'Doctoral', 'Industry Expert', 'Research Specialist']) ? $panel->expertise : '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Role *</label>
+                                        <select name="role" class="form-select" required>
+                                            <option value="Chairperson" {{ $panel->role == 'Chairperson' ? 'selected' : '' }}>Chairperson</option>
+                                            <option value="Member" {{ $panel->role == 'Member' ? 'selected' : '' }}>Member</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Contact Number</label>
+                                        <input type="text" name="contact_number" class="form-control" value="{{ $panel->contact_number ?? '' }}" placeholder="e.g., +63 912 345 6789" />
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Availability Summary</label>
@@ -615,7 +680,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-secondary text-white">
-                    <h5 class="modal-title">Archived Advisers</h5>
+                    <h5 class="modal-title">Inactive Advisers</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -626,12 +691,13 @@
                                     <th>Name</th>
                                     <th>Department</th>
                                     <th>Expertise</th>
-                                    <th>Archived Date</th>
+                                    <th>Advisory History</th>
+                                    <th>Inactive Date</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="archivedAdvisersBody">
-                                <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                <tr><td colspan="6" class="text-center">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -645,7 +711,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-secondary text-white">
-                    <h5 class="modal-title">Archived Panel Members</h5>
+                    <h5 class="modal-title">Inactive Panel Members</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -656,7 +722,7 @@
                                     <th>Name</th>
                                     <th>Department</th>
                                     <th>Expertise</th>
-                                    <th>Archived Date</th>
+                                    <th>Inactive Date</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -714,6 +780,17 @@
                                 @foreach($advisers as $adviser)
                                     <option value="{{ $adviser->id }}" data-department="{{ $adviser->department }}" data-sections="{{ is_array($adviser->sections) ? implode(',', $adviser->sections) : $adviser->sections }}">
                                         {{ $adviser->name }} ({{ $adviser->department }} - {{ is_array($adviser->sections) ? implode(', ', $adviser->sections) : $adviser->sections }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chairperson *</label>
+                            <select name="chairperson_id" class="form-select" required>
+                                <option value="">Select Chairperson</option>
+                                @foreach($panels->where('role', 'Chairperson') as $chairperson)
+                                    <option value="{{ $chairperson->id }}" data-department="{{ $chairperson->department }}" class="modal-chairperson-option">
+                                        {{ $chairperson->name }} ({{ $chairperson->department }} - {{ $chairperson->expertise }})
                                     </option>
                                 @endforeach
                             </select>
@@ -818,6 +895,34 @@
     const menu = document.getElementById('panelDropdownMenu');
     menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
 }
+
+function toggleOthersInput(select) {
+    const othersDiv = document.getElementById('othersInputDiv');
+    const othersInput = document.getElementById('othersInput');
+    
+    if (select.value === 'Others') {
+        othersDiv.style.display = 'block';
+        othersInput.required = true;
+    } else {
+        othersDiv.style.display = 'none';
+        othersInput.required = false;
+        othersInput.value = '';
+    }
+}
+
+function toggleEditOthersInput(select, panelId) {
+    const othersDiv = document.getElementById(`editOthersInputDiv${panelId}`);
+    const othersInput = document.getElementById(`editOthersInput${panelId}`);
+    
+    if (select.value === 'Others') {
+        othersDiv.style.display = 'block';
+        othersInput.required = true;
+    } else {
+        othersDiv.style.display = 'none';
+        othersInput.required = false;
+        othersInput.value = '';
+    }
+}
 const advisersData = @json($advisers);  // Array of advisers
 const panelsData = @json($panels); 
 
@@ -884,10 +989,27 @@ function filterModalMembers() {
         }
     });
 
-    // Filter advisers
+    // Auto-fill adviser based on cluster selection
     const adviserSelect = modal.querySelector('select[name="adviser_id"]');
     const adviserOptions = adviserSelect.querySelectorAll('option[data-department]');
     
+    // Reset adviser selection
+    adviserSelect.value = '';
+    
+    if (dept && section) {
+        // Find adviser assigned to this cluster
+        const matchingAdviser = Array.from(adviserOptions).find(option => {
+            const optionDept = option.dataset.department;
+            const optionSections = option.dataset.sections.split(',').map(s => s.trim());
+            return optionDept === dept && optionSections.includes(section);
+        });
+        
+        if (matchingAdviser) {
+            adviserSelect.value = matchingAdviser.value;
+        }
+    }
+    
+    // Filter adviser options
     adviserOptions.forEach(option => {
         const optionDept = option.dataset.department;
         const optionSections = option.dataset.sections.split(',').map(s => s.trim());
@@ -899,6 +1021,15 @@ function filterModalMembers() {
         } else {
             option.style.display = 'none';
         }
+    });
+
+    // Filter chairperson options
+    const chairpersonSelect = modal.querySelector('select[name="chairperson_id"]');
+    const chairpersonOptions = chairpersonSelect.querySelectorAll('.modal-chairperson-option');
+    
+    chairpersonOptions.forEach(option => {
+        const optionDept = option.dataset.department;
+        option.style.display = (dept && optionDept === dept) ? 'block' : 'none';
     });
 
     // Filter panel members
@@ -1194,7 +1325,7 @@ function loadArchivedAdvisers() {
         .then(data => {
             const tbody = document.getElementById('archivedAdvisersBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No archived advisers</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No inactive advisers</td></tr>';
                 return;
             }
             tbody.innerHTML = data.map(adviser => `
@@ -1202,13 +1333,11 @@ function loadArchivedAdvisers() {
                     <td>${adviser.name}</td>
                     <td>${adviser.department}</td>
                     <td>${adviser.expertise}</td>
+                    <td>${adviser.sections ? (Array.isArray(adviser.sections) ? adviser.sections.join(', ') : adviser.sections) : 'N/A'}</td>
                     <td>${new Date(adviser.deleted_at).toLocaleDateString()}</td>
                     <td>
-                        <button class="btn btn-sm btn-success me-1" onclick="restoreAdviser(${adviser.id})">
+                        <button class="btn btn-sm btn-success" onclick="restoreAdviser(${adviser.id})">
                             <i class="bi bi-arrow-clockwise"></i> Restore
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="permanentDeleteAdviser(${adviser.id})">
-                            <i class="bi bi-trash"></i> Delete
                         </button>
                     </td>
                 </tr>
@@ -1222,7 +1351,7 @@ function loadArchivedPanels() {
         .then(data => {
             const tbody = document.getElementById('archivedPanelsBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No archived panels</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No inactive panels</td></tr>';
                 return;
             }
             tbody.innerHTML = data.map(panel => `
@@ -1410,6 +1539,28 @@ function permanentDeletePanel(panelId) {
             alert('An error occurred while permanently deleting the panel member.');
         });
     }
+}
+
+// Schedule Defense Function
+function scheduleDefense(department, section, assignmentId) {
+    // Redirect to def-sched with assignment data as URL parameters
+    const url = new URL('/def-sched', window.location.origin);
+    url.searchParams.set('department', department);
+    url.searchParams.set('cluster', section);
+    url.searchParams.set('assignment_id', assignmentId);
+    
+    window.location.href = url.toString();
+}
+
+// Evaluate Defense Function
+function evaluateDefense(department, section, assignmentId) {
+    // Redirect to def-eval with assignment data as URL parameters
+    const url = new URL('/def-eval', window.location.origin);
+    url.searchParams.set('department', department);
+    url.searchParams.set('cluster', section);
+    url.searchParams.set('assignment_id', assignmentId);
+    
+    window.location.href = url.toString();
 }
 </script>
 @endsection

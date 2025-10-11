@@ -12,12 +12,13 @@ class AdminSubmissionController extends Controller
 {
     public function trackProposal(Request $request)
     {
-        $departments = Submission::distinct()->pluck('department');
-        $clusters = Submission::distinct()->pluck('cluster');
-        $groups = Submission::distinct()->pluck('group_no');
+        // Get unique values from authenticated users and their submissions
+        $departments = Submission::distinct()->pluck('department')->filter();
+        $clusters = Submission::distinct()->pluck('cluster')->filter();
+        $groups = Submission::distinct()->pluck('group_no')->filter();
     
-        // Show submissions if any filter is applied (including "All")
-        if ($request->has('department') || $request->has('cluster') || $request->has('group_no')) {
+        // Show submissions if any filter is applied
+        if ($request->hasAny(['department', 'cluster', 'group_no'])) {
             $query = Submission::with('user');
         
             if ($request->filled('department')) {
@@ -31,19 +32,23 @@ class AdminSubmissionController extends Controller
             }
         
             $submissions = $query->orderBy('created_at', 'desc')->get();
+            
+            // Ensure user data consistency
+            $submissions->each(function($submission) {
+                if ($submission->user) {
+                    $submission->department = $submission->user->department ?? $submission->department;
+                }
+            });
         } else {
             $submissions = collect();
         }
         
-        // Add empty histories for each submission to prevent null errors
-        $submissions->each(function($submission) {
-            $submission->histories = collect();
-        });
-        
-        // Get history logs from submissions that have been processed
+        // Get history logs from processed submissions
         $historyLogs = Submission::with('user')
-            ->whereNotNull('feedback')
-            ->orWhere('status', '!=', 'Pending')
+            ->where(function($query) {
+                $query->whereNotNull('feedback')
+                      ->orWhere('status', '!=', 'Pending');
+            })
             ->orderBy('updated_at', 'desc')
             ->get();
     
@@ -88,7 +93,8 @@ public function updateStatus(Request $request, $id)
     
     $submission->save();
 
-    return back()->with('success', 'Submission updated successfully.');
+    // Always return JSON for this endpoint
+    return response()->json(['success' => true, 'message' => 'Submission updated successfully.']);
 }
 
     public function viewFile($id)
@@ -144,6 +150,31 @@ public function updateStatus(Request $request, $id)
     );
 
     return redirect()->back()->with('success', 'Committee assigned successfully.');
+}
+
+public function getSubmissionsByGroup($group)
+{
+    $submissions = Submission::with('user')
+        ->where('group_no', $group)
+        ->orderBy('created_at', 'desc')
+        ->get();
+    
+    return response()->json([
+        'success' => $submissions->isNotEmpty(),
+        'submissions' => $submissions
+    ]);
+}
+
+public function downloadFile($id)
+{
+    $submission = Submission::findOrFail($id);
+    $filePath = storage_path('app/public/' . $submission->file_path);
+    
+    if (!file_exists($filePath)) {
+        abort(404, 'File not found');
+    }
+    
+    return response()->download($filePath, basename($submission->file_path));
 }
 
 public function panelAdviser()

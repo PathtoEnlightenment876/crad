@@ -55,14 +55,20 @@
                 </li>
 
                 <li>
-                    <a href="{{ url('/def-sched') }}" class="nav-link">
-                        <i class="bi bi-calendar4-week fs-5"></i>
-                        <span>Defense Scheduling </span>
+                    <a href="{{ url('/def-sched') }}" class="nav-link d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-calendar4-week fs-5"></i>
+                            <span>Defense Scheduling</span>
+                        </div>
                     </a>
-
                 </li>
-
-
+                
+                <li>
+                    <a href="{{ url('/def-eval') }}" class="nav-link">
+                        <i class="bi bi-clipboard-check fs-5"></i>
+                        <span>Defense Evaluation</span>
+                    </a>
+                </li>
                 <li>
                     <a href="{{ url('/analytics') }}" class="nav-link">
                         <i class="bi bi-bar-chart-line fs-5"></i>

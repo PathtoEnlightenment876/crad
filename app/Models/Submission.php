@@ -12,6 +12,7 @@ class Submission extends Model
     protected $fillable = [
         'user_id',
         'documents',
+        'defense_type',
         'department',
         'cluster',
         'group_no',

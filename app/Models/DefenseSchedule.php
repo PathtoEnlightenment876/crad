@@ -2,28 +2,38 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DefenseSchedule extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'department',
-        'cluster',
+        'section',
         'group_id',
         'defense_type',
-        'schedule_date',
+        'original_defense_type',
+        'assignment_id',
+        'defense_date',
         'start_time',
         'end_time',
         'set_letter',
-        'adviser',
-        'chairperson',
-        'members',
-        'status'
+        'status',
+        'panel_data'
     ];
 
     protected $casts = [
-        'schedule_date' => 'date',
+        'panel_data' => 'array',
+        'defense_date' => 'date',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i'
     ];
+
+    public function assignment()
+    {
+        return $this->belongsTo(Assignment::class);
+    }
 }

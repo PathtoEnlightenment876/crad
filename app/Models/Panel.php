@@ -9,7 +9,7 @@ class Panel extends Model
 {
     use SoftDeletes;
     // 1. Remove 'cluster_id' from $fillable.
-    protected $fillable = ['department', 'name', 'expertise', 'availability'];
+    protected $fillable = ['department', 'name', 'expertise', 'availability', 'role'];
     
     protected $casts = [
         'availability' => 'array', 

@@ -88,42 +88,26 @@ public function dashboard()
         }
     }
 
-    $submissions = Submission::with('committee')->where('user_id', $userId)->get();
-    $submissionWithCommittee = $submissions->first(function($submission) {
-        return $submission->committee !== null;
-    });
-    
+    $submissions = Submission::where('user_id', $userId)->get();
     $latestSubmission = $submissions->last();
     $submissionStatus = $latestSubmission ? $latestSubmission->status : 'PENDING';
     
-    // Calculate progress based on submission types and status
     $progressSteps = [
-        1 => $submissions->where('type', 'proposal')->where('status', 'Approved')->count() > 0,
-        2 => $submissions->where('type', 'research_forum')->where('status', 'Approved')->count() > 0,
-        3 => $submissions->where('type', 'clearance_1')->where('status', 'Approved')->count() > 0,
-        4 => $submissions->where('type', 'pre_oral')->where('status', 'Approved')->count() > 0,
-        5 => $submissions->where('type', 'clearance_2')->where('status', 'Approved')->count() > 0,
-        6 => $submissions->where('type', 'final_defense')->where('status', 'Approved')->count() > 0,
+        1 => $submissions->where('status', 'Approved')->count() > 0,
+        2 => false,
+        3 => false,
+        4 => false,
+        5 => false,
+        6 => false,
     ];
     
     $progress = collect($progressSteps)->filter()->count();
     
-    $committee = $submissionWithCommittee ? $submissionWithCommittee->committee : null;
-    
-    $adviser = $committee ? (object) ['name' => $committee->adviser_name] : (object) ['name' => 'N/A'];
-    
-    $panels = collect();
-    if ($committee) {
-        if ($committee->panel1) $panels->push((object) ['name' => $committee->panel1, 'role' => 'Panel Member 1']);
-        if ($committee->panel2) $panels->push((object) ['name' => $committee->panel2, 'role' => 'Panel Member 2']);
-        if ($committee->panel3) $panels->push((object) ['name' => $committee->panel3, 'role' => 'Panel Member 3']);
-    }
-    
     $group = (object) [
         'group_no' => auth()->user()->group_no ?? 'N/A', 
         'department' => auth()->user()->department ?? 'N/A',
-        'adviser' => $adviser,
-        'panels' => $panels
+        'adviser' => (object) ['name' => 'N/A'],
+        'panels' => collect()
     ];
 
     return view('std-dashboard', compact('upcomingSubmissions', 'chapters', 'submissionStatus', 'progress', 'progressSteps', 'group'));

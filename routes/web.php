@@ -15,8 +15,6 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\PanelAdviserController;
 use App\Http\Controllers\DefenseScheduleController;
 
-
-
 // Login Page is now the Homepage
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 
@@ -48,15 +46,14 @@ Route::get('/analytics', fn() => view('analytics'));
 
 
 
-//Def Sched
-Route::get('/def-sched', action: fn() => view('def-sched'));
+
 
 
 
 // Student routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/std-dashboard', [StudentController::class, 'dashboard'])->name('std-dashboard');
-    Route::get('/submission', [StudentController::class, 'submission'])->name('submission');
+    Route::get('/submission', [StudentSubmissionController::class, 'submission'])->name('submission');
     Route::post('/files', [StudentController::class, 'store'])->name('student.files.store');
     Route::post('/submission', [StudentSubmissionController::class, 'store'])->name('student.submission.store');
     Route::post('/submissions', [StudentSubmissionController::class, 'store'])->name('student.submissions.store');
@@ -70,6 +67,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/track-proposal', [AdminSubmissionController::class, 'trackProposal'])->name('admin.track-proposal');
     Route::get('/admin/submissions', [AdminSubmissionController::class, 'trackProposal'])->name('admin.submissions.index');
+    Route::get('/admin/submissions/group/{group}', [AdminSubmissionController::class, 'getSubmissionsByGroup'])->name('admin.submissions.group');
+    Route::post('/admin/submissions/{id}/update-status', [AdminSubmissionController::class, 'updateStatus'])->name('admin.submissions.updateStatus');
+    Route::get('/admin/submissions/{id}/download', [AdminSubmissionController::class, 'downloadFile'])->name('admin.submissions.download');
     Route::post('/submissions/{id}/update-status', [AdminSubmissionController::class, 'updateStatus'])->name('admin.submissions.updateStatus');
     Route::post('/submission/{id}/approve', [AdminSubmissionController::class, 'approve'])->name('admin.submission.approve');
     Route::post('/submission/{id}/reject', [AdminSubmissionController::class, 'reject'])->name('admin.submission.reject');
@@ -180,6 +180,38 @@ Route::get('/api/assignments', [PanelAdviserController::class, 'apiAssignments']
  
     //def-sched
     Route::get('/def-sched', [DefenseScheduleController::class, 'index'])->name('def-sched.index');
-    Route::get('/api/defense-schedule-data', [DefenseScheduleController::class, 'getData']);
-    Route::post('/api/defense-schedule', [DefenseScheduleController::class, 'store']);
-    Route::put('/api/defense-schedule/{id}/status', [DefenseScheduleController::class, 'updateStatus']);
+    Route::post('/defense-schedules', [DefenseScheduleController::class, 'store']);
+    Route::put('/defense-schedules/{defenseSchedule}', [DefenseScheduleController::class, 'update']);
+    Route::get('/defense-schedules/by-type', [DefenseScheduleController::class, 'getByType']);
+// Panel-Adviser Management Routes
+Route::get('/panel-adviser', [PanelAdviserController::class, 'index'])->name('panel-adviser.index');
+
+// Adviser Routes
+Route::post('/advisers', [AdviserController::class, 'store'])->name('advisers.store');
+Route::put('/advisers/{adviser}', [AdviserController::class, 'update'])->name('advisers.update');
+Route::delete('/advisers/{adviser}', [AdviserController::class, 'destroy'])->name('advisers.destroy');
+Route::delete('/advisers/{id}/force', [AdviserController::class, 'forceDelete'])->name('advisers.forceDelete');
+Route::post('/advisers/{id}/restore', [AdviserController::class, 'restore'])->name('advisers.restore');
+
+// Panel Routes
+Route::post('/panels', [PanelController::class, 'store'])->name('panels.store');
+Route::put('/panels/{panel}', [PanelController::class, 'update'])->name('panels.update');
+Route::delete('/panels/{panel}', [PanelController::class, 'destroy'])->name('panels.destroy');
+Route::delete('/panels/{id}/force', [PanelController::class, 'forceDelete'])->name('panels.forceDelete');
+Route::post('/panels/{id}/restore', [PanelController::class, 'restore'])->name('panels.restore');
+
+// Assignment Routes
+Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
+Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+
+// Defense Schedule Routes
+Route::get('/def-sched', [DefenseScheduleController::class, 'index'])->name('def-sched.index');
+Route::post('/defense-schedules', [DefenseScheduleController::class, 'store'])->name('defense-schedules.store')->middleware('auth');
+Route::put('/defense-schedules/{defenseSchedule}', [DefenseScheduleController::class, 'update'])->name('defense-schedules.update')->middleware('auth');
+Route::get('/defense-schedules/by-type', [DefenseScheduleController::class, 'getByType'])->name('defense-schedules.by-type')->middleware('auth');
+
+// Defense Evaluation Routes
+Route::get('/def-eval', [\App\Http\Controllers\DefenseEvaluationController::class, 'index'])->name('def-eval.index')->middleware('auth');
+
+// Admin Submission Routes
+Route::get('/admin-submission', [AdminSubmissionController::class, 'trackProposal'])->name('admin-submission.track');

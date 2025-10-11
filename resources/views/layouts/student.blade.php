@@ -148,7 +148,7 @@
                 <p><strong>Name:</strong> {{ Auth::user()->name ?? 'N/A' }}</p>
                 <p><strong>Email:</strong> {{ Auth::user()->email ?? 'N/A' }}</p>
                 <p><strong>Department:</strong> {{ Auth::user()->department ?? 'N/A' }}</p>
-                <p><strong>Cluster:</strong> {{ Auth::user()->cluster ?? 'N/A' }}</p>
+                <p><strong>Section/Cluster:</strong> {{ Auth::user()->section_cluster ?? 'N/A' }}</p>
                 <p><strong>Group No:</strong> {{ Auth::user()->group_no ?? 'N/A' }}</p>
             </div>
             <div class="modal-footer">

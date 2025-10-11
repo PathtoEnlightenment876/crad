@@ -9,11 +9,14 @@ class PanelController extends Controller
 {
     public function store(Request $request) {
         $availability = json_decode($request->availability, true) ?? [];
+        $expertise = $request->expertise === 'Others' && $request->others_expertise ? $request->others_expertise : $request->expertise;
+        
         Panel::create([
             'department' => $request->department,
             'name' => $request->name,
-            'expertise' => $request->expertise,
-            'availability' => $availability
+            'expertise' => $expertise,
+            'availability' => $availability,
+            'role' => $request->role
         ]);
         return back()->with('success', 'Panel member added successfully.');
     }
@@ -22,13 +25,16 @@ class PanelController extends Controller
     {
         $panel = Panel::findOrFail($id);
         
+        $expertise = $request->expertise === 'Others' && $request->others_expertise ? $request->others_expertise : $request->expertise;
+        
         $panel->department = $request->department;
         $panel->name = $request->name;
-        $panel->expertise = $request->expertise;
+        $panel->expertise = $expertise;
         $panel->availability = $request->availability ? json_decode($request->availability, true) : [];
+        $panel->role = $request->role;
         $panel->save();
     
-        return redirect()->route('panel-adviser')->with('success', 'Panel member updated successfully.');
+        return redirect()->route('panel-adviser.index')->with('success', 'Panel member updated successfully.');
     }
 
     public function destroy(Panel $panel)

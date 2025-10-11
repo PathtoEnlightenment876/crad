@@ -17,6 +17,7 @@ class AssignmentController extends Controller
                 'department' => 'required|string',
                 'section' => 'required|string',
                 'adviser_id' => 'required|integer',
+                'chairperson_id' => 'required|integer',
                 'panel_ids' => 'required|array',
                 'panel_ids.*' => 'integer',
             ]);
@@ -33,17 +34,31 @@ class AssignmentController extends Controller
                 ]);
             }
 
-            // ✅ 1. Create the main assignment
+            // Create the main assignment
             $assignment = Assignment::create([
                 'department' => $validated['department'],
                 'section' => $validated['section'],
                 'adviser_id' => $validated['adviser_id'],
             ]);
 
-            // ✅ 2. Adviser is already linked via adviser_id in assignments table
-            // No need to insert adviser into assignment_panels table
+            // Add chairperson
+            $chairperson = Panel::find($validated['chairperson_id']);
+            if ($chairperson) {
+                AssignmentPanel::create([
+                    'assignment_id' => $assignment->id,
+                    'panel_id' => $validated['chairperson_id'],
+                    'name' => $chairperson->name,
+                    'availability' => is_array($chairperson->availability)
+                        ? json_encode($chairperson->availability)
+                        : $chairperson->availability,
+                    'role' => 'Chairperson',
+                    'expertise' => $chairperson->expertise,
+                    'department' => $validated['department'],
+                    'section' => $validated['section'],
+                ]);
+            }
 
-            // ✅ 3. Insert panel members into assignment_panels
+            // Add panel members
             foreach ($validated['panel_ids'] as $panelId) {
                 $panel = Panel::find($panelId);
                 if ($panel) {
@@ -54,7 +69,7 @@ class AssignmentController extends Controller
                         'availability' => is_array($panel->availability)
                             ? json_encode($panel->availability)
                             : $panel->availability,
-                        'role' => 'chairperson',
+                        'role' => 'Member',
                         'expertise' => $panel->expertise,
                         'department' => $validated['department'],
                         'section' => $validated['section'],
