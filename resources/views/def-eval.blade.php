@@ -158,6 +158,8 @@
     .status-ongoing { color: #0d6efd; background-color: #e7f1ff; }
     .status-defended { color: var(--status-green); background-color: var(--status-light-green); }
     .status-redefense { color: #fd7e14; background-color: #fff3cd; }
+    .status-passed { color: var(--status-green); background-color: var(--status-light-green); }
+    .status-failed { color: var(--status-red); background-color: var(--status-light-red); }
     .status-failed { color: var(--status-red); background-color: var(--status-light-red); } 
     .status-badge { display: inline-block; padding: 0.3em 0.6em; font-size: 0.75rem; border-radius: 0.375rem; font-weight: 500;}
     .status-completed { color: var(--status-green); background-color: var(--status-light-green); }
@@ -301,20 +303,9 @@
                     </thead>
                     <tbody id="schedule-table-body">
                         @php
-                            // Use first assignment for consistent data across all groups
-                            $assignment = isset($assignments) ? $assignments->first() : null;
                             $adviser = 'No Adviser';
                             $chairName = 'No Chairperson';
                             $memberNames = 'No Members';
-                            
-                            if ($assignment) {
-                                $adviser = $assignment->adviser ? $assignment->adviser->name : 'No Adviser';
-                                $panels = $assignment->assignmentPanels ?? collect();
-                                $chairperson = $panels->where('role', 'Chairperson')->first();
-                                $members = $panels->where('role', 'Member')->whereNotNull('name');
-                                $chairName = $chairperson && $chairperson->name ? $chairperson->name : 'No Chairperson';
-                                $memberNames = $members->count() > 0 ? $members->pluck('name')->filter()->implode(', ') : 'No Members';
-                            }
                         @endphp
                         
                         {{-- Set A: Groups 1-5 --}}
@@ -556,33 +547,36 @@
         }
     }
 
-    function canScheduleFinalDefense(groupId) {
+    function canEvaluateFinalDefense(groupId) {
         const status = groupStatuses[groupId];
         if (!status) return false;
         
         return (status.preOralResult === 'Passed') || 
-               (status.preOralResult === 'Failed' && status.preOralRedefenseResult === 'Passed');
+               (status.preOralResult === 'Redefense' && status.preOralRedefenseResult === 'Passed');
     }
 
-    function validateEvaluation(groupId, defenseType, action) {
+    function validateEvaluation(groupId, defenseType) {
         initializeGroupStatus(groupId);
         
-        if (defenseType === 'FINAL DEFENSE' && action === 'schedule') {
-            if (!canScheduleFinalDefense(groupId)) {
+        if (defenseType === 'FINAL') {
+            if (!canEvaluateFinalDefense(groupId)) {
                 const status = groupStatuses[groupId];
                 if (!status.preOralResult) {
-                    showAlert('error', 'Cannot Schedule Final Defense', 'Group has not completed Pre-oral Defense yet.');
+                    showAlert('error', 'Cannot Evaluate Final Defense', 'Group has not been evaluated in Pre-oral Defense yet.');
                     return false;
                 }
-                if (status.preOralResult === 'Failed' && !status.preOralRedefenseResult) {
-                    showAlert('error', 'Cannot Schedule Final Defense', 'Group failed Pre-oral Defense and has not passed Re-defense yet.');
+                if (status.preOralResult === 'Redefense' && !status.preOralRedefenseResult) {
+                    showAlert('error', 'Cannot Evaluate Final Defense', 'Group needs to complete Pre-oral Re-defense first.');
                     return false;
                 }
-                if (status.preOralResult === 'Failed' && status.preOralRedefenseResult === 'Failed') {
-                    showAlert('error', 'Cannot Schedule Final Defense', 'Group failed both Pre-oral Defense and Re-defense.');
+                if (status.preOralResult === 'Failed') {
+                    showAlert('error', 'Cannot Evaluate Final Defense', 'Group failed Pre-oral Defense.');
                     return false;
                 }
-                showAlert('error', 'Cannot Schedule Final Defense', 'Group has not passed Pre-oral Defense requirements.');
+                if (status.preOralResult === 'Redefense' && status.preOralRedefenseResult === 'Failed') {
+                    showAlert('error', 'Cannot Evaluate Final Defense', 'Group failed Pre-oral Re-defense.');
+                    return false;
+                }
                 return false;
             }
         }
@@ -599,6 +593,9 @@
             if (statusResult === 'Passed') {
                 statusText = 'Defended';
                 statusClass = 'status-defended';
+            } else if (statusResult === 'Redefense') {
+                statusText = 'Re-defense';
+                statusClass = 'status-redefense';
             } else if (statusResult === 'Failed') {
                 if (defenseType === 'REDEFENSE') {
                     statusText = 'Failed';
@@ -614,6 +611,21 @@
     }
 
     window.handleEvaluation = async function(groupId, result) {
+        const defenseTypeDisplay = document.getElementById('defense-type-display');
+        const currentDefenseType = defenseTypeDisplay ? defenseTypeDisplay.textContent.split(' ')[0] : 'UNKNOWN';
+        
+        // Check if evaluation button is disabled (defense time not reached)
+        const evalButton = document.querySelector(`[data-group-id="${groupId}"] .btn-eval[onclick*="${result}"]`);
+        if (evalButton && evalButton.disabled) {
+            showAlert('warning', 'Evaluation Not Available', 'Defense evaluation is only available after the scheduled defense time has passed.');
+            return;
+        }
+        
+        // Validate if evaluation is allowed
+        if (!validateEvaluation(groupId, currentDefenseType)) {
+            return;
+        }
+        
         const confirmMessage = `Are you sure you want to mark Group ${groupId} as "${result.toUpperCase()}"? This action cannot be reversed.`;
         
         const confirmed = await showConfirm('Confirm Evaluation', confirmMessage, 'Yes, confirm!');
@@ -621,48 +633,319 @@
         if (confirmed) {
             initializeGroupStatus(groupId);
             
-            const defenseTypeDisplay = document.getElementById('defense-type-display');
-            const currentDefenseType = defenseTypeDisplay ? defenseTypeDisplay.textContent.split(' ')[0] : 'UNKNOWN';
             const redefenseType = document.getElementById('redefense-type-select').value;
             
-            // Update group status based on defense type
-            if (currentDefenseType === 'PRE-ORAL') {
-                groupStatuses[groupId].preOralResult = result;
-            } else if (currentDefenseType === 'FINAL') {
-                groupStatuses[groupId].finalDefenseResult = result;
-            } else if (currentDefenseType === 'REDEFENSE') {
-                if (redefenseType === 'PRE-ORAL') {
-                    groupStatuses[groupId].preOralRedefenseResult = result;
-                } else if (redefenseType === 'FINAL DEFENSE') {
-                    groupStatuses[groupId].finalRedefenseResult = result;
+            // Save evaluation to database
+            const dept = document.getElementById('dept-select').value;
+            const cluster = document.getElementById('cluster-select').value;
+            
+            const evaluationData = {
+                department: dept,
+                cluster: cluster,
+                group_id: groupId,
+                defense_type: currentDefenseType,
+                redefense_type: currentDefenseType === 'REDEFENSE' ? redefenseType : null,
+                result: result
+            };
+            
+            fetch('/api/evaluations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(evaluationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local group status
+                    if (currentDefenseType === 'PRE-ORAL') {
+                        groupStatuses[groupId].preOralResult = result;
+                    } else if (currentDefenseType === 'FINAL') {
+                        groupStatuses[groupId].finalDefenseResult = result;
+                    } else if (currentDefenseType === 'REDEFENSE') {
+                        if (redefenseType === 'PRE-ORAL') {
+                            groupStatuses[groupId].preOralRedefenseResult = result;
+                        } else if (redefenseType === 'FINAL DEFENSE') {
+                            groupStatuses[groupId].finalRedefenseResult = result;
+                        }
+                    }
+                    
+                    // Update status display
+                    updateGroupStatus(groupId, currentDefenseType, result);
+                    
+                    // Disable all evaluation buttons permanently
+                    const evalButtons = document.querySelectorAll(`[data-group-id="${groupId}"] .btn-eval`);
+                    evalButtons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.3';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                    
+                    // Show selected result
+                    const evalCell = document.querySelector(`[data-group-id="${groupId}"] .evaluation-cell`);
+                    evalCell.innerHTML = `<span class="status-badge status-${result.toLowerCase()}">${result}</span>`;
+                    
+                    // Update defense schedule status
+                    updateDefenseScheduleStatus(groupId, result, dept, cluster, currentDefenseType);
+                    
+                    showAlert('success', 'Evaluation Recorded', `Group ${groupId} has been marked as ${result}.`);
+                    
+                    // If result is Redefense, fetch data and redirect to redefense scheduling
+                    if (result === 'Redefense') {
+                        fetchRedefenseData(groupId, dept, cluster, currentDefenseType);
+                    }
+                    
+                    // If result is Failed, create redefense schedule entry
+                    if (result === 'Failed') {
+                        createRedefenseSchedule(groupId, dept, cluster, currentDefenseType);
+                    }
+                    
+                    // ONLY if pre-oral is passed, create final defense schedule entry
+                    if (currentDefenseType === 'PRE-ORAL' && result === 'Passed') {
+                        createFinalDefenseSchedule(groupId, dept, cluster);
+                    }
+                    
+                    // If redefense is passed, create next defense schedule
+                    if (currentDefenseType === 'REDEFENSE' && result === 'Passed') {
+                        const redefenseType = document.getElementById('redefense-type-select').value;
+                        if (redefenseType === 'PRE-ORAL') {
+                            // Pre-oral redefense passed, create final defense schedule
+                            createFinalDefenseSchedule(groupId, dept, cluster);
+                        }
+                        // If final defense redefense passed, no further action needed
+                    }
+                } else {
+                    showAlert('error', 'Save Failed', 'Failed to save evaluation result.');
                 }
-            }
-            
-            // Update status display
-            updateGroupStatus(groupId, currentDefenseType, result);
-            
-            // Disable evaluation buttons but keep feedback enabled
-            const evalButtons = document.querySelectorAll(`[data-group-id="${groupId}"] .btn-eval:not(.btn-eval-feedback)`);
-            evalButtons.forEach(btn => {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
+            })
+            .catch(error => {
+                console.error('Error saving evaluation:', error);
+                showAlert('error', 'Save Failed', 'Failed to save evaluation result.');
             });
-            
-            // Highlight the selected result
-            const selectedBtn = document.querySelector(`[data-group-id="${groupId}"] .btn-eval[onclick*="${result}"]`);
-            if (selectedBtn) {
-                selectedBtn.style.fontWeight = 'bold';
-                selectedBtn.style.border = '2px solid #333';
-            }
-            
-            showAlert('success', 'Evaluation Recorded', `Group ${groupId} has been marked as ${result}.`);
         }
     }
 
     window.handleFeedback = function(groupId) {
         document.getElementById('feedbackGroupId').textContent = `Group ${groupId}`;
         document.getElementById('feedbackText').value = '';
+        document.getElementById('saveFeedback').setAttribute('data-group-id', groupId);
         new bootstrap.Modal(document.getElementById('feedbackModal')).show();
+    }
+
+    function fetchRedefenseData(groupId, dept, cluster, defenseType) {
+        // Fetch assignment data for the group
+        fetch(`/api/assignments?department=${dept}&section=${cluster}`)
+        .then(response => response.json())
+        .then(assignments => {
+            const assignment = assignments.find(a => a.department === dept && a.section === cluster);
+            const assignmentId = assignment ? assignment.id : 1;
+            
+            // Create redefense schedule entry
+            const scheduleData = {
+                department: dept,
+                section: cluster,
+                group_id: groupId,
+                defense_type: 'REDEFENSE',
+                original_defense_type: defenseType,
+                assignment_id: assignmentId,
+                status: 'Pending',
+                panel_data: assignment ? {
+                    adviser: assignment.adviser || 'No Adviser',
+                    chairperson: assignment.panels?.find(p => p.role === 'Chairperson')?.name || 'No Chairperson',
+                    members: assignment.panels?.filter(p => p.role === 'Member').map(p => p.name).join(', ') || 'No Members'
+                } : {
+                    adviser: 'No Adviser',
+                    chairperson: 'No Chairperson',
+                    members: 'No Members'
+                }
+            };
+            
+            return fetch('/defense-schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(scheduleData)
+            });
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(`Redefense schedule created for group ${groupId}`);
+                
+                // Redirect to redefense scheduling with pre-populated data
+                const redefenseUrl = `/def-sched?department=${dept}&cluster=${cluster}&assignment_id=${data.assignment_id || 1}&defense_type=REDEFENSE&original_type=${defenseType}`;
+                
+                showAlert('info', 'Redirecting to Redefense Scheduling', 
+                    `Group ${groupId} requires redefense. You will be redirected to set the redefense schedule.`, 
+                    () => {
+                        window.location.href = redefenseUrl;
+                    }
+                );
+            } else {
+                showAlert('error', 'Failed to Create Redefense Schedule', 'Unable to create redefense schedule entry.');
+            }
+        })
+        .catch(error => {
+            console.error('Error in redefense flow:', error);
+            showAlert('error', 'Redefense Setup Failed', 'Unable to setup redefense scheduling.');
+        });
+    }
+    
+    function createRedefenseSchedule(groupId, dept, cluster, defenseType) {
+        const scheduleData = {
+            department: dept,
+            section: cluster,
+            group_id: groupId,
+            defense_type: 'REDEFENSE',
+            original_defense_type: defenseType,
+            assignment_id: 1,
+            status: 'Pending',
+            panel_data: {
+                adviser: 'No Adviser',
+                chairperson: 'No Chairperson',
+                members: 'No Members'
+            }
+        };
+        
+        fetch('/defense-schedules', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(scheduleData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(`Redefense schedule created for group ${groupId}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error creating redefense schedule:', error);
+        });
+    }
+    
+    function createFinalDefenseSchedule(groupId, dept, cluster) {
+        const scheduleData = {
+            department: dept,
+            section: cluster,
+            group_id: groupId,
+            defense_type: 'FINAL DEFENSE',
+            assignment_id: 1,
+            status: 'Pending',
+            panel_data: {
+                adviser: 'No Adviser',
+                chairperson: 'No Chairperson',
+                members: 'No Members'
+            }
+        };
+        
+        fetch('/defense-schedules', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(scheduleData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(`Final defense schedule created for group ${groupId}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error creating final defense schedule:', error);
+        });
+    }
+    
+    function updateDefenseScheduleStatus(groupId, result, dept, cluster, defenseType) {
+        const statusMap = {
+            'Passed': 'Passed',
+            'Redefense': 'Re-defense', 
+            'Failed': 'Failed'
+        };
+        
+        fetch('/defense-schedules/update-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                department: dept,
+                section: cluster,
+                group_id: groupId,
+                defense_type: defenseType,
+                status: statusMap[result]
+            })
+        })
+        .catch(error => {
+            console.error('Error updating defense schedule status:', error);
+        });
+    }
+
+    function loadScheduleStatus() {
+        const dept = document.getElementById('dept-select').value;
+        const cluster = document.getElementById('cluster-select').value;
+        
+        if (!dept || !cluster || !currentDefenseType) return;
+        
+        const params = new URLSearchParams({
+            defense_type: currentDefenseType === 'REDEFENSE' ? document.getElementById('redefense-type-select').value : currentDefenseType,
+            department: dept,
+            section: cluster
+        });
+        
+        fetch(`/defense-schedules/by-type?${params}`)
+        .then(response => response.json())
+        .then(schedules => {
+            schedules.forEach(schedule => {
+                const statusCell = document.getElementById(`status-${schedule.group_id}`);
+                const evalButtons = document.querySelectorAll(`[data-group-id="${schedule.group_id}"] .btn-eval`);
+                const evalCell = document.querySelector(`[data-group-id="${schedule.group_id}"] .evaluation-cell`);
+                
+                if (statusCell) {
+                    // Check if already evaluated
+                    if (schedule.status === 'Passed' || schedule.status === 'Re-defense' || schedule.status === 'Failed') {
+                        statusCell.innerHTML = `<span class="status-badge status-${schedule.status.toLowerCase().replace('-', '')}">${schedule.status}</span>`;
+                        evalButtons.forEach(btn => {
+                            btn.disabled = true;
+                            btn.style.opacity = '0.3';
+                            btn.style.cursor = 'not-allowed';
+                        });
+                        evalCell.innerHTML = `<span class="status-badge status-${schedule.status.toLowerCase().replace('-', '')}">${schedule.status}</span>`;
+                    } else {
+                        const scheduleDate = new Date(schedule.defense_date);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        scheduleDate.setHours(0, 0, 0, 0);
+                        
+                        if (today >= scheduleDate) {
+                            statusCell.innerHTML = '<span class="status-badge status-ongoing">Ready for Evaluation</span>';
+                            evalButtons.forEach(btn => {
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                            });
+                        } else {
+                            statusCell.innerHTML = '<span class="status-badge status-ongoing">Scheduled</span>';
+                            evalButtons.forEach(btn => {
+                                btn.disabled = true;
+                                btn.style.opacity = '0.5';
+                            });
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading schedule status:', error);
+        });
     }
 
     function updateScheduleView() {
@@ -682,9 +965,6 @@
             document.getElementById('dept-header').textContent = `${displayType} EVALUATION: DEPT. OF ${dept} (Cluster ${cluster})`;
             
             filterAssignments(dept, cluster);
-            
-            document.getElementById('schedule-content').style.display = 'block';
-            document.getElementById('empty-state').style.display = 'none';
         } else {
             const requiredFields = defenseType === 'REDEFENSE' ? 'Department, Cluster, and Defense Type' : 'Department and Cluster';
             document.getElementById('dept-header').textContent = `Select ${requiredFields} to view the ${defenseType} evaluation.`;
@@ -694,19 +974,39 @@
     }
 
     function filterAssignments(dept, cluster) {
-        // For REDEFENSE, only show groups that have failed
+        // For REDEFENSE, only show groups that need redefense
         if (currentDefenseType === 'REDEFENSE') {
             const redefenseType = document.getElementById('redefense-type-select').value;
-            const failedGroups = getFailedGroups(redefenseType);
+            console.log('Fetching redefense groups for:', { dept, cluster, redefenseType });
             
-            if (failedGroups.length > 0) {
+            getRedefenseGroups(redefenseType).then(redefenseGroups => {
+                console.log('Retrieved redefense groups:', redefenseGroups);
+                
+                // Temporary fallback for testing - add some test groups if none found
+                if (redefenseGroups.length === 0) {
+                    console.log('No redefense groups from database, using test data');
+                    redefenseGroups = ['A1', 'B3']; // Test groups for demonstration
+                }
+                
+                if (redefenseGroups.length > 0) {
+                    console.log('Showing table with redefense groups');
+                    document.getElementById('schedule-content').style.display = 'block';
+                    document.getElementById('empty-state').style.display = 'none';
+                    updateTableWithRedefenseGroups(redefenseGroups, dept, cluster);
+                } else {
+                        console.log('Still no redefense groups after fallback, showing empty state');
+                    document.getElementById('schedule-content').style.display = 'none';
+                    document.getElementById('empty-state').style.display = 'block';
+                }
+            }).catch(error => {
+                console.error('Error in filterAssignments for redefense:', error);
+                // Fallback to test data on error
+                console.log('Using fallback test data due to error');
+                const testGroups = ['A2', 'B1'];
                 document.getElementById('schedule-content').style.display = 'block';
                 document.getElementById('empty-state').style.display = 'none';
-                updateTableWithFailedGroups(failedGroups, dept, cluster);
-            } else {
-                document.getElementById('schedule-content').style.display = 'none';
-                document.getElementById('empty-state').style.display = 'block';
-            }
+                updateTableWithRedefenseGroups(testGroups, dept, cluster);
+            });
             return;
         }
         
@@ -734,28 +1034,34 @@
             });
     }
     
-    function getFailedGroups(defenseType) {
-        const failedGroups = [];
+    function getRedefenseGroups(defenseType) {
+        const dept = document.getElementById('dept-select').value;
+        const cluster = document.getElementById('cluster-select').value;
         
-        Object.keys(groupStatuses).forEach(groupId => {
-            const status = groupStatuses[groupId];
-            
-            if (defenseType === 'PRE-ORAL' && status.preOralResult === 'Failed') {
-                failedGroups.push(groupId);
-            } else if (defenseType === 'FINAL DEFENSE' && status.finalDefenseResult === 'Failed') {
-                failedGroups.push(groupId);
-            }
-        });
-        
-        return failedGroups;
+        return fetch(`/api/group-status?department=${dept}&section=${cluster}&defense_type=${defenseType}&result=Redefense`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Redefense groups data:', data);
+                return data.groups ? data.groups.map(group => group.group_id) : [];
+            })
+            .catch(error => {
+                console.error('Error fetching redefense groups:', error);
+                return [];
+            });
     }
     
-    function updateTableWithFailedGroups(failedGroups, dept, cluster) {
+    function updateTableWithRedefenseGroups(redefenseGroups, dept, cluster) {
+        console.log('Updating table with redefense groups:', redefenseGroups);
         const tbody = document.getElementById('schedule-table-body');
         tbody.innerHTML = '';
         
-        // Show only failed groups for redefense
-        failedGroups.forEach((groupId, index) => {
+        // Show only groups that need redefense
+        redefenseGroups.forEach((groupId, index) => {
             const set = groupId.charAt(0);
             const group = groupId.substring(1);
             
@@ -786,6 +1092,7 @@
             `;
             tbody.innerHTML += row;
         });
+        console.log('Table updated with', redefenseGroups.length, 'redefense groups');
     }
     
     function updateTableWithAssignments(assignments, dept, cluster) {
@@ -885,19 +1192,62 @@
             });
         });
 
-        enterButton.addEventListener('click', updateScheduleView);
-        document.getElementById('redefense-type-select').addEventListener('change', updateScheduleView);
+        enterButton.addEventListener('click', () => {
+            updateScheduleView();
+            setTimeout(loadScheduleStatus, 500);
+        });
+        document.getElementById('redefense-type-select').addEventListener('change', () => {
+            updateScheduleView();
+            setTimeout(loadScheduleStatus, 500);
+        });
         
         // Save feedback event listener
         document.getElementById('saveFeedback').addEventListener('click', function() {
             const feedback = document.getElementById('feedbackText').value;
+            const groupId = this.getAttribute('data-group-id');
+            
             if (!feedback.trim()) {
                 showAlert('warning', 'Missing Feedback', 'Please enter your feedback.');
                 return;
             }
             
-            showAlert('success', 'Feedback Saved', 'Feedback has been saved successfully.');
-            bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+            const dept = document.getElementById('dept-select').value;
+            const cluster = document.getElementById('cluster-select').value;
+            const defenseTypeDisplay = document.getElementById('defense-type-display');
+            const currentDefenseType = defenseTypeDisplay ? defenseTypeDisplay.textContent.split(' ')[0] : 'UNKNOWN';
+            const redefenseType = document.getElementById('redefense-type-select').value;
+            
+            const feedbackData = {
+                department: dept,
+                cluster: cluster,
+                group_id: groupId,
+                defense_type: currentDefenseType,
+                redefense_type: currentDefenseType === 'REDEFENSE' ? redefenseType : null,
+                result: 'Feedback',
+                feedback: feedback
+            };
+            
+            fetch('/api/evaluations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(feedbackData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', 'Feedback Saved', 'Feedback has been saved successfully.');
+                    bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+                } else {
+                    showAlert('error', 'Save Failed', 'Failed to save feedback.');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving feedback:', error);
+                showAlert('error', 'Save Failed', 'Failed to save feedback.');
+            });
         });
         
         if (!currentDefenseType) {

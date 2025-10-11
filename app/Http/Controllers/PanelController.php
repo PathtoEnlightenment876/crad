@@ -16,7 +16,8 @@ class PanelController extends Controller
             'name' => $request->name,
             'expertise' => $expertise,
             'availability' => $availability,
-            'role' => $request->role
+            'role' => $request->role,
+            'contact_number' => $request->contact_number
         ]);
         return back()->with('success', 'Panel member added successfully.');
     }
@@ -32,9 +33,10 @@ class PanelController extends Controller
         $panel->expertise = $expertise;
         $panel->availability = $request->availability ? json_decode($request->availability, true) : [];
         $panel->role = $request->role;
+        $panel->contact_number = $request->contact_number;
         $panel->save();
     
-        return redirect()->route('panel-adviser.index')->with('success', 'Panel member updated successfully.');
+        return redirect()->route('panel-adviser')->with('success', 'Panel member updated successfully.');
     }
 
     public function destroy(Panel $panel)

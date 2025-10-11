@@ -194,6 +194,8 @@
     
     .btn-set-schedule { background-color: #e8f0fe; color: var(--primary-blue); font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.6rem; border-radius: 0.375rem; }
     .btn-set-schedule:hover { background-color: #d1e3ff; }
+    .btn-set-schedule:disabled { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
+    .btn-set-schedule:disabled:hover { background-color: #f8f9fa; }
 
     .scheduled-container { cursor: pointer; background-color: #ebf5ff; padding: 0.4rem; border-radius: 0.375rem; margin: 0.5rem 0; font-size: 0.8rem;}
     .scheduled-container:hover { background-color: #d1e3ff; }
@@ -756,7 +758,8 @@
 @section('scripts')
 <script>
     let currentDefenseType = '';
-    let groupStatuses = {}; // Store group status data
+    let groupStatuses = {};
+    let scheduleData = {}; // Store schedule data across navigation // Store group status data
 
     // Custom alert functions to replace SweetAlert2
     function showAlert(type, title, text, callback = null) {
@@ -850,63 +853,47 @@
                (status.preOralResult === 'Failed' && status.preOralRedefenseResult === 'Passed');
     }
 
-    // Validate schedule attempt based on evaluation results
+    // Validate schedule attempt - ONLY "Passed" pre-oral status allows final defense scheduling
     function validateScheduleAttempt(groupId, defenseType) {
-        initializeGroupStatus(groupId);
-        
         if (defenseType === 'FINAL DEFENSE') {
-            const status = groupStatuses[groupId];
+            const dept = document.getElementById('dept-select').value;
+            const cluster = document.getElementById('cluster-select').value;
             
-            // Check if pre-oral has been evaluated
-            if (!status.preOralResult) {
-                showAlert('error', 'Cannot Schedule Final Defense', 'Group has not been evaluated for Pre-oral Defense yet.');
-                return false;
-            }
-            
-            // Check if pre-oral failed and no redefense passed
-            if (status.preOralResult === 'Failed' && !status.preOralRedefenseResult) {
-                showAlert('error', 'Cannot Schedule Final Defense', 'Group failed Pre-oral Defense and has not passed Re-defense yet.');
-                return false;
-            }
-            
-            // Check if both pre-oral and redefense failed
-            if (status.preOralResult === 'Failed' && status.preOralRedefenseResult === 'Failed') {
-                showAlert('error', 'Cannot Schedule Final Defense', 'Group failed both Pre-oral Defense and Re-defense.');
-                return false;
-            }
-            
-            // Must have passed pre-oral OR passed pre-oral redefense
-            if (!canScheduleFinalDefense(groupId)) {
-                showAlert('error', 'Cannot Schedule Final Defense', 'Group has not passed Pre-oral Defense requirements.');
-                return false;
-            }
+            return fetch(`/defense-schedules/check-eligibility?department=${dept}&section=${cluster}&group_id=${groupId}&defense_type=FINAL DEFENSE`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.eligible) {
+                        showAlert('error', 'Cannot Schedule Final Defense', 'Only groups with "Passed" status on Pre-oral Defense can schedule Final Defense.');
+                        return false;
+                    }
+                    return true;
+                })
+                .catch(error => {
+                    console.error('Error checking eligibility:', error);
+                    showAlert('error', 'Cannot Schedule Final Defense', 'Unable to verify Pre-oral Defense status.');
+                    return false;
+                });
         }
         
-        return true;
+        return Promise.resolve(true);
     }
 
     function getDefenseStatus(groupId, defenseType, isScheduled, statusResult) {
-        // Default status is Pending when no schedule is set
-        if (!isScheduled) {
-            return { text: 'Pending', class: 'status-pending' };
+        // If there's an evaluation result, show it
+        if (statusResult === 'Passed') {
+            return { text: 'Passed', class: 'status-defended' };
+        } else if (statusResult === 'Re-defense') {
+            return { text: 'Re-defense', class: 'status-redefense' };
+        } else if (statusResult === 'Failed') {
+            return { text: 'Failed', class: 'status-failed' };
         }
         
-        // If scheduled but no result yet, status is Ongoing
-        if (!statusResult) {
+        // If scheduled but no evaluation result yet
+        if (isScheduled) {
             return { text: 'Ongoing', class: 'status-ongoing' };
         }
         
-        // Handle status based on defense type and result
-        if (statusResult === 'Passed') {
-            return { text: 'Defended', class: 'status-defended' };
-        } else if (statusResult === 'Failed') {
-            if (defenseType === 'REDEFENSE') {
-                return { text: 'Failed', class: 'status-failed' };
-            } else {
-                return { text: 'Re-defense', class: 'status-redefense' };
-            }
-        }
-        
+        // Default status when no schedule is set
         return { text: 'Pending', class: 'status-pending' };
     }
 
@@ -923,17 +910,37 @@
     }
     
     function getAvailabilityData(name, date) {
-        const d = date.getDay();
-        const dateStr = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
-        
-        if (name === 'Dr. Elacion' && d === 2) { 
-            return `Conflict: Scheduled Defense (${dateStr}, 10:00-11:00)`; 
-        }
-        if (name === 'Mr. Constantino' && d === 3) {
-            return `Conflict: Department Meeting (${dateStr}, 13:00-14:00)`;
-        }
-
+        // This will be populated by actual panel availability data
         return "Available";
+    }
+    
+    function checkPanelAvailability(panelNames, selectedDate, startTime, endTime) {
+        const dept = document.getElementById('dept-select').value;
+        const cluster = document.getElementById('cluster-select').value;
+        
+        return fetch('/api/panel-availability', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                panel_names: panelNames,
+                date: selectedDate,
+                start_time: startTime,
+                end_time: endTime,
+                department: dept,
+                section: cluster
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            return data;
+        })
+        .catch(error => {
+            console.error('Error checking panel availability:', error);
+            return { available: true, conflicts: [] };
+        });
     }
 
     function setupAvailabilityModal(cluster, set, names) {
@@ -966,22 +973,54 @@
             tableHeadRow.appendChild(th);
         });
 
-        names.forEach(name => {
-            const row = tbody.insertRow();
-            row.insertCell().textContent = name;
+        // Fetch actual panel availability data
+        const dept = document.getElementById('dept-select').value;
+        
+        fetch('/api/panel-availability-schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                panel_names: names,
+                dates: dates.map(d => d.toISOString().split('T')[0]),
+                department: dept
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            names.forEach(name => {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = name;
 
-            dates.forEach(d => {
-                const cell = row.insertCell();
-                const status = getAvailabilityData(name, d);
-                
-                if (status === "Available") {
+                dates.forEach(d => {
+                    const cell = row.insertCell();
+                    const dateStr = d.toISOString().split('T')[0];
+                    const panelData = data.availability && data.availability[name] && data.availability[name][dateStr];
+                    
+                    if (panelData && panelData.conflicts && panelData.conflicts.length > 0) {
+                        cell.textContent = 'Conflict';
+                        cell.classList.add('availability-unavailable');
+                        cell.title = panelData.conflicts.join('; ');
+                    } else {
+                        cell.textContent = 'Available';
+                        cell.classList.add('availability-available');
+                    }
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching panel availability:', error);
+            // Fallback to basic display
+            names.forEach(name => {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = name;
+                dates.forEach(d => {
+                    const cell = row.insertCell();
                     cell.textContent = 'Available';
                     cell.classList.add('availability-available');
-                } else {
-                    cell.textContent = status.split(':')[0]; 
-                    cell.classList.add('availability-unavailable');
-                    cell.title = status;
-                }
+                });
             });
         });
     }
@@ -1044,17 +1083,273 @@
         showAlert('success', 'Panel Updated', `Panel details for Set ${panelSet} updated successfully. (Simulated Submission)`);
     }
 
+    function loadScheduleData() {
+        const dept = document.getElementById('dept-select').value;
+        const cluster = document.getElementById('cluster-select').value;
+        
+        if (!dept || !cluster || !currentDefenseType) return;
+        
+        const params = new URLSearchParams({
+            defense_type: currentDefenseType === 'REDEFENSE' ? document.getElementById('redefense-type-select').value : currentDefenseType,
+            department: dept,
+            section: cluster
+        });
+        
+        fetch(`/defense-schedules/by-type?${params}`)
+        .then(response => response.json())
+        .then(schedules => {
+            // For Final Defense, also fetch Pre-Oral schedules to inherit panel data
+            if (currentDefenseType === 'FINAL DEFENSE') {
+                const preOralParams = new URLSearchParams({
+                    defense_type: 'PRE-ORAL',
+                    department: dept,
+                    section: cluster
+                });
+                
+                fetch(`/defense-schedules/by-type?${preOralParams}`)
+                .then(response => response.json())
+                .then(preOralSchedules => {
+                    processSchedules(schedules, preOralSchedules, dept, cluster);
+                })
+                .catch(error => {
+                    console.error('Error loading pre-oral schedules:', error);
+                    processSchedules(schedules, [], dept, cluster);
+                });
+            } else {
+                processSchedules(schedules, [], dept, cluster);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading schedules:', error);
+        });
+    }
+    
+    function processSchedules(schedules, preOralSchedules = [], dept, cluster) {
+        // For Final Defense, update panel data from Pre-Oral schedules first
+        if (currentDefenseType === 'FINAL DEFENSE' && preOralSchedules.length > 0) {
+            updateFinalDefensePanelData(preOralSchedules);
+        }
+        
+        // For Final Defense, also load evaluation statuses
+        if (currentDefenseType === 'FINAL DEFENSE') {
+            loadEvaluationStatuses(dept, cluster).then(() => {
+                processScheduleData(schedules, preOralSchedules, dept, cluster);
+            });
+        } else {
+            processScheduleData(schedules, preOralSchedules, dept, cluster);
+        }
+    }
+    
+    function processScheduleData(schedules, preOralSchedules, dept, cluster) {
+        schedules.forEach(schedule => {
+            const targetCell = document.querySelector(`[data-schedule-target="${schedule.group_id}"]`);
+            if (targetCell && schedule.defense_date && schedule.start_time && schedule.end_time) {
+                const dateObj = new Date(schedule.defense_date);
+                let dateDisplay = 'Invalid Date';
+                
+                // Check if date is valid
+                if (!isNaN(dateObj.getTime()) && schedule.defense_date !== '1970-01-01') {
+                    dateDisplay = dateObj.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+                } else {
+                    return; // Skip invalid schedules
+                }
+                
+                let panelData = schedule.panel_data || {};
+                
+                // For Final Defense, inherit panel data from Pre-Oral if not available
+                if (currentDefenseType === 'FINAL DEFENSE' && (!panelData.adviser || panelData.adviser === 'No Adviser')) {
+                    const preOralSchedule = preOralSchedules.find(pos => pos.group_id === schedule.group_id);
+                    if (preOralSchedule && preOralSchedule.panel_data) {
+                        panelData = preOralSchedule.panel_data;
+                    }
+                }
+                
+                const adviser = panelData.adviser || 'No Adviser';
+                const chair = panelData.chairperson || 'No Chairperson';
+                const members = panelData.members || 'No Members';
+                
+                const scheduledTagHtml = `
+                    <div class="scheduled-container" 
+                        data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                        data-group="${schedule.group_id.substring(1)}" data-cluster="${cluster}" data-set="${schedule.set_letter}" 
+                        data-adviser="${adviser}" data-chair="${chair}" data-members="${members}"
+                        data-sch-date="${schedule.defense_date}" data-sch-start="${schedule.start_time}" data-sch-end="${schedule.end_time}">
+                        <div class="scheduled-tag mb-1">
+                            <i class="bi bi-calendar-check me-1"></i> ${dateDisplay}
+                        </div>
+                        <div class="scheduled-tag" style="font-weight: 500;">
+                            <i class="bi bi-clock me-1"></i> ${schedule.start_time} - ${schedule.end_time}
+                        </div>
+                    </div>
+                `;
+                
+                targetCell.innerHTML = scheduledTagHtml;
+                
+                // Update set letter in table
+                const parentRow = targetCell.closest('tr');
+                const setCell = parentRow.querySelector('.set-value');
+                if (setCell) {
+                    setCell.textContent = schedule.set_letter;
+                    parentRow.setAttribute('data-set', schedule.set_letter);
+                }
+                
+                // Update status based on evaluation result or schedule status
+                updateGroupStatus(schedule.group_id, currentDefenseType, true, schedule.status);
+            }
+        });
+        
+        // Disable buttons for final defense if pre-oral not passed
+        if (currentDefenseType === 'FINAL DEFENSE') {
+            disableIneligibleButtons(dept, cluster);
+        }
+    }
+    
+    function loadEvaluationStatuses(dept, cluster) {
+        return fetch(`/api/group-status?department=${dept}&section=${cluster}&defense_type=PRE-ORAL`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.groups) {
+                    data.groups.forEach(group => {
+                        if (group.result === 'Passed') {
+                            updateGroupStatus(group.group_id, 'FINAL DEFENSE', false, null);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading evaluation statuses:', error);
+            });
+    }
+    
+    function updateFinalDefensePanelData(preOralSchedules) {
+        // Group Pre-Oral schedules by set (A or B)
+        const setASchedule = preOralSchedules.find(s => s.group_id && s.group_id.startsWith('A'));
+        const setBSchedule = preOralSchedules.find(s => s.group_id && s.group_id.startsWith('B'));
+        
+        if (setASchedule && setASchedule.panel_data) {
+            const panelData = setASchedule.panel_data;
+            updatePanelDataInTable('A1', panelData.adviser || 'No Adviser', panelData.chairperson || 'No Chairperson', panelData.members || 'No Members');
+        }
+        
+        if (setBSchedule && setBSchedule.panel_data) {
+            const panelData = setBSchedule.panel_data;
+            updatePanelDataInTable('B1', panelData.adviser || 'No Adviser', panelData.chairperson || 'No Chairperson', panelData.members || 'No Members');
+        }
+    }
+    
+    function updatePanelDataInTable(groupId, adviser, chair, members) {
+        const groupSet = groupId.charAt(0);
+        const panelCell = document.querySelector(`.panel-details-table[data-panel-set="${groupSet}"]`);
+        
+        if (panelCell) {
+            panelCell.setAttribute('data-adviser', adviser);
+            panelCell.setAttribute('data-chair', chair);
+            panelCell.setAttribute('data-members', members);
+            
+            panelCell.innerHTML = `
+                <div class="d-flex justify-content-center align-items-center position-relative">
+                    <div>
+                        <strong>Adviser:</strong> ${adviser} <br>
+                        <strong>Chairperson:</strong> ${chair} <br>
+                        Members: ${members}
+                    </div>
+                    <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
+                        style="top: 5px; right: 5px;"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#panelEditModal" 
+                        data-panel-set="${groupSet}">
+                    </i>
+                </div>
+            `;
+        }
+    }
+    
+    function disableIneligibleButtons(dept, cluster) {
+        // Check each group's eligibility for final defense
+        const allGroups = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3', 'B4', 'B5'];
+        
+        allGroups.forEach(groupId => {
+            fetch(`/defense-schedules/check-eligibility?department=${dept}&section=${cluster}&group_id=${groupId}&defense_type=FINAL DEFENSE`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.eligible) {
+                        const button = document.querySelector(`[data-schedule-target="${groupId}"] .btn-set-schedule`);
+                        if (button) {
+                            button.disabled = true;
+                            button.style.opacity = '0.5';
+                            button.style.cursor = 'not-allowed';
+                            button.innerHTML = '<i class="bi bi-lock"></i> Pre-oral Required';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking eligibility for', groupId, error);
+                });
+        });
+    }
+
+    function saveScheduleToDatabase(targetId) {
+        const startTime = document.getElementById('start-time-input').value;
+        const endTime = document.getElementById('end-time-input').value;
+        const dateActual = document.getElementById('date-actual-input').value;
+        const newSet = document.getElementById('set-input').value;
+        const dept = document.getElementById('dept-select').value;
+        const cluster = document.getElementById('cluster-select').value;
+        
+        if (!startTime || !endTime || !dateActual || !newSet) {
+            showAlert('warning', 'Missing Information', 'Please select a Start Time, End Time, Date, and Set before scheduling.');
+            return;
+        }
+        
+        const adviser = document.getElementById('modal-adviser').textContent;
+        const chair = document.getElementById('modal-chairperson').textContent;
+        const members = document.getElementById('modal-members').textContent;
+        
+        const scheduleData = {
+            department: dept,
+            section: cluster,
+            group_id: targetId,
+            defense_type: currentDefenseType === 'REDEFENSE' ? document.getElementById('redefense-type-select').value : currentDefenseType,
+            assignment_id: 1,
+            defense_date: dateActual,
+            start_time: startTime,
+            end_time: endTime,
+            set_letter: newSet,
+            panel_data: {
+                adviser: adviser,
+                chairperson: chair,
+                members: members
+            }
+        };
+        
+        fetch('/defense-schedules', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(scheduleData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                simulateScheduleSuccess(targetId);
+            } else {
+                showAlert('error', 'Save Failed', 'Failed to save schedule to database.');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving schedule:', error);
+            showAlert('error', 'Save Failed', 'Failed to save schedule to database.');
+        });
+    }
+
     function simulateScheduleSuccess(targetId) {
         const startTime = document.getElementById('start-time-input').value;
         const endTime = document.getElementById('end-time-input').value;
         const dateDisplay = document.getElementById('date-display-input').value;
         const dateActual = document.getElementById('date-actual-input').value;
-        const newSet = document.getElementById('set-input').value; 
-
-        if (!startTime || !endTime || !dateActual || !newSet) {
-            showAlert('warning', 'Missing Information', 'Please select a Start Time, End Time, Date, and Set before scheduling.');
-            return;
-        }
+        const newSet = document.getElementById('set-input').value;
 
         const targetCell = document.querySelector(`[data-schedule-target="${targetId}"]`);
         if (!targetCell) return;
@@ -1099,7 +1394,7 @@
             row.style.backgroundColor = isSetB ? 'var(--group-stripe)' : '';
         });
 
-        showAlert('success', 'Schedule Updated!', `Group ${targetId} (New Set: ${newSet}) booked for ${dateDisplay} at ${startTime}. (Simulated Submission)`);
+        showAlert('success', 'Schedule Saved!', `Group ${targetId} (Set: ${newSet}) scheduled for ${dateDisplay} at ${startTime} and saved to database.`);
 
         if (parentRow) {
             parentRow.classList.add('row-flash');
@@ -1127,15 +1422,17 @@
         const dateDisplayInput = document.getElementById('date-display-input');
         const dateActualInput = document.getElementById('date-actual-input');
         
-        // Check for URL parameters from panel-adviser redirect
+        // Check for URL parameters from panel-adviser or redefense redirect
         const urlParams = new URLSearchParams(window.location.search);
         const department = urlParams.get('department');
         const cluster = urlParams.get('cluster');
         const assignmentId = urlParams.get('assignment_id');
+        const defenseType = urlParams.get('defense_type');
+        const originalType = urlParams.get('original_type');
         
         if (department && cluster) {
-            // Auto-select PRE-ORAL defense type and pre-populate form
-            currentDefenseType = 'PRE-ORAL';
+            // Auto-select defense type based on URL parameter or default to PRE-ORAL
+            currentDefenseType = defenseType || 'PRE-ORAL';
             typeSelectionView.style.display = 'none';
             filterBar.style.display = 'grid';
             scheduleView.style.display = 'block';
@@ -1146,9 +1443,14 @@
             deptSelect.value = department;
             clusterSelect.value = cluster;
             
-            // Hide re-defense type dropdown
+            // Handle redefense type dropdown
             const redefenseTypeGroup = document.getElementById('redefense-type-group');
-            redefenseTypeGroup.style.display = 'none';
+            if (currentDefenseType === 'REDEFENSE' && originalType) {
+                redefenseTypeGroup.style.display = 'block';
+                document.getElementById('redefense-type-select').value = originalType;
+            } else {
+                redefenseTypeGroup.style.display = 'none';
+            }
             
             updateScheduleView();
             
@@ -1191,23 +1493,51 @@
         }
         
         function filterAssignments(dept, cluster) {
-            // For REDEFENSE, only show groups that have failed
+            // For REDEFENSE, show groups that have failed or use fallback
             if (currentDefenseType === 'REDEFENSE') {
                 const redefenseType = document.getElementById('redefense-type-select').value;
-                const failedGroups = getFailedGroups(redefenseType);
-                
-                if (failedGroups.length > 0) {
+                getFailedGroups(redefenseType).then(failedGroups => {
+                    // If no failed groups from API, show fallback groups for testing
+                    if (failedGroups.length === 0) {
+                        failedGroups = [{ group_id: 'A1' }, { group_id: 'B2' }]; // Fallback test data
+                    }
+                    
                     document.getElementById('schedule-content').style.display = 'block';
                     document.getElementById('empty-state').style.display = 'none';
                     updateTableWithFailedGroups(failedGroups, dept, cluster);
-                } else {
-                    document.getElementById('schedule-content').style.display = 'none';
-                    document.getElementById('empty-state').style.display = 'block';
-                }
+                }).catch(error => {
+                    console.error('Error fetching failed groups:', error);
+                    // Show fallback groups on error
+                    const fallbackGroups = [{ group_id: 'A1' }, { group_id: 'B2' }];
+                    document.getElementById('schedule-content').style.display = 'block';
+                    document.getElementById('empty-state').style.display = 'none';
+                    updateTableWithFailedGroups(fallbackGroups, dept, cluster);
+                });
                 return;
             }
             
-            // Regular assignment fetching for PRE-ORAL and FINAL DEFENSE
+            // For PRE-ORAL, fetch assignments but always show table even if none found
+            if (currentDefenseType === 'PRE-ORAL') {
+                fetch('/api/assignments')
+                    .then(response => response.json())
+                    .then(assignments => {
+                        const filteredAssignments = assignments.filter(assignment => 
+                            assignment.department === dept && assignment.section === cluster
+                        );
+                        document.getElementById('schedule-content').style.display = 'block';
+                        document.getElementById('empty-state').style.display = 'none';
+                        updateTableWithAssignments(filteredAssignments);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching assignments:', error);
+                        document.getElementById('schedule-content').style.display = 'block';
+                        document.getElementById('empty-state').style.display = 'none';
+                        updateTableWithAssignments([]);
+                    });
+                return;
+            }
+            
+            // Regular assignment fetching for FINAL DEFENSE
             fetch('/api/assignments')
                 .then(response => response.json())
                 .then(assignments => {
@@ -1232,57 +1562,112 @@
         }
         
         function getFailedGroups(defenseType) {
-            const failedGroups = [];
+            const dept = document.getElementById('dept-select').value;
+            const cluster = document.getElementById('cluster-select').value;
             
-            Object.keys(groupStatuses).forEach(groupId => {
-                const status = groupStatuses[groupId];
-                
-                if (defenseType === 'PRE-ORAL' && status.preOralResult === 'Failed') {
-                    failedGroups.push(groupId);
-                } else if (defenseType === 'FINAL DEFENSE' && status.finalDefenseResult === 'Failed') {
-                    failedGroups.push(groupId);
-                }
-            });
-            
-            return failedGroups;
+            return fetch(`/api/group-status?department=${dept}&section=${cluster}&defense_type=${defenseType}&result=Re-defense`)
+                .then(response => response.json())
+                .then(data => {
+                    return data.groups || [];
+                })
+                .catch(error => {
+                    console.error('Error fetching failed groups:', error);
+                    return [];
+                });
         }
         
         function updateTableWithFailedGroups(failedGroups, dept, cluster) {
             const tbody = document.getElementById('schedule-table-body');
             tbody.innerHTML = '';
             
-            // Show only failed groups for redefense
-            failedGroups.forEach((groupId, index) => {
-                const set = groupId.charAt(0);
-                const group = groupId.substring(1);
-                
-                const row = `
-                    <tr data-group-id="${groupId}" data-set="${set}">
-                        <td class="cluster-value">${cluster}</td>
-                        <td class="set-value">${set}</td>
-                        <td>${group}</td>
-                        <td><span class="status-badge status-incomplete">Redefense Required</span></td>
-                        <td class="panel-details-table">
-                            <div>
-                                <strong>Adviser:</strong> No Adviser <br>
-                                <strong>Chairperson:</strong> No Chairperson <br>
-                                Members: No Members
-                            </div>
-                        </td>
-                        <td class="status-column" id="status-${groupId}">
-                            <span class="status-badge status-redefense">Re-defense</span>
-                        </td>
-                        <td class="schedule-cell" data-schedule-target="${groupId}">
-                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
-                                    data-group="${group}" data-cluster="" data-set="${set}" 
-                                    data-adviser="No Adviser" data-chair="No Chairperson" data-members="No Members">
-                                <i class="bi bi-calendar-plus"></i> Set Schedule
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
+            // Fetch assignment data for panel information
+            fetch('/api/assignments')
+                .then(response => response.json())
+                .then(assignments => {
+                    const assignment = assignments.find(a => a.department === dept && a.section === cluster);
+                    let adviser = 'No Adviser';
+                    let chairName = 'No Chairperson';
+                    let memberNames = 'No Members';
+                    
+                    if (assignment) {
+                        const panels = assignment.panels || [];
+                        const chairperson = panels.find(p => p.role === 'Chairperson');
+                        const members = panels.filter(p => p.role === 'Member' || (p.role && p.role !== 'Chairperson'));
+                        adviser = assignment.adviser || 'No Adviser';
+                        chairName = chairperson ? chairperson.name : 'No Chairperson';
+                        memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
+                    }
+                    
+                    // Show only failed groups for redefense
+                    failedGroups.forEach((groupData, index) => {
+                        const groupId = groupData.group_id;
+                        const set = groupId.charAt(0);
+                        const group = groupId.substring(1);
+                        
+                        const row = `
+                            <tr data-group-id="${groupId}" data-set="${set}">
+                                <td class="cluster-value">${cluster}</td>
+                                <td class="set-value">${set}</td>
+                                <td>${group}</td>
+                                <td><span class="status-badge status-incomplete">Redefense Required</span></td>
+                                <td class="panel-details-table">
+                                    <div>
+                                        <strong>Adviser:</strong> ${adviser} <br>
+                                        <strong>Chairperson:</strong> ${chairName} <br>
+                                        Members: ${memberNames}
+                                    </div>
+                                </td>
+                                <td class="status-column" id="status-${groupId}">
+                                    <span class="status-badge status-redefense">Re-defense</span>
+                                </td>
+                                <td class="schedule-cell" data-schedule-target="${groupId}">
+                                    <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                            data-group="${group}" data-cluster="" data-set="${set}" 
+                                            data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
+                                        <i class="bi bi-calendar-plus"></i> Set Schedule
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching assignments for redefense:', error);
+                    // Fallback to default panel data
+                    failedGroups.forEach((groupData, index) => {
+                        const groupId = groupData.group_id;
+                        const set = groupId.charAt(0);
+                        const group = groupId.substring(1);
+                        
+                        const row = `
+                            <tr data-group-id="${groupId}" data-set="${set}">
+                                <td class="cluster-value">${cluster}</td>
+                                <td class="set-value">${set}</td>
+                                <td>${group}</td>
+                                <td><span class="status-badge status-incomplete">Redefense Required</span></td>
+                                <td class="panel-details-table">
+                                    <div>
+                                        <strong>Adviser:</strong> No Adviser <br>
+                                        <strong>Chairperson:</strong> No Chairperson <br>
+                                        Members: No Members
+                                    </div>
+                                </td>
+                                <td class="status-column" id="status-${groupId}">
+                                    <span class="status-badge status-redefense">Re-defense</span>
+                                </td>
+                                <td class="schedule-cell" data-schedule-target="${groupId}">
+                                    <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                            data-group="${group}" data-cluster="" data-set="${set}" 
+                                            data-adviser="No Adviser" data-chair="No Chairperson" data-members="No Members">
+                                        <i class="bi bi-calendar-plus"></i> Set Schedule
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                });
         }
         
         function updateTableWithAssignments(assignments) {
@@ -1290,7 +1675,7 @@
             tbody.innerHTML = '';
             
             // Use first assignment for consistent data across all groups
-            const firstAssignment = assignments[0] || null;
+            const firstAssignment = assignments && assignments.length > 0 ? assignments[0] : null;
             let adviser = 'No Adviser';
             let chairName = 'No Chairperson';
             let memberNames = 'No Members';
@@ -1360,12 +1745,12 @@
             `;
             tbody.innerHTML += dividerRow;
             
-            // Generate Set B: Groups 6-10
-            for (let groupNumber = 6; groupNumber <= 10; groupNumber++) {
-                const groupId = 'B' + (groupNumber - 5);
-                const borderStyle = groupNumber === 6 ? 'style="border-top: 3px solid #333;"' : '';
-                const clusterCell = groupNumber === 6 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
-                const panelCell = groupNumber === 6 ? `
+            // Generate Set B: Groups 1-5
+            for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
+                const groupId = 'B' + groupNumber;
+                const borderStyle = groupNumber === 1 ? 'style="border-top: 3px solid #333;"' : '';
+                const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
+                const panelCell = groupNumber === 1 ? `
                     <td class="panel-details-table" rowspan="5"
                         data-adviser="${adviser}" 
                         data-chair="${chairName}" 
@@ -1398,7 +1783,7 @@
                         </td>
                         <td class="schedule-cell" data-schedule-target="${groupId}">
                             <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
-                                    data-group="${groupNumber - 5}" data-cluster="" data-set="B" 
+                                    data-group="${groupNumber}" data-cluster="" data-set="B" 
                                     data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
                                 <i class="bi bi-calendar-plus"></i> Set Schedule
                             </button>
@@ -1434,8 +1819,24 @@
             });
         });
 
-        enterButton.addEventListener('click', updateScheduleView);
-        document.getElementById('redefense-type-select').addEventListener('change', updateScheduleView);
+        enterButton.addEventListener('click', () => {
+            updateScheduleView();
+            setTimeout(() => {
+                loadScheduleData();
+                // For Final Defense, also update statuses based on Pre-Oral results
+                if (currentDefenseType === 'FINAL DEFENSE') {
+                    const dept = deptSelect.value;
+                    const cluster = clusterSelect.value;
+                    if (dept && cluster) {
+                        loadEvaluationStatuses(dept, cluster);
+                    }
+                }
+            }, 500);
+        });
+        document.getElementById('redefense-type-select').addEventListener('change', () => {
+            updateScheduleView();
+            setTimeout(loadScheduleData, 500);
+        });
         
         document.getElementById('calendar-icon').addEventListener('click', () => {
              dateActualInput.focus();
@@ -1464,10 +1865,18 @@
             const group = button.getAttribute('data-group');
             const targetId = set + group;
             
-            // Validate scheduling attempt
-            if (!isEditing && !validateScheduleAttempt(targetId, currentDefenseType)) {
+            // Validate scheduling attempt and prevent modal from opening if not eligible
+            if (!isEditing && currentDefenseType === 'FINAL DEFENSE') {
                 event.preventDefault();
-                return false;
+                validateScheduleAttempt(targetId, currentDefenseType).then(isValid => {
+                    if (!isValid) {
+                        return false;
+                    }
+                    // If valid, manually show the modal
+                    const modalInstance = new bootstrap.Modal(scheduleModal);
+                    modalInstance.show();
+                });
+                return;
             }
             
             const panelCell = document.querySelector(`.panel-details-table[data-panel-set="${set}"]`);
@@ -1527,23 +1936,55 @@
         
         scheduleButton.addEventListener('click', function() {
             const targetId = this.getAttribute('data-group-target');
+            const startTime = document.getElementById('start-time-input').value;
+            const endTime = document.getElementById('end-time-input').value;
+            const dateActual = document.getElementById('date-actual-input').value;
             
-            // Mark as scheduled in group status
-            initializeGroupStatus(targetId);
-            if (currentDefenseType === 'PRE-ORAL') {
-                groupStatuses[targetId].preOralScheduled = true;
-            } else if (currentDefenseType === 'FINAL DEFENSE') {
-                groupStatuses[targetId].finalDefenseScheduled = true;
-            } else if (currentDefenseType === 'REDEFENSE') {
-                const redefenseType = document.getElementById('redefense-type-select').value;
-                if (redefenseType === 'PRE-ORAL') {
-                    groupStatuses[targetId].preOralRedefenseScheduled = true;
-                } else if (redefenseType === 'FINAL DEFENSE') {
-                    groupStatuses[targetId].finalRedefenseScheduled = true;
-                }
+            if (!startTime || !endTime || !dateActual) {
+                showAlert('warning', 'Missing Information', 'Please select a Start Time, End Time, and Date before scheduling.');
+                return;
             }
             
-            simulateScheduleSuccess(targetId);
+            // Get panel names for availability check
+            const adviser = document.getElementById('modal-adviser').textContent;
+            const chair = document.getElementById('modal-chairperson').textContent;
+            const members = document.getElementById('modal-members').textContent;
+            const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
+            
+            // Check panel availability before scheduling
+            checkPanelAvailability(panelNames, dateActual, startTime, endTime)
+                .then(availabilityResult => {
+                    if (!availabilityResult.available && availabilityResult.conflicts && availabilityResult.conflicts.length > 0) {
+                        const conflictDetails = availabilityResult.conflicts.map(conflict => 
+                            `${conflict.panel_name}: ${conflict.conflict_type} (${conflict.conflict_time})`
+                        ).join('\n');
+                        
+                        showAlert('error', 'Scheduling Conflict Detected', 
+                            `The following panel members have conflicts on the selected date and time:\n\n${conflictDetails}\n\nPlease choose a different date or time.`);
+                        return;
+                    }
+                    
+                    // Mark as scheduled in group status
+                    initializeGroupStatus(targetId);
+                    if (currentDefenseType === 'PRE-ORAL') {
+                        groupStatuses[targetId].preOralScheduled = true;
+                    } else if (currentDefenseType === 'FINAL DEFENSE') {
+                        groupStatuses[targetId].finalDefenseScheduled = true;
+                    } else if (currentDefenseType === 'REDEFENSE') {
+                        const redefenseType = document.getElementById('redefense-type-select').value;
+                        if (redefenseType === 'PRE-ORAL') {
+                            groupStatuses[targetId].preOralRedefenseScheduled = true;
+                        } else if (redefenseType === 'FINAL DEFENSE') {
+                            groupStatuses[targetId].finalRedefenseScheduled = true;
+                        }
+                    }
+                    
+                    saveScheduleToDatabase(targetId);
+                })
+                .catch(error => {
+                    console.error('Error checking availability:', error);
+                    showAlert('error', 'Availability Check Failed', 'Unable to verify panel availability. Please try again.');
+                });
         });
 
         document.getElementById('backToScheduleBtn').addEventListener('click', function() {
@@ -1566,6 +2007,8 @@
         }
         
         enableStatusChecks();
+        
+
     });
 </script>
 @endsection

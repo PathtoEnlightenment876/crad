@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assignment;
 use App\Models\DefenseSchedule;
+use App\Models\Panel;
 use Illuminate\Http\Request;
 
 class DefenseScheduleController extends Controller
@@ -14,12 +15,6 @@ class DefenseScheduleController extends Controller
             $assignments = Assignment::with(['adviser', 'assignmentPanels'])->get();
             $defenseSchedules = DefenseSchedule::with('assignment.adviser', 'assignment.assignmentPanels')->get();
             
-            // If no assignments exist, create some test data (only once)
-            if ($assignments->count() === 0) {
-                $this->createTestData();
-                $assignments = Assignment::with(['adviser', 'assignmentPanels'])->get();
-            }
-            
             return view('def-sched', compact('assignments', 'defenseSchedules'));
         } catch (\Exception $e) {
             \Log::error('DefenseScheduleController index error: ' . $e->getMessage());
@@ -27,43 +22,7 @@ class DefenseScheduleController extends Controller
         }
     }
     
-    private function createTestData()
-    {
-        try {
-            // Check if test data already exists
-            if (Assignment::count() > 0) {
-                return;
-            }
-            
-            // Create test advisers
-            $adviser1 = \App\Models\Adviser::firstOrCreate(
-                ['name' => 'Dr. Smith', 'department' => 'BSIT'],
-                ['expertise' => 'Software Engineering', 'sections' => ['4101', '4102']]
-            );
-            
-            // Create test assignments (limit to 2 for performance)
-            $assignment1 = Assignment::firstOrCreate([
-                'department' => 'BSIT',
-                'section' => '4101',
-                'adviser_id' => $adviser1->id
-            ]);
-            
-            // Create panel members for assignment
-            \App\Models\AssignmentPanel::firstOrCreate([
-                'assignment_id' => $assignment1->id,
-                'name' => 'Dr. Elacion',
-                'role' => 'Chairperson'
-            ]);
-            
-            \App\Models\AssignmentPanel::firstOrCreate([
-                'assignment_id' => $assignment1->id,
-                'name' => 'Mr. Constantino', 
-                'role' => 'Member'
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Error creating test data: ' . $e->getMessage());
-        }
-    }
+
 
     public function store(Request $request)
     {
@@ -73,15 +32,33 @@ class DefenseScheduleController extends Controller
                 'section' => 'required|string', 
                 'group_id' => 'required|string',
                 'defense_type' => 'required|in:PRE-ORAL,FINAL DEFENSE,REDEFENSE',
-                'assignment_id' => 'required|exists:assignments,id',
-                'defense_date' => 'required|date',
-                'start_time' => 'required',
-                'end_time' => 'required',
-                'set_letter' => 'required|string|max:1',
-                'panel_data' => 'nullable'
+                'original_defense_type' => 'nullable|string',
+                'assignment_id' => 'nullable|integer',
+                'defense_date' => 'nullable|date',
+                'start_time' => 'nullable',
+                'end_time' => 'nullable',
+                'set_letter' => 'nullable|string|max:1',
+                'status' => 'nullable|string',
+                'panel_data' => 'nullable|array'
             ]);
+            
+            if (!$validated['assignment_id']) {
+                $validated['assignment_id'] = 1;
+            }
+            
+            if (!isset($validated['status'])) {
+                $validated['status'] = 'scheduled';
+            }
 
-            DefenseSchedule::create($validated);
+            $schedule = DefenseSchedule::updateOrCreate(
+                [
+                    'department' => $validated['department'],
+                    'section' => $validated['section'],
+                    'group_id' => $validated['group_id'],
+                    'defense_type' => $validated['defense_type']
+                ],
+                $validated
+            );
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -158,5 +135,181 @@ class DefenseScheduleController extends Controller
         $schedules = $query->get();
 
         return response()->json($schedules);
+    }
+    
+    public function checkEligibility(Request $request)
+    {
+        $department = $request->get('department');
+        $section = $request->get('section');
+        $groupId = $request->get('group_id');
+        $defenseType = $request->get('defense_type');
+        
+        if ($defenseType === 'FINAL DEFENSE') {
+            // ONLY groups with "Passed" pre-oral status can schedule final defense
+            // Final defense schedule is created only when pre-oral is marked as "Passed"
+            $exists = DefenseSchedule::where('department', $department)
+                ->where('section', $section)
+                ->where('group_id', $groupId)
+                ->where('defense_type', 'FINAL DEFENSE')
+                ->exists();
+                
+            if (!$exists) {
+                return response()->json([
+                    'eligible' => false,
+                    'message' => 'Only groups with "Passed" status on Pre-oral Defense can schedule Final Defense.'
+                ]);
+            }
+        }
+        
+        return response()->json(['eligible' => true]);
+    }
+    
+    public function updateStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'department' => 'required|string',
+            'section' => 'required|string',
+            'group_id' => 'required|string',
+            'defense_type' => 'required|string',
+            'status' => 'required|string'
+        ]);
+        
+        DefenseSchedule::where('department', $validated['department'])
+            ->where('section', $validated['section'])
+            ->where('group_id', $validated['group_id'])
+            ->where('defense_type', $validated['defense_type'])
+            ->update(['status' => $validated['status']]);
+            
+        return response()->json(['success' => true]);
+    }
+    
+    public function checkPanelAvailability(Request $request)
+    {
+        $validated = $request->validate([
+            'panel_names' => 'required|array',
+            'date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'department' => 'required|string',
+            'section' => 'required|string'
+        ]);
+        
+        $conflicts = [];
+        
+        foreach ($validated['panel_names'] as $panelName) {
+            // Check for existing schedules that conflict
+            $existingSchedules = DefenseSchedule::where('defense_date', $validated['date'])
+                ->where(function($query) use ($validated) {
+                    $query->where(function($q) use ($validated) {
+                        // Start time is between existing schedule times
+                        $q->where('start_time', '<=', $validated['start_time'])
+                          ->where('end_time', '>', $validated['start_time']);
+                    })->orWhere(function($q) use ($validated) {
+                        // End time is between existing schedule times
+                        $q->where('start_time', '<', $validated['end_time'])
+                          ->where('end_time', '>=', $validated['end_time']);
+                    })->orWhere(function($q) use ($validated) {
+                        // New schedule completely contains existing schedule
+                        $q->where('start_time', '>=', $validated['start_time'])
+                          ->where('end_time', '<=', $validated['end_time']);
+                    });
+                })
+                ->get();
+                
+            foreach ($existingSchedules as $schedule) {
+                if ($schedule->panel_data) {
+                    $panelData = is_string($schedule->panel_data) ? json_decode($schedule->panel_data, true) : $schedule->panel_data;
+                    
+                    if (isset($panelData['adviser']) && $panelData['adviser'] === $panelName) {
+                        $conflicts[] = [
+                            'panel_name' => $panelName,
+                            'conflict_type' => 'Defense Schedule (Adviser)',
+                            'conflict_time' => $schedule->start_time . ' - ' . $schedule->end_time,
+                            'conflict_details' => $schedule->defense_type . ' for ' . $schedule->group_id
+                        ];
+                    }
+                    
+                    if (isset($panelData['chairperson']) && $panelData['chairperson'] === $panelName) {
+                        $conflicts[] = [
+                            'panel_name' => $panelName,
+                            'conflict_type' => 'Defense Schedule (Chairperson)',
+                            'conflict_time' => $schedule->start_time . ' - ' . $schedule->end_time,
+                            'conflict_details' => $schedule->defense_type . ' for ' . $schedule->group_id
+                        ];
+                    }
+                    
+                    if (isset($panelData['members']) && strpos($panelData['members'], $panelName) !== false) {
+                        $conflicts[] = [
+                            'panel_name' => $panelName,
+                            'conflict_type' => 'Defense Schedule (Member)',
+                            'conflict_time' => $schedule->start_time . ' - ' . $schedule->end_time,
+                            'conflict_details' => $schedule->defense_type . ' for ' . $schedule->group_id
+                        ];
+                    }
+                }
+            }
+        }
+        
+        return response()->json([
+            'available' => empty($conflicts),
+            'conflicts' => $conflicts
+        ]);
+    }
+    
+    public function getPanelAvailabilitySchedule(Request $request)
+    {
+        $validated = $request->validate([
+            'panel_names' => 'required|array',
+            'dates' => 'required|array',
+            'department' => 'required|string'
+        ]);
+        
+        $availability = [];
+        
+        foreach ($validated['panel_names'] as $panelName) {
+            $availability[$panelName] = [];
+            
+            foreach ($validated['dates'] as $date) {
+                $conflicts = [];
+                
+                // Check for existing schedules on this date
+                $existingSchedules = DefenseSchedule::where('defense_date', $date)
+                    ->whereNotNull('start_time')
+                    ->whereNotNull('end_time')
+                    ->get();
+                    
+                foreach ($existingSchedules as $schedule) {
+                    if ($schedule->panel_data) {
+                        $panelData = is_string($schedule->panel_data) ? json_decode($schedule->panel_data, true) : $schedule->panel_data;
+                        
+                        $isInvolved = false;
+                        $role = '';
+                        
+                        if (isset($panelData['adviser']) && $panelData['adviser'] === $panelName) {
+                            $isInvolved = true;
+                            $role = 'Adviser';
+                        } elseif (isset($panelData['chairperson']) && $panelData['chairperson'] === $panelName) {
+                            $isInvolved = true;
+                            $role = 'Chairperson';
+                        } elseif (isset($panelData['members']) && strpos($panelData['members'], $panelName) !== false) {
+                            $isInvolved = true;
+                            $role = 'Member';
+                        }
+                        
+                        if ($isInvolved) {
+                            $conflicts[] = $schedule->defense_type . ' (' . $role . ') ' . $schedule->start_time . '-' . $schedule->end_time . ' Group ' . $schedule->group_id;
+                        }
+                    }
+                }
+                
+                $availability[$panelName][$date] = [
+                    'conflicts' => $conflicts
+                ];
+            }
+        }
+        
+        return response()->json([
+            'availability' => $availability
+        ]);
     }
 }

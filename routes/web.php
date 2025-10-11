@@ -113,6 +113,10 @@ Route::get('/view-panel-adviser', [StudentSubmissionController::class, 'viewPane
     ->name('student.view-panel-adviser')
     ->middleware('auth');
 
+Route::get('/view-sched', [StudentSubmissionController::class, 'viewSchedules'])
+    ->name('student.view-sched')
+    ->middleware('auth');
+
 // Panel-Adviser page (admin)
 Route::get('/panel-adviser', [PanelAdviserController::class, 'showPanelAdviserPage'])
     ->name('panel-adviser');
@@ -178,40 +182,25 @@ Route::get('/api/assignments', [PanelAdviserController::class, 'apiAssignments']
     Route::post('/assignments/store', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
  
-    //def-sched
-    Route::get('/def-sched', [DefenseScheduleController::class, 'index'])->name('def-sched.index');
-    Route::post('/defense-schedules', [DefenseScheduleController::class, 'store']);
-    Route::put('/defense-schedules/{defenseSchedule}', [DefenseScheduleController::class, 'update']);
-    Route::get('/defense-schedules/by-type', [DefenseScheduleController::class, 'getByType']);
-// Panel-Adviser Management Routes
-Route::get('/panel-adviser', [PanelAdviserController::class, 'index'])->name('panel-adviser.index');
-
-// Adviser Routes
-Route::post('/advisers', [AdviserController::class, 'store'])->name('advisers.store');
-Route::put('/advisers/{adviser}', [AdviserController::class, 'update'])->name('advisers.update');
-Route::delete('/advisers/{adviser}', [AdviserController::class, 'destroy'])->name('advisers.destroy');
-Route::delete('/advisers/{id}/force', [AdviserController::class, 'forceDelete'])->name('advisers.forceDelete');
-Route::post('/advisers/{id}/restore', [AdviserController::class, 'restore'])->name('advisers.restore');
-
-// Panel Routes
-Route::post('/panels', [PanelController::class, 'store'])->name('panels.store');
-Route::put('/panels/{panel}', [PanelController::class, 'update'])->name('panels.update');
-Route::delete('/panels/{panel}', [PanelController::class, 'destroy'])->name('panels.destroy');
-Route::delete('/panels/{id}/force', [PanelController::class, 'forceDelete'])->name('panels.forceDelete');
-Route::post('/panels/{id}/restore', [PanelController::class, 'restore'])->name('panels.restore');
-
-// Assignment Routes
-Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
-Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
-
 // Defense Schedule Routes
-Route::get('/def-sched', [DefenseScheduleController::class, 'index'])->name('def-sched.index');
-Route::post('/defense-schedules', [DefenseScheduleController::class, 'store'])->name('defense-schedules.store')->middleware('auth');
-Route::put('/defense-schedules/{defenseSchedule}', [DefenseScheduleController::class, 'update'])->name('defense-schedules.update')->middleware('auth');
-Route::get('/defense-schedules/by-type', [DefenseScheduleController::class, 'getByType'])->name('defense-schedules.by-type')->middleware('auth');
+Route::get('/def-sched', function () {
+    return view('def-sched');
+})->name('def-sched');
 
-// Defense Evaluation Routes
-Route::get('/def-eval', [\App\Http\Controllers\DefenseEvaluationController::class, 'index'])->name('def-eval.index')->middleware('auth');
+Route::post('/defense-schedules', [DefenseScheduleController::class, 'store']);
+Route::get('/defense-schedules/by-type', [DefenseScheduleController::class, 'getByType']);
+Route::put('/defense-schedules/{id}/status', [DefenseScheduleController::class, 'updateStatus']);
+Route::get('/defense-schedules/check-eligibility', [DefenseScheduleController::class, 'checkEligibility']);
 
-// Admin Submission Routes
-Route::get('/admin-submission', [AdminSubmissionController::class, 'trackProposal'])->name('admin-submission.track');
+// Defense Evaluation Routes  
+Route::get('/def-eval', function () {
+    return view('def-eval');
+})->name('def-eval');
+
+// Panel Availability API Routes
+Route::post('/api/panel-availability', [DefenseScheduleController::class, 'checkPanelAvailability']);
+Route::post('/api/panel-availability-schedule', [DefenseScheduleController::class, 'getPanelAvailabilitySchedule']);
+
+// Defense Evaluation API Routes
+Route::post('/api/evaluations', [\App\Http\Controllers\DefenseEvaluationController::class, 'saveEvaluation']);
+Route::get('/api/group-status', [\App\Http\Controllers\DefenseEvaluationController::class, 'getGroupStatus']);

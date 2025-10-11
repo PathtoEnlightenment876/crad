@@ -65,7 +65,7 @@ class AdviserController extends Controller
     $adviser->sections = $request->sections ?? [];
     $adviser->save();
     
-    return redirect()->route('panel-adviser')->with('success', 'Adviser updated successfully.');
+    return redirect('/panel-adviser')->with('success', 'Adviser updated successfully.');
 }
 
 

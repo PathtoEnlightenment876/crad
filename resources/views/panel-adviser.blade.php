@@ -512,7 +512,7 @@
     <!-- Edit Adviser Modals -->
     @foreach($advisers as $adviser)
         <div class="modal fade" id="editAdviserModal{{ $adviser->id }}" tabindex="-1">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl" style="max-width: 1200px;">
                 <div class="modal-content">
                     <form action="{{ route('advisers.update', $adviser->id) }}" method="POST">
                         @csrf
@@ -538,15 +538,34 @@
                                 <label class="form-label">Sections *</label>
                                 <div class="row">
                                     @foreach(['4101', '4102', '4103', '4104', '4105', '4106', '4107', '4108', '4109', '4110'] as $section)
-                                        <div class="col-md-4 col-sm-6">
-                                            <div class="form-check">
+                                        <div class="col-md-4 col-sm-6 mb-2">
+                                            @php
+                                                $isOccupiedByOther = $assignments->where('department', $adviser->department)
+                                                                              ->where('section', $section)
+                                                                              ->where('adviser_id', '!=', $adviser->id)
+                                                                              ->first();
+                                                $isCurrentlyAssigned = is_array($adviser->sections) && in_array($section, $adviser->sections);
+                                            @endphp
+                                            <div class="form-check {{ $isOccupiedByOther ? 'section-occupied p-2' : 'section-available p-1' }}">
                                                 <input class="form-check-input" type="checkbox" name="sections[]"
-                                                    value="{{ $section }}" id="editSection{{ $adviser->id }}{{ $section }}" {{ is_array($adviser->sections) && in_array($section, $adviser->sections) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="editSection{{ $adviser->id }}{{ $section }}">{{ $section }}</label>
+                                                    value="{{ $section }}" id="editSection{{ $adviser->id }}{{ $section }}" 
+                                                    {{ $isCurrentlyAssigned ? 'checked' : '' }}
+                                                    {{ $isOccupiedByOther ? 'disabled' : '' }}>
+                                                <label class="form-check-label {{ $isOccupiedByOther ? 'text-muted text-decoration-line-through' : '' }}" for="editSection{{ $adviser->id }}{{ $section }}">
+                                                    {{ $section }}
+                                                    @if($isOccupiedByOther)
+                                                        <span class="badge bg-danger ms-2"><i class="bi bi-x-circle me-1"></i>Taken</span>
+                                                    @elseif($isCurrentlyAssigned)
+                                                        <span class="badge bg-success ms-2"><i class="bi bi-check-circle me-1"></i>Current</span>
+                                                    @else
+                                                        <span class="badge bg-success ms-2"><i class="bi bi-check-circle me-1"></i>Available</span>
+                                                    @endif
+                                                </label>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
+                                <small class="text-info"><i class="bi bi-info-circle me-1"></i>Sections taken by other advisers cannot be selected.</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Name *</label>
@@ -1038,6 +1057,38 @@ function filterModalMembers() {
         member.style.display = (dept && member.dataset.department === dept) ? 'block' : 'none';
         member.querySelector('input').checked = false;
     });
+}
+
+// Update section status display for panels
+function updateSectionStatus(department) {
+    const display = document.getElementById('sectionStatusDisplay');
+    if (!display) return;
+    
+    if (!department) {
+        display.innerHTML = '<div class="col-12 text-center text-muted"><i class="bi bi-info-circle me-1"></i>Select a department to view section status</div>';
+        return;
+    }
+    
+    const assignmentsData = @json($assignments->groupBy('department'));
+    const sections = ['4101', '4102', '4103', '4104', '4105', '4106', '4107', '4108', '4109', '4110'];
+    
+    let html = '';
+    sections.forEach(section => {
+        const assignment = assignmentsData[department] && assignmentsData[department].find(a => a.section === section);
+        if (assignment) {
+            html += `<div class="col-md-6 col-sm-12 mb-1">
+                        <span class="badge bg-danger me-1">${section} <i class="bi bi-x-circle ms-1"></i></span>
+                        <small class="text-muted">${assignment.adviser ? assignment.adviser.name : 'Unknown'}</small>
+                     </div>`;
+        } else {
+            html += `<div class="col-md-6 col-sm-12 mb-1">
+                        <span class="badge bg-success me-1">${section} <i class="bi bi-check-circle ms-1"></i></span>
+                        <small class="text-muted">Available</small>
+                     </div>`;
+        }
+    });
+    
+    display.innerHTML = html;
 }
 
 // Update adviser sections based on department

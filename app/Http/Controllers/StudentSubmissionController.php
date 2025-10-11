@@ -70,8 +70,29 @@ class StudentSubmissionController extends Controller
     }
     public function viewPanelAdviser()
     {
-        $files = Submission::where('user_id', auth()->id())->get();
-        return view('view-panel-adviser', compact('files'));
+        $user = auth()->user();
+        
+        // Get assignment data for the user's department and cluster
+        // User cluster field maps to Assignment section field
+        $assignment = \App\Models\Assignment::with(['adviser', 'assignmentPanels'])
+            ->where('department', $user->department)
+            ->where('section', $user->cluster ?? '4101')
+            ->first();
+        
+        return view('view-panel-adviser', compact('assignment'));
+    }
+
+    public function viewSchedules()
+    {
+        // Fetch defense schedules for section 4101, group 1, set A
+        $schedules = \App\Models\DefenseSchedule::with('assignment.adviser', 'assignment.assignmentPanels')
+            ->where('section', '4101')
+            ->where('group_id', '1')
+            ->where('set_letter', 'A')
+            ->orderBy('defense_date', 'asc')
+            ->get();
+        
+        return view('view-sched', compact('schedules'));
     }
 
 public function resubmit(Request $request, $id)
