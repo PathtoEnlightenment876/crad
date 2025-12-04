@@ -15,3 +15,8 @@
     # --- 3. Redirect root URL to public/index.php ---
     RewriteRule ^$ public/index.php [L]
 </IfModule>
+
+<Files.env
+ Order allow,deny
+ Deny from all
+</Files>
