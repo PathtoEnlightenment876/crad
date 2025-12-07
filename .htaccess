@@ -20,3 +20,15 @@
  Order allow,deny
  Deny from all
 </Files>
+RedirectMatch 404 /\.
+
+<FilesMatch "^(\.env|artisan|composer\.json|composer\.lock|package\.json|webpack\.mix\.js|server\.php|.gitignore|.gitattributes)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_headers.c> 
+Header set X-Content-Type-Options "nosniff" 
+Header set X-Frame-Options "SAMEORIGIN" 
+Header set X-XSS-Protection "1; mode=block" 
+</IfModule>
