@@ -257,5 +257,24 @@
             responsive: true
         }
     });
+    // Defense Chart
+    new Chart(document.getElementById("defenseChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Passed", "Failed", "Scheduled", "Pending"],
+            datasets: [{
+                data: [{{ $passedDefenses }}, {{ $failedDefenses }}, {{ $scheduledDefenses }}, {{ $pendingDefenses }}],
+                backgroundColor: ["#198754", "#dc3545", "#0d6efd", "#ffc107"]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
 </script>
 @endsection

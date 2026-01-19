@@ -51,7 +51,7 @@ Route::get('/analytics', fn() => view('analytics'));
 
 
 // Student routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'student'])->group(function () {
     Route::get('/std-dashboard', [StudentController::class, 'dashboard'])->name('std-dashboard');
     Route::get('/submission', [StudentSubmissionController::class, 'submission'])->name('submission');
     Route::post('/files', [StudentController::class, 'store'])->name('student.files.store');
@@ -79,14 +79,14 @@ Route::middleware(['auth' , 'admin'])->group(function () {
 // Track proposal page
 Route::get('/track-proposal', [AdminSubmissionController::class, 'trackProposal'])
     ->name('admin.track-proposal')
-    ->middleware('auth');
+    ->middleware('auth', 'admin');
 
 // Update submission status
 Route::post('/submissions/{id}/update-status', [AdminSubmissionController::class, 'updateStatus'])
     ->name('admin.submissions.updateStatus')
-    ->middleware('auth');
+    ->middleware('auth', 'admin');
 
-    Route::prefix('student')->middleware(['auth'])->group(function () {
+    Route::prefix('student')->middleware(['auth' , 'student'])->group(function () {
         Route::get('/submission', [StudentSubmissionController::class, 'index'])->name('student.submissions.index');
     
         // Route for viewing a single submission file
@@ -96,7 +96,7 @@ Route::post('/submissions/{id}/update-status', [AdminSubmissionController::class
 
 // For admins
 Route::get('/admin/track-proposal/view/{submission}', [AdminSubmissionController::class, 'viewFile'])
-->middleware('auth')
+->middleware('auth' , 'admin')
 ->name('admin.track-proposal.view');
 
 
@@ -111,18 +111,19 @@ Route::delete('/committee/{id}/delete', [CommitteeController::class, 'destroy'])
 //route-std
 Route::get('/view-panel-adviser', [StudentSubmissionController::class, 'viewPanelAdviser'])
     ->name('student.view-panel-adviser')
-    ->middleware('auth');
+    ->middleware('auth', 'student');
 
 Route::get('/view-sched', [StudentSubmissionController::class, 'viewSchedules'])
     ->name('student.view-sched')
-    ->middleware('auth');
-
+    ->middleware('auth', 'student');
 // Panel-Adviser page (admin)
 Route::get('/panel-adviser', [PanelAdviserController::class, 'showPanelAdviserPage'])
     ->name('panel-adviser');
+   
 //resubmit
 Route::put('/student/files/{id}/resubmit', [StudentSubmissionController::class, 'resubmit'])
     ->name('student.files.resubmit');
+     
 
     //Adviser & Panel
 Route::post('/advisers', [AdviserController::class, 'store'])->name('advisers.store');

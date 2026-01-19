@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('defense_schedules', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('assignments', function (Blueprint $table) {
+            if (!Schema::hasColumn('assignments', 'adviser_id')) {
+                $table->unsignedBigInteger('adviser_id')->nullable();
+            }
         });
     }
 
@@ -22,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('defense_schedules');
+        Schema::table('assignments', function (Blueprint $table) {
+            $table->dropColumn(['adviser_id']);
+        });
     }
 };

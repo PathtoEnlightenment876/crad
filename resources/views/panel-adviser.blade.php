@@ -906,6 +906,28 @@
             </div>
         </div>
     @endforeach
+
+    <!-- Success Modal for Assignment Creation -->
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-success text-white border-0">
+                    <h5 class="modal-title" id="successModalTitle">Success!</h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="fs-5 mb-0" id="successModalMessage">Assignment created successfully!</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="location.reload();">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Refresh & Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -1324,8 +1346,18 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Server response:', data);
             
             if (data.success) {
-                alert('✅ Assignment created successfully!');
-                location.reload();
+                // Show success modal
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                document.getElementById('successModalTitle').textContent = 'Assignment Created Successfully!';
+                document.getElementById('successModalMessage').textContent = 'Your assignment has been created successfully.';
+                successModal.show();
+                
+                // Close the add assignment modal
+                bootstrap.Modal.getInstance(document.getElementById('addAssignmentModal')).hide();
+                
+                // Reset form
+                form.reset();
+                filterModalMembers();
             } else {
                 alert('⚠️ Error: ' + (data.message || data.error || 'Please try again.'));
                 console.error('Assignment creation failed:', data);

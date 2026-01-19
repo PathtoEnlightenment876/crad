@@ -50,13 +50,15 @@ class StudentSubmissionController extends Controller
         // Ensure data consistency - prioritize user model data over form data
         Submission::create([
             'user_id' => $user->id,
+            'title' => $request->documents,
             'documents' => $request->documents,
             'defense_type' => $request->defense_type,
             'department' => $user->department ?? 'N/A',
-            'cluster' => $user->section_cluster ?? 4101,
+            'cluster' => $user->cluster ?? 4101,
             'group_no' => $user->group_no ?? 0,
             'file_path' => $path,
             'status' => 'Pending',
+            'submitted_by' => $user->id,
         ]);
 
         return redirect()->route('student.submissions.index')

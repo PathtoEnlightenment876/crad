@@ -13,7 +13,7 @@ class LoginController extends Controller
 {
 
     // Max attempts before lockout
-    protected $maxAttempts = 2;
+    protected $maxAttempts = 5;
 
     // Lockout duration (in seconds)
     protected $decaySeconds = 60;
@@ -34,6 +34,8 @@ class LoginController extends Controller
         
         if (RateLimiter::tooManyAttempts($throttleKey, $this->maxAttempts)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+            // Use the full decay seconds if available seconds is less (due to timing)
+            $seconds = max($seconds, $this->decaySeconds);
             return response()->json(['locked' => true, 'seconds' => $seconds]);
         }
         
@@ -51,6 +53,8 @@ class LoginController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, $this->maxAttempts)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+            // Use the full decay seconds if available seconds is less (due to timing)
+            $seconds = max($seconds, $this->decaySeconds);
             return back()->withErrors([
                 'email' => "Too many login attempts. Please try again in $seconds seconds."
             ])->with('lockout_seconds', $seconds);
@@ -96,7 +100,10 @@ class LoginController extends Controller
                 return redirect()->route('otp.verify.form');
             } else {
                 // Student accounts go directly to dashboard
-                return redirect()->intended('/std-dashboard');
+                return redirect()->route('login')->with([
+                    'login_success' => true,
+                    'redirect_url' => '/std-dashboard'
+                ]);
             }
         }
 

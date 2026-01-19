@@ -55,11 +55,9 @@
                 </li>
 
                 <li>
-                    <a href="{{ url('/def-sched') }}" class="nav-link d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi bi-calendar4-week fs-5"></i>
-                            <span>Defense Scheduling</span>
-                        </div>
+                    <a href="{{ url('/def-sched') }}" class="nav-link">
+                        <i class="bi bi-calendar4-week fs-5"></i>
+                        <span>Defense Scheduling</span>
                     </a>
                 </li>
                 
@@ -135,10 +133,9 @@
                             <li><a class="dropdown-item" href="#">Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">Logout</button>
-                                </form>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
                             </li>
                         </ul>
                     </div>
@@ -192,13 +189,49 @@
         <div class="sidebar-overlay"></div>
     </div>
 
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-circle text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="fs-5 mb-0">Are you sure you want to logout from your account?</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmLogoutBtn">
+                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Form (hidden) -->
+    <form id="logoutForm" method="POST" action="{{ route('logout') }}" style="display: none;">
+        @csrf
+    </form>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
     <script>
         // Sidebar toggle
         document.getElementById('sidebar-toggle').addEventListener('click', function () {
-            document.body.classList.toggle('sidebar-toggled');
+            if (window.innerWidth > 991.98) {
+                // Desktop: toggle between full and icon-only
+                document.body.classList.toggle('sidebar-collapsed');
+            } else {
+                // Mobile: toggle sidebar visibility
+                document.body.classList.toggle('sidebar-toggled');
+            }
         });
 
         // Close sidebar when overlay is clicked
@@ -211,11 +244,13 @@
             const timeElement = document.getElementById('current-time');
             if (timeElement) {
                 const now = new Date();
-                timeElement.textContent = now.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                });
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours % 12 || 12;
+                
+                timeElement.textContent = `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
             }
         }
         setInterval(updateTime, 1000);
@@ -249,6 +284,16 @@
                     }
                 }
             });
+
+            // Logout confirmation handler
+            const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+            const logoutForm = document.getElementById('logoutForm');
+            
+            if (confirmLogoutBtn) {
+                confirmLogoutBtn.addEventListener('click', function() {
+                    logoutForm.submit();
+                });
+            }
         });
     </script>
     @yield('scripts')

@@ -36,6 +36,9 @@
         box-shadow: var(--card-shadow);
         min-height: 500px;
     }
+    #type-selection-view.hidden {
+        display: none !important;
+    }
     .defense-type-button {
         background-color: var(--dark-blue-button);
         color: white;
@@ -57,9 +60,14 @@
         gap: 2rem;
     }
 
-    /* --- UI 1: FILTER BAR --- */
-    #filter-bar {
+    /* --- UI 1: FILTER PAGE --- */
+    #filter-page {
         box-shadow: var(--card-shadow);
+        min-height: 400px;
+        display: block;
+    }
+    #filter-page.hidden {
+        display: none !important;
     }
     .selected-type-display {
         font-size: 1.4rem;
@@ -329,33 +337,17 @@
 
     /* Media Queries */
     @media (min-width: 992px) {
-        #filter-bar {
-            display: flex !important;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        .filter-group {
-            flex-grow: 1;
-        }
-        .selected-type-display {
-            flex-shrink: 0;
-        }
-        .btn-custom-merged {
-            flex-shrink: 0;
-            min-width: 120px;
+        #filter-page .d-grid {
+            max-width: 600px;
+            margin: 0 auto;
         }
     }
     @media (max-width: 991.98px) {
-        #filter-bar {
-            grid-template-columns: 1fr 1fr;
+        #filter-page .d-grid {
+            gap: 1rem;
         }
         .selected-type-display {
-            grid-column: 1 / -1; 
-            text-align: center; 
-        }
-        .btn-custom-merged { 
-            grid-column: 1 / -1; 
+            text-align: center;
         }
         .time-date-inputs-container {
             grid-template-columns: 1fr 1fr;
@@ -388,54 +380,59 @@
         </div>
     </div>
     
-    <div id="filter-bar" class="bg-white p-4 rounded-3 mb-4 d-grid" style="display: none;">
-        <h1 class="selected-type-display" id="defense-type-display"></h1>
-        
-        <div class="filter-group">
-            <label for="dept-select" class="form-label small fw-bold">Department</label>
-            <select id="dept-select" class="form-select">
-                <option selected disabled value="">Select Department</option>
-                <option value="BSIT">BSIT</option>
-                <option value="CRIM">CRIM</option>
-                <option value="EDUC">EDUC</option>
-                <option value="BSBA">BSBA</option>
-                <option value="Psychology">Psychology</option>
-                <option value="BSHM">BSHM</option>
-                <option value="BSTM">BSTM</option>
-            </select>
+    <div id="filter-page" class="bg-white p-4 rounded-3 mb-4 hidden">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-outline-secondary me-3" id="backToFilterButton">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+            <h1 class="selected-type-display mb-0" id="defense-type-display"></h1>
         </div>
-
-        <div class="filter-group">
-            <label for="cluster-select" class="form-label small fw-bold">Cluster</label>
-            <select id="cluster-select" class="form-select">
-                <option selected disabled value="">Select Cluster</option>
-                <option value="4101">4101</option>
-                <option value="4102">4102</option>
-                <option value="4103">4103</option>
-                <option value="4104">4104</option>
-                <option value="4105">4105</option>
-                <option value="4106">4106</option>
-                <option value="4107">4107</option>
-                <option value="4108">4108</option>
-                <option value="4109">4109</option>
-                <option value="4110">4110</option>
-            </select>
-        </div>
-
-        <div class="filter-group" id="redefense-type-group" style="display: none;">
-            <label for="redefense-type-select" class="form-label small fw-bold">Defense Type</label>
-            <select id="redefense-type-select" class="form-select">
-                <option selected disabled value="">Select Defense Type</option>
-                <option value="PRE-ORAL">Pre-oral Defense</option>
-                <option value="FINAL DEFENSE">Final Defense</option>
-            </select>
-        </div>
-
         
-        
-        <button class="btn btn-custom-merged align-self-end py-2" id="enterButton">
-            <i class="bi bi-arrow-right-circle"></i> View Schedule
-        </button>
+        <div class="d-grid gap-3">
+            <div class="filter-group">
+                <label for="dept-select" class="form-label small fw-bold">Department</label>
+                <select id="dept-select" class="form-select">
+                    <option selected disabled value="">Select Department</option>
+                    <option value="BSIT">BSIT</option>
+                    <option value="CRIM">CRIM</option>
+                    <option value="EDUC">EDUC</option>
+                    <option value="BSBA">BSBA</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="BSHM">BSHM</option>
+                    <option value="BSTM">BSTM</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="cluster-select" class="form-label small fw-bold">Cluster</label>
+                <select id="cluster-select" class="form-select">
+                    <option selected disabled value="">Select Cluster</option>
+                    <option value="4101">4101</option>
+                    <option value="4102">4102</option>
+                    <option value="4103">4103</option>
+                    <option value="4104">4104</option>
+                    <option value="4105">4105</option>
+                    <option value="4106">4106</option>
+                    <option value="4107">4107</option>
+                    <option value="4108">4108</option>
+                    <option value="4109">4109</option>
+                    <option value="4110">4110</option>
+                </select>
+            </div>
+
+            <div class="filter-group" id="redefense-type-group" style="display: none;">
+                <label for="redefense-type-select" class="form-label small fw-bold">Defense Type</label>
+                <select id="redefense-type-select" class="form-select">
+                    <option selected disabled value="">Select Defense Type</option>
+                    <option value="PRE-ORAL">Pre-oral Defense</option>
+                    <option value="FINAL DEFENSE">Final Defense</option>
+                </select>
+            </div>
+
+            <button class="btn btn-custom-merged py-2" id="enterButton">
+                <i class="bi bi-arrow-right-circle"></i> View Schedule
+            </button>
+        </div>
     </div>
 
     <div id="schedule-view" style="display: none;">
@@ -1410,7 +1407,7 @@
     
     document.addEventListener('DOMContentLoaded', function () {
         const typeSelectionView = document.getElementById('type-selection-view');
-        const filterBar = document.getElementById('filter-bar');
+        const filterPage = document.getElementById('filter-page');
         const enterButton = document.getElementById('enterButton');
         const scheduleView = document.getElementById('schedule-view');
         const scheduleButton = document.getElementById('schedule-button');
@@ -1433,9 +1430,7 @@
         if (department && cluster) {
             // Auto-select defense type based on URL parameter or default to PRE-ORAL
             currentDefenseType = defenseType || 'PRE-ORAL';
-            typeSelectionView.style.display = 'none';
-            filterBar.style.display = 'grid';
-            scheduleView.style.display = 'block';
+            showSchedulePage();
             
             document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
             
@@ -1794,14 +1789,30 @@
             }
         }
 
+        // Navigation functions
+        function showTypeSelection() {
+            typeSelectionView.classList.remove('hidden');
+            filterPage.classList.add('hidden');
+            scheduleView.style.display = 'none';
+        }
+        
+        function showFilterPage() {
+            typeSelectionView.classList.add('hidden');
+            filterPage.classList.remove('hidden');
+            scheduleView.style.display = 'none';
+        }
+        
+        function showSchedulePage() {
+            typeSelectionView.classList.add('hidden');
+            filterPage.classList.add('hidden');
+            scheduleView.style.display = 'block';
+        }
+
         document.querySelectorAll('.defense-type-button').forEach(button => {
             button.addEventListener('click', function() {
                 currentDefenseType = this.getAttribute('data-defense-type');
+                showFilterPage();
                 
-                typeSelectionView.style.display = 'none';
-                filterBar.style.display = 'grid';
-                scheduleView.style.display = 'block';
-
                 document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
                 
                 // Show/hide defense type dropdown for Re-defense
@@ -1812,14 +1823,19 @@
                     redefenseTypeGroup.style.display = 'none';
                 }
                 
+                // Reset form values
                 deptSelect.value = '';
                 clusterSelect.value = '';
                 document.getElementById('redefense-type-select').value = '';
-                updateScheduleView();
             });
+        });
+        
+        document.getElementById('backToFilterButton').addEventListener('click', function() {
+            showTypeSelection();
         });
 
         enterButton.addEventListener('click', () => {
+            showSchedulePage();
             updateScheduleView();
             setTimeout(() => {
                 loadScheduleData();
@@ -2002,9 +2018,10 @@
             }, 100); 
         });
         
-        if (!currentDefenseType) {
-             scheduleView.style.display = 'none';
-        }
+        // Initialize page visibility - only show type selection on load
+        typeSelectionView.classList.remove('hidden');
+        filterPage.classList.add('hidden');
+        scheduleView.style.display = 'none';
         
         enableStatusChecks();
         

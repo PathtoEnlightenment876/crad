@@ -14,10 +14,10 @@ class StudentSeeder extends Seeder
             [
                 'name' => 'Juan DelaCruz',
                 'email' => 'juandelacruz@gmail.com',
-                'password' => 'j04D11@CrU$-',
+                'password' => '#JD@1234',
                 'role' => 'student',
                 'department' => 'BSIT',
-                'section_cluster' => 4101,
+                'cluster' => 4101,
                 'group_no' => 1,
             ],
             [
@@ -26,7 +26,7 @@ class StudentSeeder extends Seeder
                 'password' => 'mS@12345',
                 'role' => 'student',
                 'department' => 'CRIM',
-                'section_cluster' => 4102,
+                'cluster' => 4102,
                 'group_no' => 2,
             ],
             [
@@ -35,7 +35,7 @@ class StudentSeeder extends Seeder
                 'password' => 'pC#9876',
                 'role' => 'student',
                 'department' => 'EDUC',
-                'section_cluster' => 4103,
+                'cluster' => 4103,
                 'group_no' => 1,
             ],
         ];
@@ -48,7 +48,7 @@ class StudentSeeder extends Seeder
                     'password' => Hash::make($student['password']),
                     'role' => $student['role'],
                     'department' => $student['department'],
-                    'section_cluster' => $student['section_cluster'],
+                    'cluster' => $student['cluster'],
                     'group_no' => $student['group_no'],
                 ]
             );
