@@ -88,36 +88,38 @@
                         <a href="#" class="text-dark position-relative" id="notificationDropdown"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell fs-5"></i>
-                            <span
-                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                3
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ $notifications->count() ?? 0 }}
                             </span>
                         </a>
 
                         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown"
-                            style="width: 300px; max-height: 400px; overflow-y: auto;">
+                            style="width: 320px; max-height: 400px; overflow-y: auto;">
                             <li class="dropdown-header fw-bold">Notifications</li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
 
-                            <li class="dropdown-item">
-                                <i class="bi bi-check-circle text-success"></i> Proposal submitted successfully
-                                <br><small class="text-muted">2 mins ago</small>
-                            </li>
-                            <li class="dropdown-item">
-                                <i class="bi bi-exclamation-circle text-warning"></i> Panel assigned to your project
-                                <br><small class="text-muted">10 mins ago</small>
-                            </li>
-                            <li class="dropdown-item">
-                                <i class="bi bi-calendar-event text-primary"></i> Defense scheduled for Sept 10
-                                <br><small class="text-muted">1 hr ago</small>
-                            </li>
+                            @forelse($notifications ?? [] as $notification)
+                                <li>
+                                    <a href="{{ $notification['action'] ?? '#' }}" class="dropdown-item">
+                                        <i class="{{ $notification['icon'] ?? 'bi-info-circle' }} text-{{ $notification['type'] ?? 'secondary' }}"></i> 
+                                        {{ $notification['message'] }}
+                                        <br><small class="text-muted">{{ $notification['time'] ?? 'now' }}</small>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="dropdown-item text-center text-muted">
+                                    No notifications
+                                </li>
+                            @endforelse
 
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a href="#" class="dropdown-item text-center">View all</a></li>
+                            @if(($notifications ?? collect())->count() > 0)
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a href="{{ route('admin.dashboard') }}" class="dropdown-item text-center">View all</a></li>
+                            @endif
                         </ul>
                     </div>
 
@@ -130,7 +132,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><h6 class="dropdown-header">{{ Auth::user()->name ?? 'Admin' }}</h6></li>
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
@@ -187,6 +189,31 @@
             </footer>
         </div>
         <div class="sidebar-overlay"></div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">Admin Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img src="{{ asset('img/sms.png') }}" alt="Profile Picture"
+                             class="rounded-circle" width="100" height="100">
+                    </div>
+                    <p><strong>Name:</strong> {{ Auth::user()->name ?? 'Admin' }}</p>
+                    <p><strong>Email:</strong> {{ Auth::user()->email ?? 'admin@crad.edu' }}</p>
+                    <p><strong>Role:</strong> Administrator</p>
+                    <p><strong>Department:</strong> Center for Research and Development</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Logout Confirmation Modal -->
