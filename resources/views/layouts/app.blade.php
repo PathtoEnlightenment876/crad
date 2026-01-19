@@ -123,7 +123,6 @@
                         </ul>
                     </div>
 
-                    <a href="#" class="text-dark me-3" aria-label="Search"><i class="bi bi-search fs-5"></i></a>
 
                     <div class="dropdown">
                         <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="userDropdown"
@@ -148,7 +147,31 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ url('admin-dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        @if(Request::is('def-sched'))
+                            <li class="breadcrumb-item"><a href="{{ url('def-sched') }}">Defense Scheduling</a></li>
+                            @if(request('defense_type') == 'PRE-ORAL')
+                                <li class="breadcrumb-item active" aria-current="page">Pre-oral Defense</li>
+                            @elseif(request('defense_type') == 'FINAL DEFENSE')
+                                <li class="breadcrumb-item active" aria-current="page">Final Defense</li>
+                            @elseif(request('defense_type') == 'REDEFENSE')
+                                <li class="breadcrumb-item active" aria-current="page">Re-defense</li>
+                            @else
+                                <li class="breadcrumb-item active" aria-current="page">Defense Scheduling</li>
+                            @endif
+                        @elseif(Request::is('def-eval'))
+                            <li class="breadcrumb-item"><a href="{{ url('def-eval') }}">Defense Evaluation</a></li>
+                            @if(request('defense_type') == 'PRE-ORAL')
+                                <li class="breadcrumb-item active" aria-current="page">Pre-oral Defense</li>
+                            @elseif(request('defense_type') == 'FINAL DEFENSE')
+                                <li class="breadcrumb-item active" aria-current="page">Final Defense</li>
+                            @elseif(request('defense_type') == 'REDEFENSE')
+                                <li class="breadcrumb-item active" aria-current="page">Re-defense</li>
+                            @else
+                                <li class="breadcrumb-item active" aria-current="page">Defense Evaluation</li>
+                            @endif
+                        @else
+                            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        @endif
                     </ol>
                 </nav>
 
@@ -191,6 +214,22 @@
         <div class="sidebar-overlay"></div>
     </div>
 
+    <!-- Profile Save Success Modal -->
+    <div class="modal fade" id="profileSaveSuccessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Success!</h5>
+                    <p class="mb-0">Profile picture saved successfully!</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Profile Modal -->
     <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -201,8 +240,16 @@
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-3">
-                        <img src="{{ asset('img/sms.png') }}" alt="Profile Picture"
-                             class="rounded-circle" width="100" height="100">
+                        <div class="position-relative d-inline-block">
+                            <img src="{{ asset('img/sms.png') }}" alt="Profile Picture" id="adminProfileImage"
+                                 class="rounded-circle" width="100" height="100">
+                            <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                                    style="width: 30px; height: 30px; padding: 0;" 
+                                    onclick="document.getElementById('adminProfileInput').click()">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <input type="file" id="adminProfileInput" accept="image/*" style="display: none;" onchange="previewAdminImage(event)">
+                        </div>
                     </div>
                     <p><strong>Name:</strong> {{ Auth::user()->name ?? 'Admin' }}</p>
                     <p><strong>Email:</strong> {{ Auth::user()->email ?? 'admin@crad.edu' }}</p>
@@ -211,6 +258,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveAdminProfile">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -321,6 +369,36 @@
                     logoutForm.submit();
                 });
             }
+        });
+    </script>
+    <script>
+        function previewAdminImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('adminProfileImage').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedImage = localStorage.getItem('adminProfileImage');
+            if (savedImage) {
+                document.getElementById('adminProfileImage').src = savedImage;
+            }
+            
+            document.getElementById('saveAdminProfile').addEventListener('click', function() {
+                const imageSrc = document.getElementById('adminProfileImage').src;
+                localStorage.setItem('adminProfileImage', imageSrc);
+                
+                const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+                profileModal.hide();
+                
+                const successModal = new bootstrap.Modal(document.getElementById('profileSaveSuccessModal'));
+                successModal.show();
+            });
         });
     </script>
     @yield('scripts')

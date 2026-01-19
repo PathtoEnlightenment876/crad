@@ -82,7 +82,6 @@
                     </div>
                     
 
-                    <a href="#" class="text-dark me-3"><i class="bi bi-search fs-5"></i></a>
 
                     <div class="dropdown">
                         <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="userDropdown"
@@ -134,8 +133,16 @@
             </div>
             <div class="modal-body">
                 <div class="text-center mb-3">
-                    <img src="{{ asset('img/avatar.png') }}" alt="Profile Picture"
-                         class="rounded-circle" width="100" height="100">
+                    <div class="position-relative d-inline-block">
+                        <img src="{{ asset('img/avatar.png') }}" alt="Profile Picture" id="studentProfileImage"
+                             class="rounded-circle" width="100" height="100">
+                        <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                                style="width: 30px; height: 30px; padding: 0;" 
+                                onclick="document.getElementById('studentProfileInput').click()">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <input type="file" id="studentProfileInput" accept="image/*" style="display: none;" onchange="previewStudentImage(event)">
+                    </div>
                 </div>
                 <p><strong>Name:</strong> {{ Auth::user()->name ?? 'N/A' }}</p>
                 <p><strong>Email:</strong> {{ Auth::user()->email ?? 'N/A' }}</p>
@@ -145,6 +152,23 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveStudentProfile">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Save Success Modal -->
+<div class="modal fade" id="profileSaveSuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">Success!</h5>
+                <p class="mb-0">Profile picture saved successfully!</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
@@ -329,6 +353,39 @@
             if (confirmLogoutBtn && logoutForm) {
                 confirmLogoutBtn.addEventListener('click', function() {
                     logoutForm.submit();
+                });
+            }
+        });
+    </script>
+    <script>
+        function previewStudentImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('studentProfileImage').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedImage = localStorage.getItem('studentProfileImage');
+            if (savedImage) {
+                document.getElementById('studentProfileImage').src = savedImage;
+            }
+            
+            const saveBtn = document.getElementById('saveStudentProfile');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    const imageSrc = document.getElementById('studentProfileImage').src;
+                    localStorage.setItem('studentProfileImage', imageSrc);
+                    
+                    const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+                    profileModal.hide();
+                    
+                    const successModal = new bootstrap.Modal(document.getElementById('profileSaveSuccessModal'));
+                    successModal.show();
                 });
             }
         });

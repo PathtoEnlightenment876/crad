@@ -297,6 +297,11 @@
     </div>
 
     <div id="schedule-view" style="display: none;">
+        <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-outline-secondary" id="backToFilterFromEval">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+        </div>
         <h2 class="text-center mb-4" id="dept-header"></h2>
 
         <div id="schedule-content" class="table-container">
@@ -1205,6 +1210,12 @@
         document.getElementById('backToFilterButton').addEventListener('click', function() {
             typeSelectionView.classList.remove('hidden');
             filterBar.classList.add('hidden');
+            scheduleView.style.display = 'none';
+        });
+        
+        document.getElementById('backToFilterFromEval').addEventListener('click', function() {
+            typeSelectionView.classList.add('hidden');
+            filterBar.classList.remove('hidden');
             scheduleView.style.display = 'none';
         });
 
