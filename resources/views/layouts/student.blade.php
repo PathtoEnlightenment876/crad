@@ -24,7 +24,7 @@
         <div id="sidebar" class="d-flex flex-column flex-shrink-0 sidebar">
             <div class="user-profile">
                 <img src="{{ asset('img/avatar.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
-                    style="width: 60px; height: 60px;">
+                    style="width: 60px; height: 60px;" id="sidebarProfileImage">
                 <h5 class="mb-0">Student</h5>
                 <small>Juan Dela Cruz</small>
             </div>
@@ -373,6 +373,7 @@
             const savedImage = localStorage.getItem('studentProfileImage');
             if (savedImage) {
                 document.getElementById('studentProfileImage').src = savedImage;
+                document.getElementById('sidebarProfileImage').src = savedImage;
             }
             
             const saveBtn = document.getElementById('saveStudentProfile');
@@ -380,6 +381,7 @@
                 saveBtn.addEventListener('click', function() {
                     const imageSrc = document.getElementById('studentProfileImage').src;
                     localStorage.setItem('studentProfileImage', imageSrc);
+                    document.getElementById('sidebarProfileImage').src = imageSrc;
                     
                     const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
                     profileModal.hide();

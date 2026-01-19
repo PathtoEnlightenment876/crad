@@ -164,6 +164,17 @@
         border-top: none;
     }
     
+    .group-number {
+        cursor: pointer;
+        color: var(--primary-blue);
+        font-weight: 500;
+    }
+    
+    .group-number:hover {
+        background-color: #e7f1ff;
+        font-weight: 600;
+    }
+    
     /* Divider row styling */
     .divider-row {
         height: 1px;
@@ -485,7 +496,7 @@
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
                                 <td class="set-value">A</td> 
-                                <td>{{ $groupNumber }}</td> 
+                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
                                 <td><span class="status-badge status-completed">Completed</span></td>
                                 
                                 @if($groupNumber == 1)
@@ -539,7 +550,7 @@
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
                                 <td class="set-value">B</td> 
-                                <td>{{ $groupNumber }}</td> 
+                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
                                 <td><span class="status-badge status-completed">Completed</span></td>
                                 
                                 @if($groupNumber == 1)
@@ -591,6 +602,33 @@
     </div>
 </div>
 
+{{-- Group Info Modal --}}
+<div class="modal fade" id="groupInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header modal-header-custom rounded-top-3">
+                <h5 class="modal-title">Group Information</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="fw-bold mb-3" id="groupInfoTitle">Group A1</h6>
+                <p><strong>Department:</strong> <span id="groupDept">-</span></p>
+                <p><strong>Cluster:</strong> <span id="groupCluster">-</span></p>
+                <p><strong>Set:</strong> <span id="groupSet">-</span></p>
+                <p><strong>Status:</strong> <span id="groupStatus">-</span></p>
+                <hr>
+                <h6 class="fw-bold mb-2">Panel & Adviser</h6>
+                <p><strong>Adviser:</strong> <span id="groupAdviser">-</span></p>
+                <p><strong>Chairperson:</strong> <span id="groupChair">-</span></p>
+                <p><strong>Members:</strong> <span id="groupMembers">-</span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Schedule Modal --}}
 <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -633,15 +671,6 @@
                     </div>
                     
                 </form>
-                <div class="panel-details-box-fixed">
-                    <div class="advisor-chair-col">
-                        <strong>Adviser:</strong> <span id="modal-adviser"></span> <br>
-                        <strong>Chairperson:</strong> <span id="modal-chairperson"></span> 
-                    </div>
-                    <div class="member-col">
-                        <strong>Member:</strong> <span id="modal-members"></span>
-                    </div>
-                </div>
             </div>
             <button class="btn btn-schedule-fixed text-white" id="schedule-button" data-group-target="">Set Schedule</button>
         </div>
@@ -1608,7 +1637,7 @@
                             <tr data-group-id="${groupId}" data-set="${set}">
                                 <td class="cluster-value">${cluster}</td>
                                 <td class="set-value">${set}</td>
-                                <td>${group}</td>
+                                <td class="group-number" data-group-id="${groupId}">${group}</td>
                                 <td><span class="status-badge status-incomplete">Redefense Required</span></td>
                                 <td class="panel-details-table">
                                     <div>
@@ -1644,7 +1673,7 @@
                             <tr data-group-id="${groupId}" data-set="${set}">
                                 <td class="cluster-value">${cluster}</td>
                                 <td class="set-value">${set}</td>
-                                <td>${group}</td>
+                                <td class="group-number" data-group-id="${groupId}">${group}</td>
                                 <td><span class="status-badge status-incomplete">Redefense Required</span></td>
                                 <td class="panel-details-table">
                                     <div>
@@ -1719,7 +1748,7 @@
                     <tr data-group-id="${groupId}" data-set="A" ${dividerClass}>
                         ${clusterCell}
                         <td class="set-value">A</td>
-                        <td>${groupNumber}</td>
+                        <td class="group-number" data-group-id="${groupId}">${groupNumber}</td>
                         <td><span class="status-badge status-completed">Completed</span></td>
                         ${panelCell}
                         <td class="status-column" id="status-${groupId}">
@@ -1775,7 +1804,7 @@
                     <tr data-group-id="${groupId}" data-set="B" ${borderStyle}>
                         ${clusterCell}
                         <td class="set-value">B</td>
-                        <td>${groupNumber}</td>
+                        <td class="group-number" data-group-id="${groupId}">${groupNumber}</td>
                         <td><span class="status-badge status-completed">Completed</span></td>
                         ${panelCell}
                         <td class="status-column" id="status-${groupId}">
@@ -2034,6 +2063,32 @@
         
         enableStatusChecks();
         
+        // Group info modal - click handler
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('group-number')) {
+                const groupId = e.target.getAttribute('data-group-id');
+                const row = e.target.closest('tr');
+                const dept = deptSelect.value;
+                const cluster = row.querySelector('.cluster-value')?.textContent || '-';
+                const set = row.querySelector('.set-value')?.textContent || '-';
+                const status = row.querySelector('.status-badge')?.textContent || 'Pending';
+                const panelCell = row.querySelector('.panel-details-table');
+                const adviser = panelCell?.getAttribute('data-adviser') || '-';
+                const chair = panelCell?.getAttribute('data-chair') || '-';
+                const members = panelCell?.getAttribute('data-members') || '-';
+                
+                document.getElementById('groupInfoTitle').textContent = `Group ${groupId}`;
+                document.getElementById('groupDept').textContent = dept || '-';
+                document.getElementById('groupCluster').textContent = cluster;
+                document.getElementById('groupSet').textContent = set;
+                document.getElementById('groupStatus').textContent = status;
+                document.getElementById('groupAdviser').textContent = adviser;
+                document.getElementById('groupChair').textContent = chair;
+                document.getElementById('groupMembers').textContent = members;
+                
+                new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+            }
+        });
 
     });
 </script>
