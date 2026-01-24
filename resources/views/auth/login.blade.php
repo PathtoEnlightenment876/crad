@@ -145,77 +145,7 @@
       }
     }
 
-    /* OWL */
-.owl-container {
-  display: flex;
-  justify-content: center;
-}
-
-.owl {
-  position: relative;
-  width: 120px;
-  height: 120px;
-}
-
-.owl .face {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(to right, #004C99, #40b6ed);
-  border-radius: 50%;
-  position: absolute;
-  top: 10px;
-  left: 10px;
-}
-
-.owl .eye {
-  width: 14px;
-  height: 14px;
-  background: #000;
-  border-radius: 50%;
-  position: absolute;
-  top: 35px;
-  transition: all 0.3s ease;
-}
-
-.left-eye { left: 28px; }
-.right-eye { right: 28px; }
-
-.owl .beak {
-  width: 10px;
-  height: 10px;
-  background: orange;
-  position: absolute;
-  top: 55px;
-  left: 45px;
-  transform: rotate(45deg);
-}
-
-.owl .hand {
-  width: 30px;
-  height: 10px;
-  background: linear-gradient(to right, #004C99, #40b6ed);
-  position: absolute;
-  top: 50px;
-  transition: all 0.4s ease;
-}
-
-.left-hand { left: -5px; }
-.right-hand { right: -5px; }
-
-/* CLOSED EYES STATE */
-.owl.close-eyes .eye {
-  height: 3px;
-}
-
-.owl.close-eyes .left-hand {
-  top: 32px;
-  transform: rotate(25deg);
-}
-
-.owl.close-eyes .right-hand {
-  top: 32px;
-  transform: rotate(-25deg);
-}
+    
 
   </style>
 </head>
@@ -226,19 +156,7 @@
     <!-- Login Form Column -->
     <div class="login-form-container">
       <div class="login-form-wrapper">
-        <div class="owl-container text-center mb-3">
-        <div class="owl">
-       <div class="ear left"></div>
-      <div class="ear right"></div>
-      <div class="face">
-        <div class="eye left-eye"></div>
-      <div class="eye right-eye"></div>
-      <div class="beak"></div>
-      </div>
-      <div class="hand left-hand"></div>
-      <div class="hand right-hand"></div>
-  </div>
-  </div>
+        
 
         <div class="text-center mb-4">
           <img src="{{ asset('img/sms.png') }}" alt="Logo" style="width: 90px;">
@@ -435,19 +353,7 @@
 
   </script>
 
-  <script>
-  const owl = document.querySelector('.owl');
-
-  passwordInput.addEventListener('focus', () => {
-    owl.classList.add('close-eyes');
-  });
-
-  passwordInput.addEventListener('blur', () => {
-    if (!passwordInput.value) {
-      owl.classList.remove('close-eyes');
-    }
-  });
-</script>
+  
 
 </body>
 </html>

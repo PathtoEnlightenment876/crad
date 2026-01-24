@@ -22,6 +22,9 @@
 <body>
     <div class="d-flex">
         <div id="sidebar" class="d-flex flex-column flex-shrink-0 sidebar">
+            <button id="sidebar-toggle" class="sidebar-chevron-toggle">
+                <i class="bi bi-chevron-left"></i>
+            </button>
             <div class="user-profile">
                 <img src="{{ asset('img/avatar.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
                     style="width: 60px; height: 60px;" id="sidebarProfileImage">
@@ -68,7 +71,6 @@
         <div class="main-content-wrapper">
             <nav class="top-navbar d-flex justify-content-between align-items-center">
                 <div>
-                    <button id="sidebar-toggle" class="btn btn-light"><i class="bi bi-list"></i></button>
                 </div>
                 <div class="d-flex align-items-center">
                     <span id="current-time" class="me-3 d-none d-sm-inline"></span>
@@ -136,9 +138,8 @@
                     <div class="position-relative d-inline-block">
                         <img src="{{ asset('img/avatar.png') }}" alt="Profile Picture" id="studentProfileImage"
                              class="rounded-circle" width="100" height="100">
-                        <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
-                                style="width: 30px; height: 30px; padding: 0;" 
-                                onclick="document.getElementById('studentProfileInput').click()">
+                        <button id="studentProfileBtn"type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                                style="width: 30px; height: 30px; padding: 0;">
                             <i class="bi bi-pencil"></i>
                         </button>
                         <input type="file" id="studentProfileInput" accept="image/*" style="display: none;" onchange="previewStudentImage(event)">
@@ -391,6 +392,11 @@
                 });
             }
         });
+
+        document.getElementById('studentProfileBtn')
+  .addEventListener('click', () => {
+    document.getElementById('studentProfileInput').click();
+  });
     </script>
     @yield('scripts')
 

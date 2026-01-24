@@ -1187,6 +1187,7 @@
         document.querySelectorAll('.defense-type-button').forEach(button => {
             button.addEventListener('click', function() {
                 currentDefenseType = this.getAttribute('data-defense-type');
+                localStorage.setItem('selectedEvalType', currentDefenseType);
                 
                 typeSelectionView.classList.add('hidden');
                 filterBar.classList.remove('hidden');
@@ -1208,6 +1209,7 @@
         });
         
         document.getElementById('backToFilterButton').addEventListener('click', function() {
+            localStorage.removeItem('selectedEvalType');
             typeSelectionView.classList.remove('hidden');
             filterBar.classList.add('hidden');
             scheduleView.style.display = 'none';
@@ -1280,10 +1282,26 @@
             });
         });
         
-        // Initialize page visibility
-        typeSelectionView.classList.remove('hidden');
-        filterBar.classList.add('hidden');
-        scheduleView.style.display = 'none';
+        // Restore saved evaluation type
+        const savedEvalType = localStorage.getItem('selectedEvalType');
+        if (savedEvalType && !department) {
+            currentDefenseType = savedEvalType;
+            typeSelectionView.classList.add('hidden');
+            filterBar.classList.remove('hidden');
+            document.getElementById('defense-type-display').textContent = `${currentDefenseType} EVALUATION`;
+            
+            const redefenseTypeGroup = document.getElementById('redefense-type-group');
+            if (currentDefenseType === 'REDEFENSE') {
+                redefenseTypeGroup.style.display = 'block';
+            } else {
+                redefenseTypeGroup.style.display = 'none';
+            }
+        } else {
+            // Initialize page visibility
+            typeSelectionView.classList.remove('hidden');
+            filterBar.classList.add('hidden');
+            scheduleView.style.display = 'none';
+        }
     });
 </script>
 @endsection

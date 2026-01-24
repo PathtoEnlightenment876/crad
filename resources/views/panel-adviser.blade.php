@@ -1,29 +1,185 @@
 @extends('layouts.app')
 
-@push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        .section-occupied {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.375rem;
-            opacity: 0.7;
+@section('styles')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+    /* --- DESIGN TOKENS --- */
+    :root {
+        --primary-blue: #1a73e8;
+        --dark-blue-button: #003366;
+        --light-bg: #f5f7fa;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --dark-text: #202124;
+        --group-stripe: #f7f7f7;
+        --status-green: #34a853;
+        --status-yellow: #fbbc05;
+        --status-red: #ea4335;
+        --status-light-green: #e6f4ea;
+        --status-light-red: #fce8e6;
+    }
+
+    /* --- GENERAL STYLES & FONT --- */
+    body {
+        background-color: var(--light-bg);
+        font-family: 'Roboto', sans-serif;
+        color: var(--dark-text);
+    }
+
+    #main-container-panel-adviser {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* --- UI 0: TYPE SELECTION SCREEN --- */
+    #type-selection-view {
+        box-shadow: var(--card-shadow);
+        min-height: 500px;
+    }
+    #type-selection-view.hidden {
+        display: none !important;
+    }
+    .adviser-type-button {
+        background-color: var(--dark-blue-button);
+        color: white;
+        padding: 1.5rem 3rem;
+        border-radius: 2.5rem;
+        font-size: 1.2rem;
+        font-weight: 500;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0, 51, 102, 0.4);
+        transition: all 0.2s;
+        min-width: 250px;
+    }
+    .adviser-type-button:hover {
+        background-color: #00509e;
+        box-shadow: 0 6px 15px rgba(0, 51, 102, 0.6);
+        transform: translateY(-2px);
+    }
+    .type-button-container {
+        gap: 2rem;
+    }
+
+    /* --- UI 1: CONTENT VIEW --- */
+    #adviser-panel-content {
+        box-shadow: var(--card-shadow);
+    }
+    #adviser-panel-content.hidden {
+        display: none !important;
+    }
+    .selected-type-display {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--dark-blue-button);
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* --- UI 2: CONTENT STYLES --- */
+    .section-occupied {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        opacity: 0.7;
+    }
+    .section-available {
+        transition: all 0.2s ease;
+    }
+    .section-available:hover {
+        background-color: #e7f3ff;
+        border-radius: 0.375rem;
+    }
+
+    @media (max-width: 991.98px) {
+        #adviser-panel-content .d-grid {
+            gap: 1rem;
         }
-        .section-available {
-            transition: all 0.2s ease;
+        .selected-type-display {
+            text-align: center;
         }
-        .section-available:hover {
-            background-color: #e7f3ff;
-            border-radius: 0.375rem;
-        }
-    </style>
-@endpush
+    }
+
+    /* --- MODAL Z-INDEX HANDLING --- */
+    .modal {
+        z-index: 1055 !important;
+    }
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+    #confirmationModal {
+        z-index: 2000 !important;
+    }
+    #confirmationModal .modal-dialog {
+        z-index: 2001 !important;
+    }
+    #successModal {
+        z-index: 2000 !important;
+    }
+    #successModal .modal-dialog {
+        z-index: 2001 !important;
+    }
+    
+    /* When confirmation/success modal is shown, ensure it's on top */
+    #confirmationModal.show ~ .modal-backdrop,
+    #successModal.show ~ .modal-backdrop {
+        z-index: 1999 !important;
+    }
+
+    /* --- INACTIVE MODALS STYLING --- */
+    #archiveAdviserModal .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    #archivePanelModal .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .restore-adviser-btn,
+    .restore-panel-btn {
+        position: relative;
+        z-index: 10;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .restore-adviser-btn:hover,
+    .restore-panel-btn:hover {
+        background-color: #5a6268 !important;
+        transform: translateY(-1px);
+    }
+
+    .restore-adviser-btn:active,
+    .restore-panel-btn:active {
+        transform: translateY(0);
+    }
+</style>
+@endsection
 
 @section('content')
-    <div class="container mt-5">
-        <h1 class="text-center mb-5">ADVISER & PANEL ASSIGNMENT</h1>
+<div class="container-fluid" id="main-container-panel-adviser">
+    
+    <!-- Type Selection View -->
+    <div id="type-selection-view" class="text-center p-5 bg-white rounded-4 d-flex flex-column align-items-center justify-content-center mb-4">
+        <h1 class="fw-bold text-dark-blue mb-4">ADVISER & PANEL ASSIGNMENT</h1>
+        <h4 class="text-muted">Select what you want to manage:</h4>
+        <div class="type-button-container d-flex justify-content-center flex-wrap mt-5">
+            <button class="adviser-type-button" data-adviser-type="MANAGE ADVISERS">Manage Advisers</button>
+            <button class="adviser-type-button" data-adviser-type="MANAGE PANELS">Manage Panels</button>
+            <button class="adviser-type-button" data-adviser-type="ASSIGNMENT">Assignment</button>
+        </div>
+    </div>
+    
+    <!-- Content View -->
+    <div id="adviser-panel-content" class="bg-white p-4 rounded-3 mb-4 hidden">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-outline-secondary me-3" id="backToSelectionButton">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+            <h1 class="selected-type-display mb-0" id="adviser-type-display"></h1>
+        </div>
 
+        <!-- Success/Error Messages -->
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
@@ -31,27 +187,7 @@
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <ul class="nav nav-tabs" id="mainTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="adviser-tab" data-bs-toggle="tab" data-bs-target="#adviser-content"
-                    type="button" role="tab">
-                    <i class="bi bi-person-badge-fill me-2"></i> Manage Advisers
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="panel-tab" data-bs-toggle="tab" data-bs-target="#panel-content" type="button"
-                    role="tab">
-                    <i class="bi bi-person-workspace me-2"></i> Manage Panels
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="assignment-tab" data-bs-toggle="tab" data-bs-target="#assignment-content" type="button"
-                    role="tab">
-                    <i class="bi bi-clipboard-check me-2"></i> Assignment
-                </button>
-            </li>
-        </ul>
-
+        <!-- Content goes here -->
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="adviser-content" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
@@ -218,7 +354,7 @@
                                                     data-bs-target="#editPanelModal{{ $panel->id }}">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-danger" onclick="deletePanel({{ $panel->id }})">
+                                                <button class="btn btn-sm btn-secondary" onclick="deletePanel({{ $panel->id }})">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
@@ -336,8 +472,49 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Add Adviser Modal -->
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationTitle">Are you sure?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmationBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successTitle">Success</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-check-circle" style="font-size: 3rem; color: #34a853;"></i>
+                    <p id="successMessage" class="mt-3"></p>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Adviser Modal -->
     <div class="modal fade" id="addAdviserModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -385,7 +562,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="expertise" class="form-label">Expertise *</label>
-                            <select name="expertise" class="form-select" required>
+                            <select name="expertise" class="form-select" required onchange="toggleAdviserOthersInput(this)">
                                 <option value="">Select Expertise</option>
                                 <option value="Instructor">Instructor</option>
                                 <option value="Assistant Professor">Assistant Professor</option>
@@ -394,7 +571,12 @@
                                 <option value="Doctoral">Doctoral</option>
                                 <option value="Industry Expert">Industry Expert</option>
                                 <option value="Research Specialist">Research Specialist</option>
+                                <option value="Others">Others</option>
                             </select>
+                        </div>
+                        <div class="mb-3" id="adviserOthersInputDiv" style="display: none;">
+                            <label for="adviserOthersInput" class="form-label">Specify Other Expertise</label>
+                            <input type="text" id="adviserOthersInput" name="others_expertise" class="form-control" placeholder="Enter specific expertise">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -512,68 +694,41 @@
     <!-- Edit Adviser Modals -->
     @foreach($advisers as $adviser)
         <div class="modal fade" id="editAdviserModal{{ $adviser->id }}" tabindex="-1">
-            <div class="modal-dialog modal-xl" style="max-width: 1200px;">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <form action="{{ route('advisers.update', $adviser->id) }}" method="POST">
+                    <form id="editAdviserForm{{ $adviser->id }}" action="{{ route('advisers.update', $adviser->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title">Edit Adviser</h5>
+                            <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Adviser</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Department *</label>
-                                <select name="department" class="form-select" required>
-                                    <option value="BSIT" {{ $adviser->department == 'BSIT' ? 'selected' : '' }}>BSIT</option>
-                                    <option value="CRIM" {{ $adviser->department == 'CRIM' ? 'selected' : '' }}>CRIM</option>
-                                    <option value="EDUC" {{ $adviser->department == 'EDUC' ? 'selected' : '' }}>EDUC</option>
-                                    <option value="BSBA" {{ $adviser->department == 'BSBA' ? 'selected' : '' }}>BSBA</option>
-                                    <option value="Psychology" {{ $adviser->department == 'Psychology' ? 'selected' : '' }}>Psychology</option>
-                                    <option value="BSHM" {{ $adviser->department == 'BSHM' ? 'selected' : '' }}>BSHM</option>
-                                    <option value="BSTM" {{ $adviser->department == 'BSTM' ? 'selected' : '' }}>BSTM</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Sections *</label>
-                                <div class="row">
-                                    @foreach(['4101', '4102', '4103', '4104', '4105', '4106', '4107', '4108', '4109', '4110'] as $section)
-                                        <div class="col-md-4 col-sm-6 mb-2">
-                                            @php
-                                                $isOccupiedByOther = $assignments->where('department', $adviser->department)
-                                                                              ->where('section', $section)
-                                                                              ->where('adviser_id', '!=', $adviser->id)
-                                                                              ->first();
-                                                $isCurrentlyAssigned = is_array($adviser->sections) && in_array($section, $adviser->sections);
-                                            @endphp
-                                            <div class="form-check {{ $isOccupiedByOther ? 'section-occupied p-2' : 'section-available p-1' }}">
-                                                <input class="form-check-input" type="checkbox" name="sections[]"
-                                                    value="{{ $section }}" id="editSection{{ $adviser->id }}{{ $section }}" 
-                                                    {{ $isCurrentlyAssigned ? 'checked' : '' }}
-                                                    {{ $isOccupiedByOther ? 'disabled' : '' }}>
-                                                <label class="form-check-label {{ $isOccupiedByOther ? 'text-muted text-decoration-line-through' : '' }}" for="editSection{{ $adviser->id }}{{ $section }}">
-                                                    {{ $section }}
-                                                    @if($isOccupiedByOther)
-                                                        <span class="badge bg-danger ms-2"><i class="bi bi-x-circle me-1"></i>Taken</span>
-                                                    @elseif($isCurrentlyAssigned)
-                                                        <span class="badge bg-success ms-2"><i class="bi bi-check-circle me-1"></i>Current</span>
-                                                    @else
-                                                        <span class="badge bg-success ms-2"><i class="bi bi-check-circle me-1"></i>Available</span>
-                                                    @endif
-                                                </label>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Department *</label>
+                                        <select name="department" class="form-select form-select-sm" required>
+                                            <option value="BSIT" {{ $adviser->department == 'BSIT' ? 'selected' : '' }}>BSIT</option>
+                                            <option value="CRIM" {{ $adviser->department == 'CRIM' ? 'selected' : '' }}>CRIM</option>
+                                            <option value="EDUC" {{ $adviser->department == 'EDUC' ? 'selected' : '' }}>EDUC</option>
+                                            <option value="BSBA" {{ $adviser->department == 'BSBA' ? 'selected' : '' }}>BSBA</option>
+                                            <option value="Psychology" {{ $adviser->department == 'Psychology' ? 'selected' : '' }}>Psychology</option>
+                                            <option value="BSHM" {{ $adviser->department == 'BSHM' ? 'selected' : '' }}>BSHM</option>
+                                            <option value="BSTM" {{ $adviser->department == 'BSTM' ? 'selected' : '' }}>BSTM</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <small class="text-info"><i class="bi bi-info-circle me-1"></i>Sections taken by other advisers cannot be selected.</small>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Name *</label>
+                                        <input type="text" name="name" class="form-control form-control-sm" value="{{ $adviser->name }}" required />
+                                    </div>
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Name *</label>
-                                <input type="text" name="name" class="form-control" value="{{ $adviser->name }}" required />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Expertise *</label>
-                                <select name="expertise" class="form-select" required>
+                                <label class="form-label fw-semibold">Expertise *</label>
+                                <select name="expertise" class="form-select form-select-sm" required>
                                     <option value="Instructor" {{ $adviser->expertise == 'Instructor' ? 'selected' : '' }}>Instructor</option>
                                     <option value="Assistant Professor" {{ $adviser->expertise == 'Assistant Professor' ? 'selected' : '' }}>Assistant Professor</option>
                                     <option value="Associate Professor" {{ $adviser->expertise == 'Associate Professor' ? 'selected' : '' }}>Associate Professor</option>
@@ -583,10 +738,42 @@
                                     <option value="Research Specialist" {{ $adviser->expertise == 'Research Specialist' ? 'selected' : '' }}>Research Specialist</option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Sections *</label>
+                                <div class="border rounded p-3" style="background-color: #f8f9fa; max-height: 250px; overflow-y: auto;">
+                                    <div class="row g-2">
+                                        @foreach(['4101', '4102', '4103', '4104', '4105', '4106', '4107', '4108', '4109', '4110'] as $section)
+                                            <div class="col-6">
+                                                @php
+                                                    $isOccupiedByOther = $assignments->where('department', $adviser->department)
+                                                                                  ->where('section', $section)
+                                                                                  ->where('adviser_id', '!=', $adviser->id)
+                                                                                  ->first();
+                                                    $isCurrentlyAssigned = is_array($adviser->sections) && in_array($section, $adviser->sections);
+                                                @endphp
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="sections[]"
+                                                        value="{{ $section }}" id="editSection{{ $adviser->id }}{{ $section }}" 
+                                                        {{ $isCurrentlyAssigned ? 'checked' : '' }}
+                                                        {{ $isOccupiedByOther ? 'disabled' : '' }}>
+                                                    <label class="form-check-label {{ $isOccupiedByOther ? 'text-muted text-decoration-line-through' : '' }}" for="editSection{{ $adviser->id }}{{ $section }}">
+                                                        <small>{{ $section }}
+                                                        @if($isOccupiedByOther)
+                                                            <span class="badge bg-danger ms-1">Taken</span>
+                                                        @endif
+                                                        </small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <small class="text-info d-block mt-2"><i class="bi bi-info-circle me-1"></i>Sections with "Taken" are assigned to other advisers.</small>
+                            </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-success">Update Adviser</button>
+                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle me-1"></i>Update Adviser</button>
                         </div>
                     </form>
                 </div>
@@ -599,7 +786,7 @@
         <div class="modal fade" id="editPanelModal{{ $panel->id }}" tabindex="-1">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
-                    <form action="{{ route('panels.update', $panel->id) }}" method="POST">
+                    <form id="editPanelForm{{ $panel->id }}" action="{{ route('panels.update', $panel->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="modal-header bg-primary text-white">
@@ -698,28 +885,31 @@
     <div class="modal fade" id="archiveAdviserModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-secondary text-white">
+                <div class="modal-header bg-secondary text-white d-flex justify-content-between align-items-center">
                     <h5 class="modal-title">Inactive Advisers</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="min-height: 300px; max-height: 500px; overflow-y: auto;">
                     <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light sticky-top">
                                 <tr>
                                     <th>Name</th>
                                     <th>Department</th>
                                     <th>Expertise</th>
-                                    <th>Advisory History</th>
+                                    <th>Sections</th>
                                     <th>Inactive Date</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="archivedAdvisersBody">
-                                <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                                <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -729,14 +919,14 @@
     <div class="modal fade" id="archivePanelModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-secondary text-white">
+                <div class="modal-header bg-secondary text-white d-flex justify-content-between align-items-center">
                     <h5 class="modal-title">Inactive Panel Members</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="min-height: 300px; max-height: 500px; overflow-y: auto;">
                     <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light sticky-top">
                                 <tr>
                                     <th>Name</th>
                                     <th>Department</th>
@@ -746,10 +936,13 @@
                                 </tr>
                             </thead>
                             <tbody id="archivedPanelsBody">
-                                <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -928,10 +1121,106 @@
             </div>
         </div>
     </div>
+
 @endsection
 
 @section('scripts')
 <script>
+    // ------------------
+    // Type Selection View Logic
+    // ------------------
+    const typeSelectionView = document.getElementById('type-selection-view');
+    const adviserPanelContent = document.getElementById('adviser-panel-content');
+    const typeDisplayElement = document.getElementById('adviser-type-display');
+    const backButton = document.getElementById('backToSelectionButton');
+    const typeButtons = document.querySelectorAll('.adviser-type-button');
+
+    // Type button click handlers
+    typeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedType = button.dataset.adviserType;
+            localStorage.setItem('selectedAdviserType', selectedType);
+            showAdviserPanelContent(selectedType);
+        });
+    });
+
+    // Back button handler
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            localStorage.removeItem('selectedAdviserType');
+            typeSelectionView.classList.remove('hidden');
+            adviserPanelContent.classList.add('hidden');
+            
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+                pane.classList.add('fade');
+            });
+        });
+    }
+
+    // Restore view on page load
+    const savedType = localStorage.getItem('selectedAdviserType');
+    if (savedType) {
+        showAdviserPanelContent(savedType);
+    }
+
+    function showAdviserPanelContent(type) {
+        typeSelectionView.classList.add('hidden');
+        adviserPanelContent.classList.remove('hidden');
+        typeDisplayElement.textContent = type;
+        
+        // Map type to tab ID
+        const tabMap = {
+            'MANAGE ADVISERS': 'adviser-content',
+            'MANAGE PANELS': 'panel-content',
+            'ASSIGNMENT': 'assignment-content'
+        };
+        
+        const tabId = tabMap[type];
+        if (tabId) {
+            // Show the selected tab
+            const tabPane = document.getElementById(tabId);
+            if (tabPane) {
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                    pane.classList.add('fade');
+                });
+                tabPane.classList.add('show', 'active');
+            }
+        }
+    }
+
+    // ------------------
+    // Confirmation Modal Helper
+    // ------------------
+    let confirmationCallback = null;
+
+    function showConfirmation(message, callback, buttonText = 'Confirm', buttonClass = 'btn-danger') {
+        const confirmationModal = document.getElementById('confirmationModal');
+        const modal = new bootstrap.Modal(confirmationModal);
+        document.getElementById('confirmationMessage').textContent = message;
+        const confirmBtn = document.getElementById('confirmationBtn');
+        confirmBtn.textContent = buttonText;
+        
+        // Update button class
+        confirmBtn.className = `btn ${buttonClass}`;
+        
+        confirmationCallback = callback;
+        modal.show();
+    }
+
+    document.getElementById('confirmationBtn').addEventListener('click', function() {
+        if (confirmationCallback) {
+            confirmationCallback();
+            bootstrap.Modal.getInstance(document.getElementById('confirmationModal')).hide();
+            confirmationCallback = null;
+        }
+    });
+
+    // ------------------
+    // Original Functions
+    // ------------------
     function togglePanelDropdown() {
     const menu = document.getElementById('panelDropdownMenu');
     menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
@@ -940,6 +1229,20 @@
 function toggleOthersInput(select) {
     const othersDiv = document.getElementById('othersInputDiv');
     const othersInput = document.getElementById('othersInput');
+    
+    if (select.value === 'Others') {
+        othersDiv.style.display = 'block';
+        othersInput.required = true;
+    } else {
+        othersDiv.style.display = 'none';
+        othersInput.required = false;
+        othersInput.value = '';
+    }
+}
+
+function toggleAdviserOthersInput(select) {
+    const othersDiv = document.getElementById('adviserOthersInputDiv');
+    const othersInput = document.getElementById('adviserOthersInput');
     
     if (select.value === 'Others') {
         othersDiv.style.display = 'block';
@@ -1373,149 +1676,238 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ------------------
-// Delete Assignment Function
+// Archive Assignment Function
 // ------------------
 function deleteAssignment(assignmentId) {
-    if (confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) {
-        fetch(`/assignments/${assignmentId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error deleting assignment: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while deleting the assignment.');
-        });
-    }
+    showConfirmation(
+        'Are you sure you want to archive this assignment? This action can be undone by restoring it.',
+        function() {
+            fetch(`/assignments/${assignmentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = 'Assignment has been successfully archived!';
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                        location.reload();
+                    }, { once: true });
+                } else {
+                    alert('Error archiving assignment: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while archiving the assignment.');
+            });
+        },
+        'Archive Assignment'
+    );
 }
 
 
 
 // Archive Functions
 function loadArchivedAdvisers() {
+    console.log('loadArchivedAdvisers called');
     fetch('/advisers/archived')
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data);
             const tbody = document.getElementById('archivedAdvisersBody');
-            if (data.length === 0) {
+            if (!tbody) {
+                console.error('archivedAdvisersBody element not found');
+                return;
+            }
+            
+            if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No inactive advisers</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(adviser => `
+            
+            tbody.innerHTML = data.map(adviser => {
+                return `
                 <tr>
-                    <td>${adviser.name}</td>
-                    <td>${adviser.department}</td>
-                    <td>${adviser.expertise}</td>
+                    <td>${adviser.name || ''}</td>
+                    <td>${adviser.department || ''}</td>
+                    <td>${adviser.expertise || ''}</td>
                     <td>${adviser.sections ? (Array.isArray(adviser.sections) ? adviser.sections.join(', ') : adviser.sections) : 'N/A'}</td>
-                    <td>${new Date(adviser.deleted_at).toLocaleDateString()}</td>
+                    <td>${adviser.deleted_at ? new Date(adviser.deleted_at).toLocaleDateString() : ''}</td>
                     <td>
-                        <button class="btn btn-sm btn-success" onclick="restoreAdviser(${adviser.id})">
+                        <button class="btn btn-sm btn-secondary" type="button" onclick="window.restoreAdviser(${adviser.id})">
                             <i class="bi bi-arrow-clockwise"></i> Restore
                         </button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
+            
+            console.log('Table updated');
+        })
+        .catch(error => {
+            console.error('Error loading archived advisers:', error);
+            const tbody = document.getElementById('archivedAdvisersBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
+            }
         });
 }
 
 function loadArchivedPanels() {
+    console.log('loadArchivedPanels called');
     fetch('/panels/archived')
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data);
             const tbody = document.getElementById('archivedPanelsBody');
-            if (data.length === 0) {
+            if (!tbody) {
+                console.error('archivedPanelsBody element not found');
+                return;
+            }
+            
+            if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No inactive panels</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(panel => `
+            
+            tbody.innerHTML = data.map(panel => {
+                return `
                 <tr>
-                    <td>${panel.name}</td>
-                    <td>${panel.department}</td>
-                    <td>${panel.expertise}</td>
-                    <td>${new Date(panel.deleted_at).toLocaleDateString()}</td>
+                    <td>${panel.name || ''}</td>
+                    <td>${panel.department || ''}</td>
+                    <td>${panel.expertise || ''}</td>
+                    <td>${panel.deleted_at ? new Date(panel.deleted_at).toLocaleDateString() : ''}</td>
                     <td>
-                        <button class="btn btn-sm btn-success me-1" onclick="restorePanel(${panel.id})">
+                        <button class="btn btn-sm btn-secondary" type="button" onclick="window.restorePanel(${panel.id})">
                             <i class="bi bi-arrow-clockwise"></i> Restore
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="permanentDeletePanel(${panel.id})">
-                            <i class="bi bi-trash"></i> Delete
                         </button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
+            
+            console.log('Table updated');
+        })
+        .catch(error => {
+            console.error('Error loading archived panels:', error);
+            const tbody = document.getElementById('archivedPanelsBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading data: ' + error.message + '</td></tr>';
+            }
         });
 }
 
 function restoreAdviser(adviserId) {
-    if (confirm('Are you sure you want to restore this adviser?')) {
-        fetch(`/advisers/${adviserId}/restore`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadArchivedAdvisers();
-                location.reload();
-            } else {
-                alert('Error restoring adviser: ' + data.message);
-            }
-        });
-    }
+    showConfirmation(
+        'Are you sure you want to restore this adviser?',
+        function() {
+            localStorage.setItem('selectedAdviserType', 'MANAGE ADVISERS');
+            fetch(`/advisers/${adviserId}/restore`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = 'Adviser has been successfully restored!';
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                        loadArchivedAdvisers();
+                        location.reload();
+                    }, { once: true });
+                } else {
+                    alert('Error restoring adviser: ' + data.message);
+                }
+            });
+        },
+        'Restore Adviser',
+        'btn-secondary'
+    );
 }
 
 function restorePanel(panelId) {
-    if (confirm('Are you sure you want to restore this panel member?')) {
-        fetch(`/panels/${panelId}/restore`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadArchivedPanels();
-                location.reload();
-            } else {
-                alert('Error restoring panel member: ' + data.message);
-            }
-        });
-    }
+    showConfirmation(
+        'Are you sure you want to restore this panel member?',
+        function() {
+            localStorage.setItem('selectedAdviserType', 'MANAGE PANELS');
+            fetch(`/panels/${panelId}/restore`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = 'Panel member has been successfully restored!';
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                        loadArchivedPanels();
+                        location.reload();
+                    }, { once: true });
+                } else {
+                    alert('Error restoring panel member: ' + data.message);
+                }
+            });
+        },
+        'Restore Panel Member',
+        'btn-secondary'
+    );
 }
 
 // Load archived data when modals are opened
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('archiveAdviserModal').addEventListener('show.bs.modal', loadArchivedAdvisers);
-    document.getElementById('archivePanelModal').addEventListener('show.bs.modal', loadArchivedPanels);
+    const adviserModal = document.getElementById('archiveAdviserModal');
+    const panelModal = document.getElementById('archivePanelModal');
+    
+    if (adviserModal) {
+        adviserModal.addEventListener('show.bs.modal', function() {
+            console.log('Adviser modal showing...');
+            loadArchivedAdvisers();
+        });
+    }
+    
+    if (panelModal) {
+        panelModal.addEventListener('show.bs.modal', function() {
+            console.log('Panel modal showing...');
+            loadArchivedPanels();
+        });
+    }
     
     // Restore active tab after page reload
     const activeTab = localStorage.getItem('activeTab');
     if (activeTab) {
         const tabButton = document.querySelector(`#${activeTab}`);
-        const tabContent = document.querySelector(tabButton.getAttribute('data-bs-target'));
-        
-        // Remove active classes from all tabs
-        document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
-        
-        // Add active classes to selected tab
-        tabButton.classList.add('active');
-        tabContent.classList.add('show', 'active');
+        if (tabButton) {
+            const tabContent = document.querySelector(tabButton.getAttribute('data-bs-target'));
+            if (tabContent) {
+                // Remove active classes from all tabs
+                document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
+                
+                // Add active classes to selected tab
+                tabButton.classList.add('active');
+                tabContent.classList.add('show', 'active');
+            }
+        }
     }
     
     // Save active tab when clicked
@@ -1526,102 +1918,130 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Delete Functions
+// Archive Functions
 function deleteAdviser(adviserId) {
-    if (confirm('Are you sure you want to delete this adviser? This action cannot be undone.')) {
-        fetch(`/advisers/${adviserId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error deleting adviser: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while deleting the adviser.');
-        });
-    }
+    showConfirmation(
+        'Are you sure you want to archive this adviser? This action can be undone by restoring it.',
+        function() {
+            localStorage.setItem('selectedAdviserType', 'MANAGE ADVISERS');
+            fetch(`/advisers/${adviserId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = 'Adviser has been successfully archived!';
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                        location.reload();
+                    }, { once: true });
+                } else {
+                    alert('Error archiving adviser: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while archiving the adviser.');
+            });
+        },
+        'Archive Adviser'
+    );
 }
 
 function deletePanel(panelId) {
-    if (confirm('Are you sure you want to delete this panel member? This action cannot be undone.')) {
-        fetch(`/panels/${panelId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error deleting panel member: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while deleting the panel member.');
-        });
-    }
+    showConfirmation(
+        'Are you sure you want to archive this panel member? This action can be undone by restoring it.',
+        function() {
+            localStorage.setItem('selectedAdviserType', 'MANAGE PANELS');
+            fetch(`/panels/${panelId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = 'Panel member has been successfully archived!';
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                        location.reload();
+                    }, { once: true });
+                } else {
+                    alert('Error archiving panel member: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while archiving the panel member.');
+            });
+        },
+        'Archive Panel Member'
+    );
 }
 
 // Permanent Delete Functions
 function permanentDeleteAdviser(adviserId) {
-    if (confirm('⚠️ WARNING: This will permanently delete this adviser from the database. This action cannot be undone. Are you sure?')) {
-        fetch(`/advisers/${adviserId}/force-delete`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadArchivedAdvisers();
-            } else {
-                alert('Error permanently deleting adviser: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while permanently deleting the adviser.');
-        });
-    }
+    showConfirmation(
+        '⚠️ WARNING: This will permanently delete this adviser from the database. This action CANNOT be undone. Are you sure?',
+        function() {
+            fetch(`/advisers/${adviserId}/force-delete`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadArchivedAdvisers();
+                } else {
+                    alert('Error permanently deleting adviser: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while permanently deleting the adviser.');
+            });
+        },
+        'Permanently Delete'
+    );
 }
 
 function permanentDeletePanel(panelId) {
-    if (confirm('⚠️ WARNING: This will permanently delete this panel member from the database. This action cannot be undone. Are you sure?')) {
-        fetch(`/panels/${panelId}/force-delete`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadArchivedPanels();
-            } else {
-                alert('Error permanently deleting panel member: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while permanently deleting the panel member.');
-        });
-    }
+    showConfirmation(
+        '⚠️ WARNING: This will permanently delete this panel member from the database. This action CANNOT be undone. Are you sure?',
+        function() {
+            fetch(`/panels/${panelId}/force-delete`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadArchivedPanels();
+                } else {
+                    alert('Error permanently deleting panel member: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while permanently deleting the panel member.');
+            });
+        },
+        'Permanently Delete'
+    );
 }
 
 // Schedule Defense Function
@@ -1645,5 +2065,110 @@ function evaluateDefense(department, section, assignmentId) {
     
     window.location.href = url.toString();
 }
+
+// Show success modal if update was successful
+document.addEventListener('DOMContentLoaded', function() {
+    @foreach($advisers as $adviser)
+        const form{{ $adviser->id }} = document.getElementById('editAdviserForm{{ $adviser->id }}');
+        if (form{{ $adviser->id }}) {
+            form{{ $adviser->id }}.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const modalElement = document.getElementById('editAdviserModal{{ $adviser->id }}');
+                const formAction = this.action;
+                
+                // Show confirmation modal
+                showConfirmation(
+                    'Are you sure you want to update this adviser information?',
+                    function() {
+                        fetch(formAction, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Close the edit modal
+                                const modal = bootstrap.Modal.getInstance(modalElement);
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                
+                                // Show success modal
+                                document.getElementById('successMessage').textContent = 'Adviser information has been successfully updated!';
+                                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                                successModal.show();
+                                
+                                // Reload page after modal is dismissed
+                                document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                                    location.reload();
+                                }, { once: true });
+                            } else {
+                                alert('Error updating adviser. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while updating the adviser.');
+                        });
+                    },
+                    'Update Adviser',
+                    'btn-primary'
+                );
+            });
+        }
+    @endforeach
+
+    @foreach($panels as $panel)
+        const panelForm{{ $panel->id }} = document.getElementById('editPanelForm{{ $panel->id }}');
+        if (panelForm{{ $panel->id }}) {
+            panelForm{{ $panel->id }}.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const modalElement = document.getElementById('editPanelModal{{ $panel->id }}');
+                const formAction = this.action;
+                
+                // Show confirmation modal
+                showConfirmation(
+                    'Are you sure you want to update this panel member information?',
+                    function() {
+                        fetch(formAction, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Close the edit modal
+                                const modal = bootstrap.Modal.getInstance(modalElement);
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                
+                                // Show success modal
+                                document.getElementById('successMessage').textContent = 'Panel member information has been successfully updated!';
+                                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                                successModal.show();
+                                
+                                // Reload page after modal is dismissed
+                                document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+                                    location.reload();
+                                }, { once: true });
+                            } else {
+                                alert('Error updating panel member. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while updating the panel member.');
+                        });
+                    },
+                    'Update Panel Member',
+                    'btn-primary'
+                );
+            });
+        }
+    @endforeach
+});
 </script>
 @endsection

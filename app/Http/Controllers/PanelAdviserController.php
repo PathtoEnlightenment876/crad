@@ -18,13 +18,15 @@ class PanelAdviserController extends Controller
         return view('panel-adviser', compact('advisers', 'panels', 'assignments'));
     }
 
-    public function showPanelAdviserPage()
+    public function showPanelAdviserPage(Request $request)
     {
+        $type = $request->query('type');
+        
         $advisers = Adviser::all();
         $panels = Panel::all();
         $assignments = Assignment::with(['adviser', 'assignmentPanels'])->orderBy('created_at', 'desc')->get();
         
-        return view('panel-adviser', compact('advisers', 'panels', 'assignments'));
+        return view('panel-adviser', compact('advisers', 'panels', 'assignments', 'type'));
     }
 
     public function apiAssignments(Request $request)

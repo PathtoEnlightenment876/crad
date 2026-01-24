@@ -15,10 +15,11 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\PanelAdviserController;
 use App\Http\Controllers\DefenseScheduleController;
 
-// Login Page is now the Homepage
-Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+// Welcome Page is now the Homepage
+Route::get('/', fn() => view('welcome'))->name('welcome');
 
 // Login & Authentication Routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/check-lockout', [LoginController::class, 'checkLockout'])->name('check.lockout');

@@ -23,6 +23,9 @@
 <body>
     <div class="d-flex">
         <div id="sidebar" class="d-flex flex-column flex-shrink-0 sidebar">
+            <button id="sidebar-toggle" class="sidebar-chevron-toggle" aria-label="Toggle sidebar">
+                <i class="bi bi-chevron-left"></i>
+            </button>
             <div class="user-profile">
                 <img src="{{ asset('img/sms.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
                     style="width: 60px; height: 60px;">
@@ -74,13 +77,31 @@
                     </a>
                 </li>
 
+                <li><hr class="dropdown-divider mx-3 my-3" style="border-top: 1px solid rgba(255, 255, 255, 0.3);"></li>
+                
+                <li>
+                    <a href="#userManagementSubmenu" class="nav-link d-flex align-items-center" data-bs-toggle="collapse" aria-expanded="false">
+                        <i class="bi bi-grid-fill"></i>
+                        <span class="flex-grow-1">Others</span>
+                        <i class="bi bi-chevron-right" id="userManagementChevron"></i>
+                    </a>
+                    <div class="collapse" id="userManagementSubmenu">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a href="{{ url('/coordinator') }}" class="nav-link">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span>Manage Coordinator</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
 
             </ul>
         </div>
         <div class="main-content-wrapper">
             <nav class="top-navbar d-flex justify-content-between align-items-center">
                 <div>
-                    <button id="sidebar-toggle" class="btn btn-light" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
                 </div>
                 <div class="d-flex align-items-center">
                     <span id="current-time" class="me-3 d-none d-sm-inline"></span>
@@ -243,9 +264,8 @@
                         <div class="position-relative d-inline-block">
                             <img src="{{ asset('img/sms.png') }}" alt="Profile Picture" id="adminProfileImage"
                                  class="rounded-circle" width="100" height="100">
-                            <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
-                                    style="width: 30px; height: 30px; padding: 0;" 
-                                    onclick="document.getElementById('adminProfileInput').click()">
+                            <button id="adminProfileBtn" type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                                    style="width: 30px; height: 30px; padding: 0;">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <input type="file" id="adminProfileInput" accept="image/*" style="display: none;" onchange="previewAdminImage(event)">
@@ -360,6 +380,22 @@
                 }
             });
 
+            // Chevron rotation for User Management
+            const userManagementSubmenu = document.getElementById('userManagementSubmenu');
+            const userManagementChevron = document.getElementById('userManagementChevron');
+            
+            if (userManagementSubmenu && userManagementChevron) {
+                userManagementSubmenu.addEventListener('show.bs.collapse', function() {
+                    userManagementChevron.classList.remove('bi-chevron-right');
+                    userManagementChevron.classList.add('bi-chevron-down');
+                });
+                
+                userManagementSubmenu.addEventListener('hide.bs.collapse', function() {
+                    userManagementChevron.classList.remove('bi-chevron-down');
+                    userManagementChevron.classList.add('bi-chevron-right');
+                });
+            }
+
             // Logout confirmation handler
             const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
             const logoutForm = document.getElementById('logoutForm');
@@ -400,6 +436,11 @@
                 successModal.show();
             });
         });
+
+        document.getElementById('adminProfileBtn')
+        .addEventListener('click', () => {
+        document.getElementById('adminProfileInput').click();
+      });
     </script>
     @yield('scripts')
 

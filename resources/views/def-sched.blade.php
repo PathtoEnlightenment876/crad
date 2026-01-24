@@ -639,6 +639,13 @@
                 <i class="bi bi-info-circle-fill text-white position-absolute top-0 end-0 mt-3 me-5" style="font-size: 1.5rem; cursor: pointer; z-index: 1051;" data-bs-toggle="modal" data-bs-target="#infoModal" title="Show Panel Availability"></i>
             </div>
             <div class="modal-body-content-fixed">
+                <div class="panel-details-box-fixed" style="display: none;">
+                    <div>
+                        <strong>Adviser:</strong> <span id="modal-adviser"></span><br>
+                        <strong>Chairperson:</strong> <span id="modal-chairperson"></span><br>
+                        <strong>Members:</strong> <span id="modal-members"></span>
+                    </div>
+                </div>
                 <form class="time-date-inputs-container">
                     
                     <div class="input-control-group">
@@ -856,6 +863,138 @@
             
             new bootstrap.Modal(modal).show();
         });
+    }
+
+    function autoScheduleGroups(setLetter, baseDate, baseStartTime, baseEndTime, adviser, chair, members) {
+        const dept = document.getElementById('dept-select').value;
+        const cluster = document.getElementById('cluster-select').value;
+        const newSet = document.getElementById('set-input').value;
+        
+        // Calculate duration in minutes
+        const start = new Date(`2000-01-01T${baseStartTime}`);
+        const end = new Date(`2000-01-01T${baseEndTime}`);
+        const durationMinutes = (end - start) / 60000;
+        
+        const schedules = [];
+        let currentStart = baseStartTime;
+        
+        // Generate schedules for all 5 groups
+        for (let i = 1; i <= 5; i++) {
+            const groupId = setLetter + i;
+            const currentEnd = addMinutes(currentStart, durationMinutes);
+            
+            schedules.push({
+                department: dept,
+                section: cluster,
+                group_id: groupId,
+                defense_type: currentDefenseType === 'REDEFENSE' ? document.getElementById('redefense-type-select').value : currentDefenseType,
+                assignment_id: 1,
+                defense_date: baseDate,
+                start_time: currentStart,
+                end_time: currentEnd,
+                set_letter: newSet,
+                panel_data: {
+                    adviser: adviser,
+                    chairperson: chair,
+                    members: members
+                }
+            });
+            
+            // Next group starts when current group ends
+            currentStart = currentEnd;
+        }
+        
+        // Save all schedules to database
+        Promise.all(schedules.map(schedule => 
+            fetch('/defense-schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(schedule)
+            }).then(response => response.json())
+        ))
+        .then(results => {
+            if (results.every(r => r.success)) {
+                // Update UI for all groups
+                schedules.forEach(schedule => {
+                    updateScheduleUI(schedule);
+                });
+                
+                showAlert('success', 'All Groups Scheduled!', `All 5 groups in Set ${setLetter} have been automatically scheduled with ${durationMinutes} minute intervals.`);
+                
+                const scheduleModal = document.getElementById('scheduleModal');
+                const modalInstance = bootstrap.Modal.getInstance(scheduleModal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Save state before any potential reload
+                localStorage.setItem('currentView', 'schedule');
+                localStorage.setItem('selectedDept', document.getElementById('dept-select').value);
+                localStorage.setItem('selectedCluster', document.getElementById('cluster-select').value);
+                if (currentDefenseType === 'REDEFENSE') {
+                    localStorage.setItem('selectedRedefenseType', document.getElementById('redefense-type-select').value);
+                }
+            } else {
+                showAlert('error', 'Scheduling Failed', 'Some groups could not be scheduled. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error auto-scheduling groups:', error);
+            showAlert('error', 'Scheduling Failed', 'Failed to auto-schedule groups.');
+        });
+    }
+    
+    function addMinutes(time, minutes) {
+        const [hours, mins] = time.split(':').map(Number);
+        const date = new Date(2000, 0, 1, hours, mins);
+        date.setMinutes(date.getMinutes() + minutes);
+        return date.toTimeString().slice(0, 5);
+    }
+    
+    function updateScheduleUI(schedule) {
+        const targetCell = document.querySelector(`[data-schedule-target="${schedule.group_id}"]`);
+        if (!targetCell) return;
+        
+        const dateObj = new Date(schedule.defense_date);
+        const dateDisplay = dateObj.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+        
+        const adviser = schedule.panel_data.adviser || 'No Adviser';
+        const chair = schedule.panel_data.chairperson || 'No Chairperson';
+        const members = schedule.panel_data.members || 'No Members';
+        const groupNumber = schedule.group_id.substring(1);
+        const cluster = schedule.section;
+        
+        const scheduledTagHtml = `
+            <div class="scheduled-container" 
+                data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                data-group="${groupNumber}" data-cluster="${cluster}" data-set="${schedule.set_letter}" 
+                data-adviser="${adviser}" data-chair="${chair}" data-members="${members}"
+                data-sch-date="${schedule.defense_date}" data-sch-start="${schedule.start_time}" data-sch-end="${schedule.end_time}">
+                <div class="scheduled-tag mb-1">
+                    <i class="bi bi-calendar-check me-1"></i> ${dateDisplay}
+                </div>
+                <div class="scheduled-tag" style="font-weight: 500;">
+                    <i class="bi bi-clock me-1"></i> ${schedule.start_time} - ${schedule.end_time}
+                </div>
+            </div>
+        `;
+        
+        targetCell.innerHTML = scheduledTagHtml;
+        
+        const parentRow = targetCell.closest('tr');
+        const setCell = parentRow.querySelector('.set-value');
+        if (setCell) {
+            setCell.textContent = schedule.set_letter;
+            parentRow.setAttribute('data-set', schedule.set_letter);
+        }
+        
+        updateGroupStatus(schedule.group_id, currentDefenseType, true, null);
+        
+        parentRow.classList.add('row-flash');
+        setTimeout(() => parentRow.classList.remove('row-flash'), 2000);
     }
 
     // Initialize group status tracking
@@ -1112,6 +1251,14 @@
         const panelModalInstance = bootstrap.Modal.getInstance(document.getElementById('panelEditModal'));
         if (panelModalInstance) { panelModalInstance.hide(); }
         showAlert('success', 'Panel Updated', `Panel details for Set ${panelSet} updated successfully. (Simulated Submission)`);
+        
+        // Save state before any potential reload
+        localStorage.setItem('currentView', 'schedule');
+        localStorage.setItem('selectedDept', document.getElementById('dept-select').value);
+        localStorage.setItem('selectedCluster', document.getElementById('cluster-select').value);
+        if (currentDefenseType === 'REDEFENSE') {
+            localStorage.setItem('selectedRedefenseType', document.getElementById('redefense-type-select').value);
+        }
     }
 
     function loadScheduleData() {
@@ -1437,6 +1584,14 @@
         if (modalInstance) {
             modalInstance.hide();
         }
+        
+        // Save state before any potential reload
+        localStorage.setItem('currentView', 'schedule');
+        localStorage.setItem('selectedDept', document.getElementById('dept-select').value);
+        localStorage.setItem('selectedCluster', document.getElementById('cluster-select').value);
+        if (currentDefenseType === 'REDEFENSE') {
+            localStorage.setItem('selectedRedefenseType', document.getElementById('redefense-type-select').value);
+        }
     }
     
     document.addEventListener('DOMContentLoaded', function () {
@@ -1485,6 +1640,45 @@
             
             // Clear URL parameters
             window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // Restore saved defense type if no URL parameters
+            const savedDefenseType = localStorage.getItem('selectedDefenseType');
+            const savedView = localStorage.getItem('currentView');
+            const savedDept = localStorage.getItem('selectedDept');
+            const savedCluster = localStorage.getItem('selectedCluster');
+            const savedRedefenseType = localStorage.getItem('selectedRedefenseType');
+            
+            if (savedDefenseType) {
+                currentDefenseType = savedDefenseType;
+                document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
+                
+                const redefenseTypeGroup = document.getElementById('redefense-type-group');
+                if (currentDefenseType === 'REDEFENSE') {
+                    redefenseTypeGroup.style.display = 'block';
+                    if (savedRedefenseType) {
+                        document.getElementById('redefense-type-select').value = savedRedefenseType;
+                    }
+                } else {
+                    redefenseTypeGroup.style.display = 'none';
+                }
+                
+                if (savedView === 'schedule' && savedDept && savedCluster) {
+                    deptSelect.value = savedDept;
+                    clusterSelect.value = savedCluster;
+                    showSchedulePage();
+                    updateScheduleView();
+                    setTimeout(() => {
+                        loadScheduleData();
+                        if (currentDefenseType === 'FINAL DEFENSE') {
+                            loadEvaluationStatuses(savedDept, savedCluster);
+                        }
+                    }, 500);
+                } else {
+                    showFilterPage();
+                    if (savedDept) deptSelect.value = savedDept;
+                    if (savedCluster) clusterSelect.value = savedCluster;
+                }
+            }
         }
 
         function updateScheduleView() {
@@ -1845,6 +2039,8 @@
         document.querySelectorAll('.defense-type-button').forEach(button => {
             button.addEventListener('click', function() {
                 currentDefenseType = this.getAttribute('data-defense-type');
+                localStorage.setItem('selectedDefenseType', currentDefenseType);
+                localStorage.setItem('currentView', 'filter');
                 showFilterPage();
                 
                 document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
@@ -1865,6 +2061,11 @@
         });
         
         document.getElementById('backToFilterButton').addEventListener('click', function() {
+            localStorage.removeItem('selectedDefenseType');
+            localStorage.removeItem('currentView');
+            localStorage.removeItem('selectedDept');
+            localStorage.removeItem('selectedCluster');
+            localStorage.removeItem('selectedRedefenseType');
             showTypeSelection();
         });
         
@@ -1873,6 +2074,17 @@
         });
 
         enterButton.addEventListener('click', () => {
+            const dept = deptSelect.value;
+            const cluster = clusterSelect.value;
+            const redefenseType = document.getElementById('redefense-type-select').value;
+            
+            localStorage.setItem('currentView', 'schedule');
+            localStorage.setItem('selectedDept', dept);
+            localStorage.setItem('selectedCluster', cluster);
+            if (currentDefenseType === 'REDEFENSE') {
+                localStorage.setItem('selectedRedefenseType', redefenseType);
+            }
+            
             showSchedulePage();
             updateScheduleView();
             setTimeout(() => {
@@ -2033,7 +2245,15 @@
                         }
                     }
                     
-                    saveScheduleToDatabase(targetId);
+                    // Check if this is Group 1 and auto-schedule other groups
+                    const groupNumber = parseInt(targetId.substring(1));
+                    const setLetter = targetId.charAt(0);
+                    
+                    if (groupNumber === 1) {
+                        autoScheduleGroups(setLetter, dateActual, startTime, endTime, adviser, chair, members);
+                    } else {
+                        saveScheduleToDatabase(targetId);
+                    }
                 })
                 .catch(error => {
                     console.error('Error checking availability:', error);
@@ -2056,10 +2276,13 @@
             }, 100); 
         });
         
-        // Initialize page visibility - only show type selection on load
-        typeSelectionView.classList.remove('hidden');
-        filterPage.classList.add('hidden');
-        scheduleView.style.display = 'none';
+        // Initialize page visibility based on saved state
+        const initialView = localStorage.getItem('currentView');
+        if (!initialView || (!urlParams.get('department') && !localStorage.getItem('selectedDefenseType'))) {
+            typeSelectionView.classList.remove('hidden');
+            filterPage.classList.add('hidden');
+            scheduleView.style.display = 'none';
+        }
         
         enableStatusChecks();
         
