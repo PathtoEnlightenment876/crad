@@ -209,9 +209,28 @@ Route::post('/api/evaluations', [\App\Http\Controllers\DefenseEvaluationControll
 Route::get('/api/group-status', [\App\Http\Controllers\DefenseEvaluationController::class, 'getGroupStatus']);
 
 // Manage Coordinator Routes
-Route::middleware('auth')->group(function () {
+Route::middleware('auth' , 'admin')->group(function () {
     Route::get('/manage-coordinator', [CoordinatorController::class, 'index'])->name('manage-coordinator');
+    Route::get('/coordinators/archives-data', [CoordinatorController::class, 'archivesData'])->name('coordinators.archives.data');
     Route::post('/coordinators', [CoordinatorController::class, 'store'])->name('coordinators.store');
     Route::put('/coordinators/{id}', [CoordinatorController::class, 'update'])->name('coordinators.update');
     Route::delete('/coordinators/{id}', [CoordinatorController::class, 'destroy'])->name('coordinators.destroy');
+    Route::post('/coordinators/{id}/restore', [CoordinatorController::class, 'restore'])->name('coordinators.restore');
 });
+
+// Coordinator Dashboard
+Route::get('/coordinator-dashboard', function () {
+    return view('coordinator-dashboard');
+})->middleware('auth', 'coordinator')->name('coordinator-dashboard');
+
+Route::get('/coordinator-title-proposal', function () {
+    return view('coordinator-title-proposal');
+})->middleware('auth', 'coordinator')->name('coordinator-title-proposal');
+
+Route::get('/coordinator-manage-adviser', function () {
+    return view('coordinator-manage-adviser');
+})->middleware('auth', 'coordinator')->name('coordinator-manage-adviser');
+
+Route::get('/coordinator-manage-groups', function () {
+    return view('coordinator-manage-groups');
+})->middleware('auth', 'coordinator')->name('coordinator-manage-groups');

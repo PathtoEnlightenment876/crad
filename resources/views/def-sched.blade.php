@@ -463,7 +463,6 @@
                             <th style="width: 8%;">Set</th> 
                             <th style="width: 8%;">Group</th>
                             <th style="width: 12%;">Documents</th>
-                            <th style="width: 35%;">Panels & Adviser</th>
                             <th style="width: 15%;">Status</th>
                             <th style="width: 14%;">Set Schedule</th>
                         </tr>
@@ -484,42 +483,26 @@
                                 $chairName = $chairperson && $chairperson->name ? $chairperson->name : 'No Chairperson';
                                 $memberNames = $members->count() > 0 ? $members->pluck('name')->filter()->implode(', ') : 'No Members';
                             }
+                            
+                            // Calculate group number offset based on cluster
+                            $cluster = request('cluster') ?? '4101';
+                            $clusterNum = intval($cluster);
+                            $groupOffset = ($clusterNum - 4101) * 10;
                         @endphp
                         
                         {{-- Set A: Groups 1-5 --}}
                         @for($groupNumber = 1; $groupNumber <= 5; $groupNumber++)
                             @php
                                 $groupId = 'A' . $groupNumber;
+                                $displayNumber = $groupNumber + $groupOffset;
                             @endphp
                             <tr data-group-id="{{ $groupId }}" data-set="A" @if($groupNumber == 5) class="set-divider" @endif>
                                 @if($groupNumber == 1)
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
                                 <td class="set-value">A</td> 
-                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
+                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $displayNumber }}</td> 
                                 <td><span class="status-badge status-completed">Completed</span></td>
-                                
-                                @if($groupNumber == 1)
-                                    <td class="panel-details-table" rowspan="5"
-                                        data-adviser="{{ $adviser }}" 
-                                        data-chair="{{ $chairName }}" 
-                                        data-members="{{ $memberNames }}" 
-                                        data-panel-set="A">
-                                        <div class="d-flex justify-content-center align-items-center position-relative">
-                                            <div>
-                                                <strong>Adviser:</strong> {{ $adviser }} <br>
-                                                <strong>Chairperson:</strong> {{ $chairName }} <br>
-                                                Members: {{ $memberNames }}
-                                            </div>
-                                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
-                                                style="top: 5px; right: 5px;"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#panelEditModal" 
-                                                data-panel-set="A">
-                                            </i>
-                                        </div>
-                                    </td>
-                                @endif
 
                                 <td class="status-column" id="status-{{ $groupId }}">
                                     <span class="status-badge status-pending">Pending</span>
@@ -537,43 +520,22 @@
                         
                         {{-- Divider Row --}}
                         <tr class="divider-row">
-                            <td colspan="7" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                            <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
                         </tr>
                         
-                        {{-- Set B: Groups 1-5 --}}
+                        {{-- Set B: Groups 6-10 --}}
                         @for($groupNumber = 1; $groupNumber <= 5; $groupNumber++)
                             @php
                                 $groupId = 'B' . $groupNumber;
+                                $displayNumber = $groupNumber + 5 + $groupOffset;
                             @endphp
                             <tr data-group-id="{{ $groupId }}" data-set="B" @if($groupNumber == 1) style="border-top: 3px solid #333;" @endif>
                                 @if($groupNumber == 1)
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
                                 <td class="set-value">B</td> 
-                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
+                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $displayNumber }}</td> 
                                 <td><span class="status-badge status-completed">Completed</span></td>
-                                
-                                @if($groupNumber == 1)
-                                    <td class="panel-details-table" rowspan="5"
-                                        data-adviser="{{ $adviser }}" 
-                                        data-chair="{{ $chairName }}" 
-                                        data-members="{{ $memberNames }}" 
-                                        data-panel-set="B">
-                                        <div class="d-flex justify-content-center align-items-center position-relative">
-                                            <div>
-                                                <strong>Adviser:</strong> {{ $adviser }} <br>
-                                                <strong>Chairperson:</strong> {{ $chairName }} <br>
-                                                Members: {{ $memberNames }}
-                                            </div>
-                                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
-                                                style="top: 5px; right: 5px;"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#panelEditModal" 
-                                                data-panel-set="B">
-                                            </i>
-                                        </div>
-                                    </td>
-                                @endif
 
                                 <td class="status-column" id="status-{{ $groupId }}">
                                     <span class="status-badge status-pending">Pending</span>
@@ -798,6 +760,12 @@
     let currentDefenseType = '';
     let groupStatuses = {};
     let scheduleData = {}; // Store schedule data across navigation // Store group status data
+
+    // Calculate group number offset based on cluster
+    function getGroupOffset(cluster) {
+        const clusterNum = parseInt(cluster) || 4101;
+        return (clusterNum - 4101) * 10;
+    }
 
     // Custom alert functions to replace SweetAlert2
     function showAlert(type, title, text, callback = null) {
@@ -1826,20 +1794,15 @@
                         const groupId = groupData.group_id;
                         const set = groupId.charAt(0);
                         const group = groupId.substring(1);
+                        const groupOffset = getGroupOffset(cluster);
+                        const displayNumber = set === 'B' ? parseInt(group) + 5 + groupOffset : parseInt(group) + groupOffset;
                         
                         const row = `
                             <tr data-group-id="${groupId}" data-set="${set}">
                                 <td class="cluster-value">${cluster}</td>
                                 <td class="set-value">${set}</td>
-                                <td class="group-number" data-group-id="${groupId}">${group}</td>
+                                <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
                                 <td><span class="status-badge status-incomplete">Redefense Required</span></td>
-                                <td class="panel-details-table">
-                                    <div>
-                                        <strong>Adviser:</strong> ${adviser} <br>
-                                        <strong>Chairperson:</strong> ${chairName} <br>
-                                        Members: ${memberNames}
-                                    </div>
-                                </td>
                                 <td class="status-column" id="status-${groupId}">
                                     <span class="status-badge status-redefense">Re-defense</span>
                                 </td>
@@ -1862,20 +1825,15 @@
                         const groupId = groupData.group_id;
                         const set = groupId.charAt(0);
                         const group = groupId.substring(1);
+                        const groupOffset = getGroupOffset(cluster);
+                        const displayNumber = set === 'B' ? parseInt(group) + 5 + groupOffset : parseInt(group) + groupOffset;
                         
                         const row = `
                             <tr data-group-id="${groupId}" data-set="${set}">
                                 <td class="cluster-value">${cluster}</td>
                                 <td class="set-value">${set}</td>
-                                <td class="group-number" data-group-id="${groupId}">${group}</td>
+                                <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
                                 <td><span class="status-badge status-incomplete">Redefense Required</span></td>
-                                <td class="panel-details-table">
-                                    <div>
-                                        <strong>Adviser:</strong> No Adviser <br>
-                                        <strong>Chairperson:</strong> No Chairperson <br>
-                                        Members: No Members
-                                    </div>
-                                </td>
                                 <td class="status-column" id="status-${groupId}">
                                     <span class="status-badge status-redefense">Re-defense</span>
                                 </td>
@@ -1916,35 +1874,16 @@
             for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
                 const groupId = 'A' + groupNumber;
                 const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
-                const panelCell = groupNumber === 1 ? `
-                    <td class="panel-details-table" rowspan="5"
-                        data-adviser="${adviser}" 
-                        data-chair="${chairName}" 
-                        data-members="${memberNames}" 
-                        data-panel-set="A">
-                        <div class="d-flex justify-content-center align-items-center position-relative">
-                            <div>
-                                <strong>Adviser:</strong> ${adviser} <br>
-                                <strong>Chairperson:</strong> ${chairName} <br>
-                                Members: ${memberNames}
-                            </div>
-                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
-                                style="top: 5px; right: 5px;"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#panelEditModal" 
-                                data-panel-set="A">
-                            </i>
-                        </div>
-                    </td>` : '';
+                const groupOffset = getGroupOffset(clusterSelect.value);
+                const displayNumber = groupNumber + groupOffset;
                 
                 const dividerClass = groupNumber === 5 ? 'class="set-divider"' : '';
                 const row = `
                     <tr data-group-id="${groupId}" data-set="A" ${dividerClass}>
                         ${clusterCell}
                         <td class="set-value">A</td>
-                        <td class="group-number" data-group-id="${groupId}">${groupNumber}</td>
+                        <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
                         <td><span class="status-badge status-completed">Completed</span></td>
-                        ${panelCell}
                         <td class="status-column" id="status-${groupId}">
                             <span class="status-badge status-pending">Pending</span>
                         </td>
@@ -1963,44 +1902,25 @@
             // Add divider row
             const dividerRow = `
                 <tr class="divider-row">
-                    <td colspan="7" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                    <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
                 </tr>
             `;
             tbody.innerHTML += dividerRow;
             
-            // Generate Set B: Groups 1-5
+            // Generate Set B: Groups 6-10
             for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
                 const groupId = 'B' + groupNumber;
                 const borderStyle = groupNumber === 1 ? 'style="border-top: 3px solid #333;"' : '';
                 const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
-                const panelCell = groupNumber === 1 ? `
-                    <td class="panel-details-table" rowspan="5"
-                        data-adviser="${adviser}" 
-                        data-chair="${chairName}" 
-                        data-members="${memberNames}" 
-                        data-panel-set="B">
-                        <div class="d-flex justify-content-center align-items-center position-relative">
-                            <div>
-                                <strong>Adviser:</strong> ${adviser} <br>
-                                <strong>Chairperson:</strong> ${chairName} <br>
-                                Members: ${memberNames}
-                            </div>
-                            <i class="bi bi-pencil-square panel-edit-icon position-absolute" 
-                                style="top: 5px; right: 5px;"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#panelEditModal" 
-                                data-panel-set="B">
-                            </i>
-                        </div>
-                    </td>` : '';
+                const groupOffset = getGroupOffset(clusterSelect.value);
+                const displayNumber = groupNumber + 5 + groupOffset;
                 
                 const row = `
                     <tr data-group-id="${groupId}" data-set="B" ${borderStyle}>
                         ${clusterCell}
                         <td class="set-value">B</td>
-                        <td class="group-number" data-group-id="${groupId}">${groupNumber}</td>
+                        <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
                         <td><span class="status-badge status-completed">Completed</span></td>
-                        ${panelCell}
                         <td class="status-column" id="status-${groupId}">
                             <span class="status-badge status-pending">Pending</span>
                         </td>
@@ -2295,10 +2215,12 @@
                 const cluster = row.querySelector('.cluster-value')?.textContent || '-';
                 const set = row.querySelector('.set-value')?.textContent || '-';
                 const status = row.querySelector('.status-badge')?.textContent || 'Pending';
-                const panelCell = row.querySelector('.panel-details-table');
-                const adviser = panelCell?.getAttribute('data-adviser') || '-';
-                const chair = panelCell?.getAttribute('data-chair') || '-';
-                const members = panelCell?.getAttribute('data-members') || '-';
+                
+                // Get panel data from schedule button or use defaults
+                const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
+                const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
+                const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
+                const members = scheduleBtn?.getAttribute('data-members') || 'No Members';
                 
                 document.getElementById('groupInfoTitle').textContent = `Group ${groupId}`;
                 document.getElementById('groupDept').textContent = dept || '-';

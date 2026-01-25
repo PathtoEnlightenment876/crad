@@ -67,6 +67,14 @@ class LoginController extends Controller
             
             $user = Auth::user();
             
+            // Check user role and redirect accordingly
+            if ($user->role === 'coordinator') {
+                return redirect()->route('login')->with([
+                    'login_success' => true,
+                    'redirect_url' => '/coordinator-dashboard'
+                ]);
+            }
+            
             // Only require OTP for admin accounts
             if ($user->is_admin) {
                 Auth::logout(); // Logout immediately, require OTP verification

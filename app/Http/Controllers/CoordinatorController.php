@@ -10,8 +10,14 @@ class CoordinatorController extends Controller
 {
     public function index()
     {
-        $coordinators = User::where('role', 'coordinator')->get();
+        $coordinators = User::where('role', 'coordinator')->whereNull('deleted_at')->get();
         return view('manage-coordinator', compact('coordinators'));
+    }
+
+    public function archivesData()
+    {
+        $coordinators = User::where('role', 'coordinator')->onlyTrashed()->get();
+        return response()->json(['coordinators' => $coordinators]);
     }
 
     public function store(Request $request)
@@ -39,25 +45,43 @@ class CoordinatorController extends Controller
     public function destroy($id)
     {
         User::findOrFail($id)->delete();
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'Coordinator archived successfully']);
+    }
+
+    public function restore($id)
+    {
+        User::withTrashed()->findOrFail($id)->restore();
+        return response()->json(['success' => true, 'message' => 'Coordinator restored successfully']);
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'department' => 'required|string',
-            'contact' => 'nullable|string'
-        ]);
-
         $coordinator = User::findOrFail($id);
-        $coordinator->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'department' => $request->department,
-            'contact' => $request->contact
-        ]);
+        
+        // Check if password reset is requested
+        if ($request->has('password')) {
+            $request->validate([
+                'password' => 'required|min:8|confirmed'
+            ]);
+            
+            $coordinator->update([
+                'password' => Hash::make($request->password)
+            ]);
+        } else {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $id,
+                'department' => 'required|string',
+                'contact' => 'nullable|string'
+            ]);
+            
+            $coordinator->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'department' => $request->department,
+                'contact' => $request->contact
+            ]);
+        }
 
         return response()->json(['success' => true, 'message' => 'Coordinator updated successfully']);
     }

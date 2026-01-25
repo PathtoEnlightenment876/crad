@@ -10,7 +10,7 @@
     <link rel="icon" href="{{ asset('img/sms.png') }}">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -30,52 +30,32 @@
                 <img src="{{ asset('img/sms.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
                     style="width: 60px; height: 60px;">
                 <h5 class="mb-0">CRAD</h5>
-                <small>ADMIN</small>
+                <small>COORDINATOR</small>
             </div>
 
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
+                    <a href="{{ route('coordinator-dashboard') }}" class="nav-link text-white">
                         <i class="bi bi-speedometer fs-5"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{{ url('/track-proposal') }}" class="nav-link">
-                        <i class="bi bi-cloud-upload fs-5"></i>
-                        <span>Proposal Submission & Tracking </span>
+                    <a href="{{ route('coordinator-title-proposal') }}" class="nav-link">
+                       <i class="bi bi-file-earmark-medical fs-5"></i>
+                        <span>Title Proposal Tracking</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('coordinator-manage-adviser') }}" class="nav-link">
+                        <i class="bi bi-person-gear fs-5"></i>
+                        <span>Manage Adviser</span>
                     </a>
 
                 </li>
 
-                <li>
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-person-plus-fill fs-5"></i>
-                        <span>Adviser & Panel Assignment </span>
-                    </a>
-
-                </li>
-
-                <li>
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-calendar4-week fs-5"></i>
-                        <span>Defense Scheduling</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-clipboard-check fs-5"></i>
-                        <span>Defense Evaluation</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-bar-chart-line fs-5"></i>
-                        <span>Analytics & Reporting</span>
-                    </a>
-                </li>
 
                 <li><hr class="dropdown-divider mx-3 my-3" style="border-top: 1px solid rgba(255, 255, 255, 0.3);"></li>
                 
@@ -88,9 +68,9 @@
                     <div class="collapse" id="userManagementSubmenu">
                         <ul class="nav flex-column sub-menu">
                             <li class="nav-item">
-                                <a href="{{ url('/manage-coordinator') }}" class="nav-link">
+                                <a href="{{ route('coordinator-manage-groups') }}" class="nav-link">
                                     <i class="bi bi-people-fill"></i>
-                                    <span>Manage Coordinator</span>
+                                    <span>Manage Groups</span>
                                 </a>
                             </li>
                         </ul>
@@ -139,7 +119,7 @@
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a href="{{ route('admin.dashboard') }}" class="dropdown-item text-center">View all</a></li>
+                                <li><a href="{{ route('coordinator-dashboard') }}" class="dropdown-item text-center">View all</a></li>
                             @endif
                         </ul>
                     </div>
@@ -151,7 +131,7 @@
                             <i class="bi bi-person-circle fs-4"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><h6 class="dropdown-header">{{ Auth::user()->name ?? 'Admin' }}</h6></li>
+                            <li><h6 class="dropdown-header">{{ Auth::user()->name ?? 'Coordinator' }}</h6></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
@@ -167,7 +147,7 @@
             <main class="content-area">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ url('admin-dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url('coordinator-dashboard') }}">Home</a></li>
                         @if(Request::is('def-sched'))
                             <li class="breadcrumb-item"><a href="{{ url('def-sched') }}">Defense Scheduling</a></li>
                             @if(request('defense_type') == 'PRE-ORAL')
@@ -256,29 +236,29 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="profileModalLabel">Admin Profile</h5>
+                    <h5 class="modal-title" id="profileModalLabel">Coordinator Profile</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-3">
                         <div class="position-relative d-inline-block">
-                            <img src="{{ asset('img/sms.png') }}" alt="Profile Picture" id="adminProfileImage"
+                            <img src="{{ asset('img/sms.png') }}" alt="Profile Picture" id="coordinatorProfileImage"
                                  class="rounded-circle" width="100" height="100">
-                            <button id="adminProfileBtn" type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                            <button id="coordinatorProfileBtn" type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
                                     style="width: 30px; height: 30px; padding: 0;">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <input type="file" id="adminProfileInput" accept="image/*" style="display: none;" onchange="previewAdminImage(event)">
+                            <input type="file" id="coordinatorProfileInput" accept="image/*" style="display: none;" onchange="previewCoordinatorImage(event)">
                         </div>
                     </div>
-                    <p><strong>Name:</strong> {{ Auth::user()->name ?? 'Admin' }}</p>
-                    <p><strong>Email:</strong> {{ Auth::user()->email ?? 'admin@crad.edu' }}</p>
-                    <p><strong>Role:</strong> Administrator</p>
-                    <p><strong>Department:</strong> Center for Research and Development</p>
+                    <p><strong>Name:</strong> {{ Auth::user()->name ?? 'Coordinator' }}</p>
+                    <p><strong>Email:</strong> {{ Auth::user()->email ?? 'coordinator@crad.edu' }}</p>
+                    <p><strong>Role:</strong> Coordinator</p>
+                    <p><strong>Department:</strong> {{ Auth::user()->department ?? 'N/A' }}</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveAdminProfile">Save Changes</button>
+                    <button type="button" class="btn btn-primary" id="saveCoordinatorProfile">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -408,26 +388,26 @@
         });
     </script>
     <script>
-        function previewAdminImage(event) {
+        function previewCoordinatorImage(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('adminProfileImage').src = e.target.result;
+                    document.getElementById('coordinatorProfileImage').src = e.target.result;
                 }
                 reader.readAsDataURL(file);
             }
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            const savedImage = localStorage.getItem('adminProfileImage');
+            const savedImage = localStorage.getItem('coordinatorProfileImage');
             if (savedImage) {
-                document.getElementById('adminProfileImage').src = savedImage;
+                document.getElementById('coordinatorProfileImage').src = savedImage;
             }
             
-            document.getElementById('saveAdminProfile').addEventListener('click', function() {
-                const imageSrc = document.getElementById('adminProfileImage').src;
-                localStorage.setItem('adminProfileImage', imageSrc);
+            document.getElementById('saveCoordinatorProfile').addEventListener('click', function() {
+                const imageSrc = document.getElementById('coordinatorProfileImage').src;
+                localStorage.setItem('coordinatorProfileImage', imageSrc);
                 
                 const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
                 profileModal.hide();
@@ -437,9 +417,9 @@
             });
         });
 
-        document.getElementById('adminProfileBtn')
+        document.getElementById('coordinatorProfileBtn')
         .addEventListener('click', () => {
-        document.getElementById('adminProfileInput').click();
+        document.getElementById('coordinatorProfileInput').click();
       });
     </script>
     @yield('scripts')
