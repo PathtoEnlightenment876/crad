@@ -68,7 +68,7 @@
                     {{ $otp }}
                 </div>
 
-                <p class="text" style="font-size: 16px; line-height: 1.5; color: #333333;">This code is valid for 3 days.</p>
+                <p class="text" style="font-size: 16px; line-height: 1.5; color: #333333;">This code is valid for 10 minutes.</p>
                 <p class="text" style="font-size: 16px; line-height: 1.5; color: #333333;">If you did not request this, please ignore this email.</p>
             </td>
         </tr>

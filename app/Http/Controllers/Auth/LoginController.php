@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -74,9 +75,9 @@ class LoginController extends Controller
                 if (!$user->otp || !$user->otp_expires_at || $user->otp_expires_at < now()) {
                     // Generate new OTP only if none exists or expired
                     $otp = rand(100000, 999999);
-                    $expiresAt = now()->addDays(3);
+                    $expiresAt = now()->addMinutes(10);
                     
-                    $user->otp = $otp;
+                    $user->otp = Hash::make($otp);
                     $user->otp_expires_at = $expiresAt;
                     $user->save();
                     

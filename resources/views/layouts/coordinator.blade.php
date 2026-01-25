@@ -35,7 +35,7 @@
 
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
-                    <a href="{{ url('/admin-dashboard') }}" class="nav-link text-white">
+                    <a href="#" class="nav-link text-white">
                         <i class="bi bi-speedometer fs-5"></i>
                         <span>Dashboard</span>
                     </a>
@@ -50,7 +50,7 @@
                 </li>
 
                 <li>
-                    <a href="{{ url('/panel-adviser') }}" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="bi bi-person-plus-fill fs-5"></i>
                         <span>Adviser & Panel Assignment </span>
                     </a>
@@ -58,20 +58,20 @@
                 </li>
 
                 <li>
-                    <a href="{{ url('/def-sched') }}" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="bi bi-calendar4-week fs-5"></i>
                         <span>Defense Scheduling</span>
                     </a>
                 </li>
                 
                 <li>
-                    <a href="{{ url('/def-eval') }}" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="bi bi-clipboard-check fs-5"></i>
                         <span>Defense Evaluation</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url('/analytics') }}" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="bi bi-bar-chart-line fs-5"></i>
                         <span>Analytics & Reporting</span>
                     </a>
@@ -81,7 +81,7 @@
                 
                 <li>
                     <a href="#userManagementSubmenu" class="nav-link d-flex align-items-center" data-bs-toggle="collapse" aria-expanded="false">
-                        <i class="bi bi-grid-fill"></i>
+                        <i class="bi bi-grid-fill fs-5"></i>
                         <span class="flex-grow-1">Others</span>
                         <i class="bi bi-chevron-right" id="userManagementChevron"></i>
                     </a>

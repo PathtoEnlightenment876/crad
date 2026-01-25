@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('styles')
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -131,6 +131,17 @@
         font-style: normal;
     }
 
+    .group-number {
+        cursor: pointer;
+        color: var(--primary-blue);
+        font-weight: 500;
+    }
+    
+    .group-number:hover {
+        background-color: #e7f1ff;
+        font-weight: 600;
+    }
+    
     #schedule-table-body tr[data-set="B"],
     #schedule-table-body tr[data-set="B"] .cluster-value,
     #schedule-table-body tr[data-set="B"] .panel-details-table,
@@ -334,7 +345,7 @@
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
                                 <td class="set-value">A</td> 
-                                <td>{{ $groupNumber }}</td> 
+                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
                                 
                                 @if($groupNumber == 1)
                                     <td class="panel-details-table" rowspan="5"
@@ -380,7 +391,7 @@
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
                                 <td class="set-value">B</td> 
-                                <td>{{ $groupNumber }}</td> 
+                                <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
                                 
                                 @if($groupNumber == 1)
                                     <td class="panel-details-table" rowspan="5"
@@ -479,6 +490,32 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Group Info Modal -->
+<div class="modal fade" id="groupInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Group Information</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Department:</strong> <span id="modalDepartment"></span></p>
+                <p><strong>Cluster:</strong> <span id="modalCluster"></span></p>
+                <p><strong>Set:</strong> <span id="modalSet"></span></p>
+                <p><strong>Group:</strong> <span id="modalGroup"></span></p>
+                <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                <hr>
+                <p><strong>Adviser:</strong> <span id="modalAdviser"></span></p>
+                <p><strong>Chairperson:</strong> <span id="modalChairperson"></span></p>
+                <p><strong>Members:</strong> <span id="modalMembers"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1147,6 +1184,36 @@
         });
     }
 
+    // Group number click handler
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('group-number')) {
+            const groupId = e.target.getAttribute('data-group-id');
+            const row = e.target.closest('tr');
+            const set = row.getAttribute('data-set');
+            const groupNumber = e.target.textContent.trim();
+            const dept = document.getElementById('dept-select').value;
+            const cluster = document.querySelectorAll('.cluster-value')[0]?.textContent || '';
+            const statusCell = document.getElementById(`status-${groupId}`);
+            const status = statusCell ? statusCell.textContent.trim() : 'Pending';
+            
+            const panelCell = row.querySelector('.panel-details-table') || document.querySelector(`[data-panel-set="${set}"]`);
+            const adviser = panelCell?.getAttribute('data-adviser') || 'No Adviser';
+            const chair = panelCell?.getAttribute('data-chair') || 'No Chairperson';
+            const members = panelCell?.getAttribute('data-members') || 'No Members';
+            
+            document.getElementById('modalDepartment').textContent = dept;
+            document.getElementById('modalCluster').textContent = cluster;
+            document.getElementById('modalSet').textContent = set;
+            document.getElementById('modalGroup').textContent = groupNumber;
+            document.getElementById('modalStatus').textContent = status;
+            document.getElementById('modalAdviser').textContent = adviser;
+            document.getElementById('modalChairperson').textContent = chair;
+            document.getElementById('modalMembers').textContent = members;
+            
+            new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         const typeSelectionView = document.getElementById('type-selection-view');
         const filterBar = document.getElementById('filter-bar');
@@ -1305,3 +1372,7 @@
     });
 </script>
 @endsection
+
+
+
+

@@ -14,9 +14,10 @@ use App\Http\Controllers\AdviserController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\PanelAdviserController;
 use App\Http\Controllers\DefenseScheduleController;
+use App\Http\Controllers\CoordinatorController;
 
-// Welcome Page is now the Homepage
-Route::get('/', fn() => view('welcome'))->name('welcome');
+// Redirect root to login page
+Route::get('/', fn() => redirect()->route('login'));
 
 // Login & Authentication Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -206,3 +207,11 @@ Route::post('/api/panel-availability-schedule', [DefenseScheduleController::clas
 // Defense Evaluation API Routes
 Route::post('/api/evaluations', [\App\Http\Controllers\DefenseEvaluationController::class, 'saveEvaluation']);
 Route::get('/api/group-status', [\App\Http\Controllers\DefenseEvaluationController::class, 'getGroupStatus']);
+
+// Manage Coordinator Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/manage-coordinator', [CoordinatorController::class, 'index'])->name('manage-coordinator');
+    Route::post('/coordinators', [CoordinatorController::class, 'store'])->name('coordinators.store');
+    Route::put('/coordinators/{id}', [CoordinatorController::class, 'update'])->name('coordinators.update');
+    Route::delete('/coordinators/{id}', [CoordinatorController::class, 'destroy'])->name('coordinators.destroy');
+});

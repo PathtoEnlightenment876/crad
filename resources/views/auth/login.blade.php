@@ -241,16 +241,25 @@
       const email = emailInput.value.trim();
       if (!email) return;
       
-      fetch('/check-lockout?email=' + encodeURIComponent(email))
-        .then(response => response.json())
-        .then(data => {
-          if (data.locked && data.seconds > 0) {
-            startLockoutTimer(data.seconds);
-          } else {
-            clearLockout();
-          }
+      fetch('/check-lockout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+        },
+        body: JSON.stringify({
+          email: email
         })
-        .catch(() => clearLockout());
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.locked && data.seconds > 0) {
+          startLockoutTimer(data.seconds);
+        } else {
+          clearLockout();
+        }
+      })
+      .catch(() => clearLockout());
     }
 
     // Start lockout timer
