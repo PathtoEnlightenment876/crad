@@ -2210,11 +2210,18 @@
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('group-number')) {
                 const groupId = e.target.getAttribute('data-group-id');
+                const displayNumber = e.target.textContent;
                 const row = e.target.closest('tr');
                 const dept = deptSelect.value;
-                const cluster = row.querySelector('.cluster-value')?.textContent || '-';
                 const set = row.querySelector('.set-value')?.textContent || '-';
                 const status = row.querySelector('.status-badge')?.textContent || 'Pending';
+                
+                // Get cluster from the merged cell in the same set or use selected cluster
+                let cluster = clusterSelect.value || '-';
+                const clusterCell = row.querySelector('.cluster-value');
+                if (clusterCell) {
+                    cluster = clusterCell.textContent;
+                }
                 
                 // Get panel data from schedule button or use defaults
                 const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
@@ -2222,7 +2229,7 @@
                 const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
                 const members = scheduleBtn?.getAttribute('data-members') || 'No Members';
                 
-                document.getElementById('groupInfoTitle').textContent = `Group ${groupId}`;
+                document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
                 document.getElementById('groupDept').textContent = dept || '-';
                 document.getElementById('groupCluster').textContent = cluster;
                 document.getElementById('groupSet').textContent = set;
