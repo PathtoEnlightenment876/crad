@@ -23,7 +23,7 @@ Route::get('/', fn() => redirect()->route('login'));
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-Route::get('/check-lockout', [LoginController::class, 'checkLockout'])->name('check.lockout');
+Route::post('/check-lockout', [LoginController::class, 'checkLockout']);
 
 // One-Time Password (OTP) Routes
 Route::get('/otp-verify', [OtpAuthController::class, 'showVerifyForm'])->name('otp.verify.form');
@@ -31,7 +31,7 @@ Route::post('/otp-verify', [OtpAuthController::class, 'verifyOtp'])->name('otp.v
 
 // Dashboard
 Route::get('/admin-dashboard', fn() => view('admin-dashboard'))
-    ->middleware(['auth'])
+    ->middleware(['auth' , 'admin'])
     ->name('admin-dashboard');
 
     
@@ -183,6 +183,7 @@ Route::get('/api/assignments', [PanelAdviserController::class, 'apiAssignments']
     ->name('api.assignments');
 
     Route::post('/assignments/store', [AssignmentController::class, 'store'])->name('assignments.store');
+    Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
  
 // Defense Schedule Routes
@@ -227,10 +228,17 @@ Route::get('/coordinator-title-proposal', function () {
     return view('coordinator-title-proposal');
 })->middleware('auth', 'coordinator')->name('coordinator-title-proposal');
 
-Route::get('/coordinator-manage-adviser', function () {
-    return view('coordinator-manage-adviser');
-})->middleware('auth', 'coordinator')->name('coordinator-manage-adviser');
+Route::get('/coordinator-manage-adviser', [CoordinatorController::class, 'manageAdviser'])
+    ->middleware('auth', 'coordinator')
+    ->name('coordinator-manage-adviser');
 
-Route::get('/coordinator-manage-groups', function () {
-    return view('coordinator-manage-groups');
-})->middleware('auth', 'coordinator')->name('coordinator-manage-groups');
+Route::get('/coordinator-manage-groups', [\App\Http\Controllers\GroupController::class, 'index'])
+    ->middleware('auth', 'coordinator')
+    ->name('coordinator-manage-groups');
+
+Route::post('/groups', [\App\Http\Controllers\GroupController::class, 'store'])->name('groups.store');
+Route::put('/groups/{id}', [\App\Http\Controllers\GroupController::class, 'update'])->name('groups.update');
+Route::delete('/groups/{id}', [\App\Http\Controllers\GroupController::class, 'destroy'])->name('groups.destroy');
+Route::get('/groups/archived', [\App\Http\Controllers\GroupController::class, 'archived'])->name('groups.archived');
+Route::post('/groups/{id}/restore', [\App\Http\Controllers\GroupController::class, 'restore'])->name('groups.restore');
+Route::get('/api/groups/{groupNumber}', [\App\Http\Controllers\GroupController::class, 'getByGroupNumber'])->name('groups.getByNumber');

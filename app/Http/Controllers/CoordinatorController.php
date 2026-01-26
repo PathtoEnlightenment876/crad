@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Adviser;
+use App\Models\Assignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class CoordinatorController extends Controller
 {
@@ -84,5 +87,13 @@ class CoordinatorController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Coordinator updated successfully']);
+    }
+
+    public function manageAdviser()
+    {
+        $coordinator = Auth::user();
+        $advisers = Adviser::where('department', $coordinator->department)->whereNull('deleted_at')->get();
+        $assignments = Assignment::where('department', $coordinator->department)->get();
+        return view('coordinator-manage-adviser', compact('advisers', 'assignments'));
     }
 }

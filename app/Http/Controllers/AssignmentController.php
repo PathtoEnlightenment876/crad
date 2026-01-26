@@ -111,4 +111,45 @@ class AssignmentController extends Controller
             ], 500);
         }
     }
+
+    public function update(Request $request, Assignment $assignment)
+    {
+        try {
+            $validated = $request->validate([
+                'department' => 'required|string',
+                'section' => 'required|string',
+                'adviser_id' => 'required|integer',
+                'panel_ids' => 'required|array',
+                'panel_ids.*' => 'integer',
+            ]);
+
+            $assignment->update([
+                'department' => $validated['department'],
+                'section' => $validated['section'],
+                'adviser_id' => $validated['adviser_id'],
+            ]);
+
+            AssignmentPanel::where('assignment_id', $assignment->id)->delete();
+
+            foreach ($validated['panel_ids'] as $panelId) {
+                $panel = Panel::find($panelId);
+                if ($panel) {
+                    AssignmentPanel::create([
+                        'assignment_id' => $assignment->id,
+                        'panel_id' => $panelId,
+                        'name' => $panel->name,
+                        'availability' => is_array($panel->availability) ? json_encode($panel->availability) : $panel->availability,
+                        'role' => $panel->role ?? 'Member',
+                        'expertise' => $panel->expertise,
+                        'department' => $validated['department'],
+                        'section' => $validated['section'],
+                    ]);
+                }
+            }
+
+            return redirect()->route('panel-adviser')->with('success', 'Assignment updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 }

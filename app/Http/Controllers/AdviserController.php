@@ -51,22 +51,26 @@ class AdviserController extends Controller
         return view('panel-adviser', compact('advisers', 'panels', 'submissions'));
     }
         public function store(Request $request) {
-        Adviser::create($request->all());
+        $data = $request->all();
+        if ($request->filled('others_expertise')) {
+            $data['expertise'] = $request->others_expertise;
+        }
+        Adviser::create($data);
         return back()->with('success', 'Adviser added successfully.');
     }
 
     public function update(Request $request, $id)
-{
-    $adviser = Adviser::findOrFail($id);
-    
-    $adviser->department = $request->department;
-    $adviser->name = $request->name;
-    $adviser->expertise = $request->expertise;
-    $adviser->sections = $request->sections ?? [];
-    $adviser->save();
-    
-    return redirect('/panel-adviser')->with('success', 'Adviser updated successfully.');
-}
+    {
+        $adviser = Adviser::findOrFail($id);
+        
+        $adviser->department = $request->department;
+        $adviser->name = $request->name;
+        $adviser->expertise = $request->filled('others_expertise') ? $request->others_expertise : $request->expertise;
+        $adviser->sections = $request->sections ?? [];
+        $adviser->save();
+        
+        return back()->with('success', 'Adviser updated successfully.');
+    }
 
 
     public function getAdvisersByDepartment($department)

@@ -76,6 +76,17 @@ class DefenseScheduleController extends Controller
 
         // Handle status changes
         if ($request->status === 'Passed' && $defenseSchedule->defense_type === 'PRE-ORAL') {
+            // Update cluster for BSIT groups after passing pre-oral
+            $group = \App\Models\Group::where('group_number', $defenseSchedule->group_id)
+                ->where('department', $defenseSchedule->department)
+                ->first();
+            
+            if ($group && $group->department === 'BSIT') {
+                $newCluster = $group->updateClusterAfterPreOral();
+                $defenseSchedule->section = $newCluster;
+                $defenseSchedule->save();
+            }
+            
             // Check if FINAL DEFENSE already exists for this group
             $existingFinalDefense = DefenseSchedule::where([
                 'department' => $defenseSchedule->department,

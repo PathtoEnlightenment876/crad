@@ -46,7 +46,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required',
             'password' => 'required',
         ]);
 
@@ -54,20 +54,23 @@ class LoginController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, $this->maxAttempts)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            // Use the full decay seconds if available seconds is less (due to timing)
             $seconds = max($seconds, $this->decaySeconds);
             return back()->withErrors([
                 'email' => "Too many login attempts. Please try again in $seconds seconds."
             ])->with('lockout_seconds', $seconds);
         }
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        $credentials = [
+            'email' => $request->input('email'),
+            'password' => $request->input('password')
+        ];
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
             
             $user = Auth::user();
             
-            // Check user role and redirect accordingly
             if ($user->role === 'coordinator') {
                 return redirect()->route('login')->with([
                     'login_success' => true,
@@ -75,13 +78,10 @@ class LoginController extends Controller
                 ]);
             }
             
-            // Only require OTP for admin accounts
             if ($user->is_admin) {
-                Auth::logout(); // Logout immediately, require OTP verification
+                Auth::logout();
                 
-                // Check if user already has a valid OTP
                 if (!$user->otp || !$user->otp_expires_at || $user->otp_expires_at < now()) {
-                    // Generate new OTP only if none exists or expired
                     $otp = rand(100000, 999999);
                     $expiresAt = now()->addMinutes(10);
                     
@@ -89,7 +89,6 @@ class LoginController extends Controller
                     $user->otp_expires_at = $expiresAt;
                     $user->save();
                     
-                    // Send OTP email
                     try {
                         \Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
                     } catch (\Exception $e) {
@@ -100,7 +99,6 @@ class LoginController extends Controller
                 
                 $expiresAt = $user->otp_expires_at;
                 
-                // Store user ID in session for OTP verification
                 session([
                     'otp_user_id' => $user->id,
                     'otp_expires_at' => is_string($expiresAt) ? strtotime($expiresAt) : $expiresAt->timestamp
@@ -108,7 +106,6 @@ class LoginController extends Controller
                 
                 return redirect()->route('otp.verify.form');
             } else {
-                // Student accounts go directly to dashboard
                 return redirect()->route('login')->with([
                     'login_success' => true,
                     'redirect_url' => '/std-dashboard'

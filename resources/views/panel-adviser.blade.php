@@ -164,7 +164,7 @@
         <h1 class="fw-bold text-dark-blue mb-4">ADVISER & PANEL ASSIGNMENT</h1>
         <h4 class="text-muted">Select what you want to manage:</h4>
         <div class="type-button-container d-flex justify-content-center flex-wrap mt-5">
-            <button class="adviser-type-button" data-adviser-type="MANAGE ADVISERS">Manage Advisers</button>
+            <button class="adviser-type-button" data-adviser-type="ADVISER OVERVIEW">Adviser Overview</button>
             <button class="adviser-type-button" data-adviser-type="MANAGE PANELS">Manage Panels</button>
             <button class="adviser-type-button" data-adviser-type="ASSIGNMENT">Assignment</button>
         </div>
@@ -191,15 +191,7 @@
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="adviser-content" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
-                    <h2 class="h5 mb-0 text-success fw-bold">Adviser Management</h2>
-                    <div>
-                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAdviserModal">
-                            <i class="bi bi-person-plus-fill me-1"></i> Add Adviser
-                        </button>
-                        <button class="btn btn-secondary ms-2" data-bs-toggle="modal" data-bs-target="#archiveAdviserModal">
-                            <i class="bi bi-archive me-1"></i> Inactive
-                        </button>
-                    </div>
+                    <h2 class="h5 mb-0 text-success fw-bold"></h2>
                 </div>
 
                 <div class="card">
@@ -225,7 +217,6 @@
                                         <th>Name</th>
                                         <th>Expertise</th>
                                         <th>Sections</th>
-                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="adviserTableBody">
@@ -263,15 +254,6 @@
                                                         </span>
                                                     @endif
                                                 @endforeach
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-primary me-1" data-bs-toggle="modal"
-                                                    data-bs-target="#editAdviserModal{{ $adviser->id }}">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-secondary" onclick="deleteAdviser({{ $adviser->id }})">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -1035,7 +1017,7 @@
         <div class="modal fade" id="editAssignmentModal{{ $assignment->id }}" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <form id="editAssignmentForm{{ $assignment->id }}">
+                    <form id="editAssignmentForm{{ $assignment->id }}" action="{{ route('assignments.update', $assignment->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="modal-header bg-warning text-white">
@@ -1151,6 +1133,14 @@
             typeSelectionView.classList.remove('hidden');
             adviserPanelContent.classList.add('hidden');
             
+            // Reset filters
+            const adviserFilter = document.getElementById('adviserFilter');
+            const panelFilter = document.getElementById('panelFilter');
+            const assignmentFilter = document.getElementById('assignmentFilter');
+            if (adviserFilter) adviserFilter.value = '';
+            if (panelFilter) panelFilter.value = '';
+            if (assignmentFilter) assignmentFilter.value = '';
+            
             // Hide all tab panes
             document.querySelectorAll('.tab-pane').forEach(pane => {
                 pane.classList.remove('show', 'active');
@@ -1172,7 +1162,7 @@
         
         // Map type to tab ID
         const tabMap = {
-            'MANAGE ADVISERS': 'adviser-content',
+            'ADVISER OVERVIEW': 'adviser-content',
             'MANAGE PANELS': 'panel-content',
             'ASSIGNMENT': 'assignment-content'
         };
@@ -1187,6 +1177,15 @@
                     pane.classList.add('fade');
                 });
                 tabPane.classList.add('show', 'active');
+                
+                // Reset and show all rows when showing adviser content
+                if (tabId === 'adviser-content') {
+                    const adviserFilter = document.getElementById('adviserFilter');
+                    if (adviserFilter) adviserFilter.value = '';
+                    document.querySelectorAll('#adviserTableBody tr').forEach(row => {
+                        row.style.display = '';
+                    });
+                }
             }
         }
     }
@@ -1813,7 +1812,7 @@ function restoreAdviser(adviserId) {
     showConfirmation(
         'Are you sure you want to restore this adviser?',
         function() {
-            localStorage.setItem('selectedAdviserType', 'MANAGE ADVISERS');
+            localStorage.setItem('selectedAdviserType', 'ADVISER OVERVIEW');
             fetch(`/advisers/${adviserId}/restore`, {
                 method: 'POST',
                 headers: {
@@ -1923,7 +1922,7 @@ function deleteAdviser(adviserId) {
     showConfirmation(
         'Are you sure you want to archive this adviser? This action can be undone by restoring it.',
         function() {
-            localStorage.setItem('selectedAdviserType', 'MANAGE ADVISERS');
+            localStorage.setItem('selectedAdviserType', 'ADVISER OVERVIEW');
             fetch(`/advisers/${adviserId}`, {
                 method: 'DELETE',
                 headers: {

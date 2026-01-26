@@ -175,8 +175,8 @@
           @endif
           @csrf
           <div class="mb-3">
-            <label for="email" class="form-label">Username <span class="text-danger">*</span></label>
-            <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required autofocus>
+            <label for="email" class="form-label">ID/Username<span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="email" name="email" value="{{ old('email') }}" required autofocus>
           </div>
 
           <div class="mb-4">

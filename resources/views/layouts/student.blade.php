@@ -29,7 +29,7 @@
                 <img src="{{ asset('img/avatar.png') }}" alt="Logo" class="img-fluid rounded-circle mb-2"
                     style="width: 60px; height: 60px;" id="sidebarProfileImage">
                 <h5 class="mb-0">Student</h5>
-                <small>Juan Dela Cruz</small>
+                <small>{{ str_replace('s', '', Auth::user()->email ?? 'N/A') }}</small>
             </div>
 
             <ul class="nav nav-pills flex-column mb-auto">
@@ -145,11 +145,32 @@
                         <input type="file" id="studentProfileInput" accept="image/*" style="display: none;" onchange="previewStudentImage(event)">
                     </div>
                 </div>
-                <p><strong>Name:</strong> {{ Auth::user()->name ?? 'N/A' }}</p>
+                <p><strong>Group No:</strong> {{ Auth::user()->group_no ?? 'N/A' }}</p>
                 <p><strong>Email:</strong> {{ Auth::user()->email ?? 'N/A' }}</p>
                 <p><strong>Department:</strong> {{ Auth::user()->department ?? 'N/A' }}</p>
                 <p><strong>Section/Cluster:</strong> {{ Auth::user()->section_cluster ?? 'N/A' }}</p>
-                <p><strong>Group No:</strong> {{ Auth::user()->group_no ?? 'N/A' }}</p>
+                <hr>
+                <p class="fw-bold mb-2">Group Members:</p>
+                @php
+                    $groupId = str_replace('s', '', Auth::user()->email ?? '');
+                    $group = \App\Models\Group::where('group_id', $groupId)->first();
+                @endphp
+                @if($group)
+                    <ul class="list-group">
+                        @for($i = 1; $i <= 5; $i++)
+                            @if($group->{"member{$i}_name"})
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ $group->{"member{$i}_name"} }}
+                                    @if($i == $group->leader_member)
+                                        <span class="badge bg-primary">Leader</span>
+                                    @endif
+                                </li>
+                            @endif
+                        @endfor
+                    </ul>
+                @else
+                    <p class="text-muted">No group members found</p>
+                @endif
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

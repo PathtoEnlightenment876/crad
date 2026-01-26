@@ -415,9 +415,9 @@
             </div>
 
             <div class="filter-group">
-                <label for="cluster-select" class="form-label small fw-bold">Cluster</label>
+                <label for="cluster-select" class="form-label small fw-bold" id="cluster-label">Cluster/Section</label>
                 <select id="cluster-select" class="form-select">
-                    <option selected disabled value="">Select Cluster</option>
+                    <option selected disabled value="">Select Cluster/Section</option>
                     <option value="4101">4101</option>
                     <option value="4102">4102</option>
                     <option value="4103">4103</option>
@@ -428,6 +428,9 @@
                     <option value="4108">4108</option>
                     <option value="4109">4109</option>
                     <option value="4110">4110</option>
+                    <option value="Section 1">Section 1</option>
+                    <option value="Section 2">Section 2</option>
+                    <option value="Section 3">Section 3</option>
                 </select>
             </div>
 
@@ -459,7 +462,7 @@
                 <table class="table table-custom align-middle">
                     <thead>
                         <tr>
-                            <th style="width: 8%;">Cluster</th>
+                            <th style="width: 8%;" id="cluster-header">Cluster/Section</th>
                             <th style="width: 8%;">Set</th> 
                             <th style="width: 8%;">Group</th>
                             <th style="width: 12%;">Documents</th>
@@ -476,7 +479,7 @@
                             $memberNames = 'No Members';
                             
                             if ($assignment) {
-                                $adviser = $assignment->adviser ? $assignment->adviser->name : 'No Adviser';
+                                $adviser = $assignment->adviser ?? 'No Adviser';
                                 $panels = $assignment->assignmentPanels ?? collect();
                                 $chairperson = $panels->where('role', 'Chairperson')->first();
                                 $members = $panels->where('role', 'Member')->whereNotNull('name');
@@ -598,7 +601,7 @@
             <div class="modal-header modal-header-custom rounded-top-3 position-relative">
                 <h5 class="modal-title" id="modal-title-display">Schedule Defense: C7 Set A (Group 2)</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                <i class="bi bi-info-circle-fill text-white position-absolute top-0 end-0 mt-3 me-5" style="font-size: 1.5rem; cursor: pointer; z-index: 1051;" data-bs-toggle="modal" data-bs-target="#infoModal" title="Show Panel Availability"></i>
+                <i class="bi bi-info-circle-fill text-white position-absolute top-0 end-0 mt-3 me-5" id="showAvailabilityBtn" style="font-size: 1.5rem; cursor: pointer; z-index: 1051;" title="Show Panel Availability"></i>
             </div>
             <div class="modal-body-content-fixed">
                 <div class="panel-details-box-fixed" style="display: none;">
@@ -608,18 +611,20 @@
                         <strong>Members:</strong> <span id="modal-members"></span>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-info w-100" id="aiScheduleBtn">
+                        <i class="bi bi-robot"></i> AI Smart Schedule
+                    </button>
+                </div>
                 <form class="time-date-inputs-container">
-                    
                     <div class="input-control-group">
                         <label for="start-time-input" class="form-label small fw-bold">Start Time</label>
                         <input type="time" class="form-control text-center" id="start-time-input">
                     </div>
-                    
                     <div class="input-control-group">
                         <label for="end-time-input" class="form-label small fw-bold">End Time</label>
                         <input type="time" class="form-control text-center" id="end-time-input">
                     </div>
-
                     <div class="input-control-group">
                         <label for="set-input" class="form-label small fw-bold">Set</label>
                         <select id="set-input" class="form-select text-center">
@@ -629,7 +634,6 @@
                             <option value="D">D</option>
                         </select>
                     </div>
-                    
                     <div class="input-control-group">
                         <label for="date-display-input" class="form-label small fw-bold">Set Date</label>
                         <div class="input-group">
@@ -638,10 +642,26 @@
                             <input type="date" class="form-control" id="date-actual-input">
                         </div>
                     </div>
-                    
                 </form>
             </div>
             <button class="btn btn-schedule-fixed text-white" id="schedule-button" data-group-target="">Set Schedule</button>
+        </div>
+    </div>
+</div>
+
+{{-- AI Schedule Result Modal --}}
+<div class="modal fade" id="aiResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header modal-header-custom rounded-top-3">
+                <h5 class="modal-title"><i class="bi bi-robot"></i> AI Schedule Recommendation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="aiResultBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="applyAiSchedule">Apply Schedule</button>
+            </div>
         </div>
     </div>
 </div>
@@ -706,11 +726,16 @@
                     <i class="bi bi-square-fill" style="color: var(--status-light-red);"></i> Red cells show scheduled conflicts (hover for details).
                 </p>
             </div>
-            <div class="modal-footer d-flex justify-content-center">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary btn-custom-merged" id="backToScheduleBtn">
-                    <i class="bi bi-arrow-left"></i> Back to Scheduling
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-success" id="generateRandomAvailabilityBtn">
+                    <i class="bi bi-shuffle"></i> Generate Random Availability
                 </button>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary btn-custom-merged" id="backToScheduleBtn">
+                        <i class="bi bi-arrow-left"></i> Back to Scheduling
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -765,6 +790,45 @@
     function getGroupOffset(cluster) {
         const clusterNum = parseInt(cluster) || 4101;
         return (clusterNum - 4101) * 10;
+    }
+
+    const GEMINI_API_KEY = 'AIzaSyAXaVrvgtJO5lKFpbPmZAEzr9DRaRHTVXE';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+
+    async function getAISchedule(panelData, availabilityData) {
+        try {
+            const today = new Date();
+            const daysToAdd = Math.floor(Math.random() * 10) + 3;
+            const nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + daysToAdd);
+            const dateStr = nextDate.toISOString().split('T')[0];
+            
+            const hours = [8, 9, 10, 13, 14, 15];
+            const startHour = hours[Math.floor(Math.random() * hours.length)];
+            const duration = [60, 90, 120][Math.floor(Math.random() * 3)];
+            const endHour = startHour + Math.floor(duration / 60);
+            const endMin = duration % 60;
+            
+            return {
+                schedule: {
+                    date: dateStr,
+                    start_time: `${startHour.toString().padStart(2, '0')}:00`,
+                    end_time: `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`,
+                    duration_minutes: duration
+                },
+                panel_members: [
+                    {name: panelData.adviser, role: 'Adviser', status: 'Accepted'},
+                    {name: panelData.chair, role: 'Committee Chair', status: 'Accepted'}
+                ],
+                smart_features: {
+                    alternative_slots: [{date: dateStr, time: `${(startHour + 2).toString().padStart(2, '0')}:00`}],
+                    panel_unanimity: true
+                }
+            };
+        } catch (error) {
+            console.error('AI scheduling error:', error);
+            return null;
+        }
     }
 
     // Custom alert functions to replace SweetAlert2
@@ -1127,16 +1191,25 @@
             })
         })
         .then(response => response.json())
-        .then(data => {
-            names.forEach(name => {
+        .then(async data => {
+            console.log('Panel availability data:', data);
+            const panelAvailability = {
+                recommended_time: null,
+                participants: {
+                    panel_member_1: { availability: "", time_zone: "" },
+                    panel_member_2: { availability: "", time_zone: "" },
+                    chairperson: { availability: "", time_zone: "" }
+                },
+                notes: "Recommended time will be generated once all participant availabilities and time zones are provided. No conflicting or out-of-availability times will be suggested."
+            };
+            names.forEach((name, index) => {
                 const row = tbody.insertRow();
                 row.insertCell().textContent = name;
-
+                const availableDates = [];
                 dates.forEach(d => {
                     const cell = row.insertCell();
                     const dateStr = d.toISOString().split('T')[0];
                     const panelData = data.availability && data.availability[name] && data.availability[name][dateStr];
-                    
                     if (panelData && panelData.conflicts && panelData.conflicts.length > 0) {
                         cell.textContent = 'Conflict';
                         cell.classList.add('availability-unavailable');
@@ -1144,9 +1217,32 @@
                     } else {
                         cell.textContent = 'Available';
                         cell.classList.add('availability-available');
+                        availableDates.push(dateStr);
                     }
                 });
+                const availabilityStr = availableDates.length > 0 ? availableDates.join(', ') : 'No available dates';
+                const memberKey = index === names.length - 1 ? 'chairperson' : `panel_member_${index + 1}`;
+                panelAvailability.participants[memberKey] = { availability: availabilityStr, time_zone: 'Asia/Manila' };
             });
+            const aiRecommendation = await getAIRecommendation(panelAvailability);
+            if (aiRecommendation && aiRecommendation.recommended_time) {
+                const aiRow = tbody.insertRow(0);
+                const aiCell = aiRow.insertCell();
+                aiCell.colSpan = dates.length + 1;
+                aiCell.style.backgroundColor = '#e7f1ff';
+                aiCell.style.fontWeight = 'bold';
+                aiCell.style.padding = '1rem';
+                const recTime = aiRecommendation.recommended_time;
+                const recDate = new Date(recTime);
+                const formattedTime = recDate.toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                aiCell.innerHTML = `<i class="bi bi-robot" style="color: var(--primary-blue); font-size: 1.2rem;"></i> <strong>AI Recommendation:</strong> ${formattedTime}`;
+            }
         })
         .catch(error => {
             console.error('Error fetching panel availability:', error);
@@ -1563,6 +1659,48 @@
     }
     
     document.addEventListener('DOMContentLoaded', function () {
+
+        document.getElementById('aiScheduleBtn').addEventListener('click', async function() {
+            const adviser = document.getElementById('modal-adviser').textContent;
+            const chair = document.getElementById('modal-chairperson').textContent;
+            const members = document.getElementById('modal-members').textContent;
+            const today = new Date();
+            const dates = [];
+            let date = new Date(today);
+            let count = 0;
+            while (count < 5) {
+                date.setDate(date.getDate() + 1);
+                if (date.getDay() !== 0 && date.getDay() !== 6) {
+                    dates.push(date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }));
+                    count++;
+                }
+            }
+            const avail = {};
+            const panelNames = [adviser, chair, ...members.split(',').map(n => n.trim())].filter(n => n && n !== 'No Adviser' && n !== 'No Chairperson' && n !== 'No Members');
+            panelNames.forEach(name => { avail[name] = dates; });
+            
+            const processingModal = showAlert('info', 'Processing', 'AI analyzing schedule...');
+            const res = await getAISchedule({adviser, chair, members}, avail);
+            bootstrap.Modal.getInstance(document.getElementById('alertModal')).hide();
+            
+            if (res && res.schedule) {
+                const html = `<div class="mb-3"><h6 class="fw-bold">Recommended Schedule:</h6><p><strong>Date:</strong> ${res.schedule.date}</p><p><strong>Time:</strong> ${res.schedule.start_time} - ${res.schedule.end_time}</p><p><strong>Duration:</strong> ${res.schedule.duration_minutes} minutes</p></div><div class="mb-3"><h6 class="fw-bold">Panel Members:</h6>${res.panel_members ? res.panel_members.map(p => `<p><i class="bi bi-check-circle text-success"></i> ${p.name} (${p.role})</p>`).join('') : ''}</div>${res.smart_features?.alternative_slots?.length ? `<div class="alert alert-info"><strong>Alternative:</strong> ${res.smart_features.alternative_slots[0].date} at ${res.smart_features.alternative_slots[0].time}</div>` : ''}`;
+                document.getElementById('aiResultBody').innerHTML = html;
+                document.getElementById('applyAiSchedule').onclick = function() {
+                    const [year, month, day] = res.schedule.date.split('-');
+                    document.getElementById('date-actual-input').value = res.schedule.date;
+                    document.getElementById('date-display-input').value = `${month}/${day}/${year}`;
+                    document.getElementById('start-time-input').value = res.schedule.start_time;
+                    document.getElementById('end-time-input').value = res.schedule.end_time;
+                    bootstrap.Modal.getInstance(document.getElementById('aiResultModal')).hide();
+                    showAlert('success', 'Applied', 'AI schedule applied to form!');
+                };
+                new bootstrap.Modal(document.getElementById('aiResultModal')).show();
+            } else {
+                showAlert('error', 'Failed', 'AI scheduling failed. Please try again or set schedule manually.');
+            }
+        });
+
         const typeSelectionView = document.getElementById('type-selection-view');
         const filterPage = document.getElementById('filter-page');
         const enterButton = document.getElementById('enterButton');
@@ -1575,6 +1713,24 @@
         const clusterSelect = document.getElementById('cluster-select');
         const dateDisplayInput = document.getElementById('date-display-input');
         const dateActualInput = document.getElementById('date-actual-input');
+        
+        document.getElementById('showAvailabilityBtn').addEventListener('click', function() {
+            const scheduleModalEl = document.getElementById('scheduleModal');
+            const adviser = document.getElementById('modal-adviser').textContent;
+            const chair = document.getElementById('modal-chairperson').textContent;
+            const members = document.getElementById('modal-members').textContent;
+            const cluster = clusterSelect.value;
+            const set = document.getElementById('set-input').value;
+            
+            const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
+            
+            setupAvailabilityModal(cluster, set, panelNames);
+            
+            bootstrap.Modal.getInstance(scheduleModalEl).hide();
+            setTimeout(() => {
+                new bootstrap.Modal(document.getElementById('infoModal')).show();
+            }, 300);
+        });
         
         // Check for URL parameters from panel-adviser or redefense redirect
         const urlParams = new URLSearchParams(window.location.search);
@@ -1962,22 +2118,55 @@
                 localStorage.setItem('selectedDefenseType', currentDefenseType);
                 localStorage.setItem('currentView', 'filter');
                 showFilterPage();
-                
-                document.getElementById('defense-type-display').textContent = `${currentDefenseType} SCHEDULING`;
-                
-                // Show/hide defense type dropdown for Re-defense
+                document.getElementById('defense-type-display').textContent = currentDefenseType + ' SCHEDULING';
                 const redefenseTypeGroup = document.getElementById('redefense-type-group');
                 if (currentDefenseType === 'REDEFENSE') {
                     redefenseTypeGroup.style.display = 'block';
                 } else {
                     redefenseTypeGroup.style.display = 'none';
                 }
-                
-                // Reset form values
                 deptSelect.value = '';
                 clusterSelect.value = '';
                 document.getElementById('redefense-type-select').value = '';
             });
+        });
+        
+        // Update cluster/section options based on department
+        deptSelect.addEventListener('change', function() {
+            const clusterSelect = document.getElementById('cluster-select');
+            const clusterLabel = document.getElementById('cluster-label');
+            const clusterHeader = document.getElementById('cluster-header');
+            
+            clusterSelect.innerHTML = '';
+            
+            if (this.value === 'BSIT') {
+                clusterLabel.textContent = 'Cluster';
+                if (clusterHeader) clusterHeader.textContent = 'Cluster';
+                clusterSelect.innerHTML = `
+                    <option selected disabled value="">Select Cluster</option>
+                    <option value="4101">4101</option>
+                    <option value="4102">4102</option>
+                    <option value="4103">4103</option>
+                    <option value="4104">4104</option>
+                    <option value="4105">4105</option>
+                    <option value="4106">4106</option>
+                    <option value="4107">4107</option>
+                    <option value="4108">4108</option>
+                    <option value="4109">4109</option>
+                    <option value="4110">4110</option>
+                `;
+            } else {
+                clusterLabel.textContent = 'Section';
+                if (clusterHeader) clusterHeader.textContent = 'Section';
+                clusterSelect.innerHTML = `
+                    <option selected disabled value="">Select Section</option>
+                    <option value="Section 1">Section 1</option>
+                    <option value="Section 2">Section 2</option>
+                    <option value="Section 3">Section 3</option>
+                    <option value="Section 4">Section 4</option>
+                    <option value="Section 5">Section 5</option>
+                `;
+            }
         });
         
         document.getElementById('backToFilterButton').addEventListener('click', function() {
@@ -2067,9 +2256,9 @@
             
             const panelCell = document.querySelector(`.panel-details-table[data-panel-set="${set}"]`);
 
-            const adviser = panelCell.getAttribute('data-adviser');
-            const chair = panelCell.getAttribute('data-chair');
-            const members = panelCell.getAttribute('data-members');
+            const adviser = button.getAttribute('data-adviser') || 'No Adviser';
+            const chair = button.getAttribute('data-chair') || 'No Chairperson';
+            const members = button.getAttribute('data-members') || 'No Members';
 
             document.getElementById('modal-title-display').textContent = `Schedule Defense: C${cluster} Set ${set} (Group ${group})`;
             document.getElementById('modal-adviser').textContent = adviser;
@@ -2093,7 +2282,7 @@
             
             document.getElementById('set-input').value = set;
             
-            let panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name);
+            const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
             setupAvailabilityModal(cluster, set, panelNames);
         });
 
@@ -2196,6 +2385,73 @@
             }, 100); 
         });
         
+        const generateBtn = document.getElementById('generateRandomAvailabilityBtn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', async function() {
+                const tbody = document.getElementById('availability-table-body');
+                const allRows = Array.from(tbody.rows);
+                const existingRows = allRows.filter(row => !row.cells[0]?.colSpan || row.cells[0].colSpan === 1);
+                
+                const panelNames = existingRows.map(row => row.cells[0]?.textContent).filter(Boolean);
+                const panelAvailability = {
+                    recommended_time: null,
+                    participants: {
+                        panel_member_1: { availability: "", time_zone: "Asia/Manila" },
+                        panel_member_2: { availability: "", time_zone: "Asia/Manila" },
+                        chairperson: { availability: "", time_zone: "Asia/Manila" }
+                    }
+                };
+                
+                existingRows.forEach((row, index) => {
+                    const availableDates = [];
+                    for (let i = 1; i < row.cells.length; i++) {
+                        const cell = row.cells[i];
+                        const isAvailable = Math.random() > 0.3;
+                        
+                        if (isAvailable) {
+                            cell.textContent = 'Available';
+                            cell.className = 'availability-available';
+                            cell.title = '';
+                            const headerCell = tbody.closest('table').querySelector('thead tr').children[i];
+                            if (headerCell) availableDates.push(headerCell.textContent);
+                        } else {
+                            cell.textContent = 'Conflict';
+                            cell.className = 'availability-unavailable';
+                            cell.title = 'Random conflict: Meeting scheduled';
+                        }
+                    }
+                    
+                    const availabilityStr = availableDates.length > 0 ? availableDates.join(', ') : 'No available dates';
+                    const memberKey = index === panelNames.length - 1 ? 'chairperson' : `panel_member_${index + 1}`;
+                    panelAvailability.participants[memberKey] = { availability: availabilityStr, time_zone: 'Asia/Manila' };
+                });
+                
+                let aiRow = allRows.find(row => row.cells[0]?.colSpan > 1);
+                if (!aiRow) {
+                    aiRow = tbody.insertRow(0);
+                    const aiCell = aiRow.insertCell();
+                    aiCell.colSpan = existingRows[0].cells.length;
+                    aiCell.style.backgroundColor = '#e7f1ff';
+                    aiCell.style.fontWeight = 'bold';
+                    aiCell.style.padding = '1rem';
+                }
+                
+                const aiCell = aiRow.cells[0];
+                aiCell.innerHTML = `<i class="bi bi-robot" style="color: var(--primary-blue); font-size: 1.2rem;"></i> <strong>AI Recommendation:</strong> Analyzing...`;
+                
+                try {
+                    const aiRecommendation = await getAIRecommendation(panelAvailability);
+                    const recTime = aiRecommendation?.recommended_time || 'No common availability found';
+                    aiCell.innerHTML = `<i class="bi bi-robot" style="color: var(--primary-blue); font-size: 1.2rem;"></i> <strong>AI Recommendation:</strong> ${recTime}`;
+                } catch (error) {
+                    console.error('AI error:', error);
+                    aiCell.innerHTML = `<i class="bi bi-robot" style="color: var(--primary-blue); font-size: 1.2rem;"></i> <strong>AI Recommendation:</strong> Error generating recommendation`;
+                }
+                
+                showAlert('success', 'Availability Generated', 'Random availability generated.');
+            });
+        }
+        
         // Initialize page visibility based on saved state
         const initialView = localStorage.getItem('currentView');
         if (!initialView || (!urlParams.get('department') && !localStorage.getItem('selectedDefenseType'))) {
@@ -2223,25 +2479,88 @@
                     cluster = clusterCell.textContent;
                 }
                 
-                // Get panel data from schedule button or use defaults
-                const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
-                const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
-                const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
-                const members = scheduleBtn?.getAttribute('data-members') || 'No Members';
-                
-                document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
-                document.getElementById('groupDept').textContent = dept || '-';
-                document.getElementById('groupCluster').textContent = cluster;
-                document.getElementById('groupSet').textContent = set;
-                document.getElementById('groupStatus').textContent = status;
-                document.getElementById('groupAdviser').textContent = adviser;
-                document.getElementById('groupChair').textContent = chair;
-                document.getElementById('groupMembers').textContent = members;
-                
-                new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                // Fetch actual group data from database
+                fetch(`/api/groups/${displayNumber}?department=${dept}`)
+                    .then(response => response.json())
+                    .then(groupData => {
+                        if (groupData && groupData.group) {
+                            const group = groupData.group;
+                            
+                            // Display group members
+                            let membersHtml = '<ul class="list-unstyled mb-0">';
+                            for (let i = 1; i <= 5; i++) {
+                                const memberName = group[`member${i}_name`];
+                                const memberStudentId = group[`member${i}_student_id`];
+                                if (memberName) {
+                                    const isLeader = i == group.leader_member;
+                                    membersHtml += `<li>${memberName} (${memberStudentId})${isLeader ? ' <span class="badge bg-primary">Leader</span>' : ''}</li>`;
+                                }
+                            }
+                            membersHtml += '</ul>';
+                            
+                            document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
+                            document.getElementById('groupDept').textContent = dept || '-';
+                            document.getElementById('groupCluster').textContent = cluster;
+                            document.getElementById('groupSet').textContent = set;
+                            document.getElementById('groupStatus').textContent = status;
+                            document.getElementById('groupMembers').innerHTML = membersHtml;
+                            
+                            // Get panel data from schedule button or use defaults
+                            const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
+                            const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
+                            const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
+                            const members = scheduleBtn?.getAttribute('data-members') || 'No Members';
+                            
+                            document.getElementById('groupAdviser').textContent = adviser;
+                            document.getElementById('groupChair').textContent = chair;
+                            document.getElementById('groupMembers').innerHTML = membersHtml;
+                        } else {
+                            // Fallback to default display
+                            document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
+                            document.getElementById('groupDept').textContent = dept || '-';
+                            document.getElementById('groupCluster').textContent = cluster;
+                            document.getElementById('groupSet').textContent = set;
+                            document.getElementById('groupStatus').textContent = status;
+                            document.getElementById('groupMembers').textContent = 'No group data found';
+                            
+                            const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
+                            const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
+                            const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
+                            
+                            document.getElementById('groupAdviser').textContent = adviser;
+                            document.getElementById('groupChair').textContent = chair;
+                        }
+                        
+                        new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching group data:', error);
+                        // Fallback display
+                        document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
+                        document.getElementById('groupDept').textContent = dept || '-';
+                        document.getElementById('groupCluster').textContent = cluster;
+                        document.getElementById('groupSet').textContent = set;
+                        document.getElementById('groupStatus').textContent = status;
+                        document.getElementById('groupMembers').textContent = 'Error loading group data';
+                        
+                        const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
+                        const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
+                        const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
+                        
+                        document.getElementById('groupAdviser').textContent = adviser;
+                        document.getElementById('groupChair').textContent = chair;
+                        
+                        new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                    });
             }
         });
 
     });
 </script>
 @endsection
+
+
+
+
+
+

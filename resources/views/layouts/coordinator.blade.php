@@ -405,22 +405,29 @@
                 document.getElementById('coordinatorProfileImage').src = savedImage;
             }
             
-            document.getElementById('saveCoordinatorProfile').addEventListener('click', function() {
-                const imageSrc = document.getElementById('coordinatorProfileImage').src;
-                localStorage.setItem('coordinatorProfileImage', imageSrc);
-                
-                const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
-                profileModal.hide();
-                
-                const successModal = new bootstrap.Modal(document.getElementById('profileSaveSuccessModal'));
-                successModal.show();
-            });
+            const profileBtn = document.getElementById('coordinatorProfileBtn');
+            const profileInput = document.getElementById('coordinatorProfileInput');
+            const saveBtn = document.getElementById('saveCoordinatorProfile');
+            
+            if (profileBtn && profileInput) {
+                profileBtn.addEventListener('click', function() {
+                    profileInput.click();
+                });
+            }
+            
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    const imageSrc = document.getElementById('coordinatorProfileImage').src;
+                    localStorage.setItem('coordinatorProfileImage', imageSrc);
+                    
+                    const profileModal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+                    profileModal.hide();
+                    
+                    const successModal = new bootstrap.Modal(document.getElementById('profileSaveSuccessModal'));
+                    successModal.show();
+                });
+            }
         });
-
-        document.getElementById('coordinatorProfileBtn')
-        .addEventListener('click', () => {
-        document.getElementById('coordinatorProfileInput').click();
-      });
     </script>
     @yield('scripts')
 
