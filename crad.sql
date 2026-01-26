@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost: 3306
--- Generation Time: Jan 25, 2026 at 07:49 AM
+-- Generation Time: Jan 26, 2026 at 04:30 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,7 +47,10 @@ INSERT INTO `advisers` (`id`, `name`, `department`, `expertise`, `sections`, `cr
 (2, 'Prof. George', 'BSIT', 'Instructor', '[\"4102\"]', '2026-01-18 08:16:14', '2026-01-24 04:45:25', '2026-01-24 04:45:25'),
 (3, 'Prof. Itachi', 'CRIM', 'Associate Professor', '[\"4101\"]', '2026-01-18 14:50:27', '2026-01-24 10:23:09', NULL),
 (4, 'Mr. Jairo Luis Indoso', 'EDUC', 'Doctoral', '[\"4101\"]', '2026-01-18 14:57:42', '2026-01-24 10:02:14', NULL),
-(5, 'Prof. Maria Jose', 'EDUC', 'Professor', '[\"4102\"]', '2026-01-24 04:11:22', '2026-01-24 18:35:16', NULL);
+(5, 'Prof. Maria Jose', 'EDUC', 'Professor', '[\"4102\"]', '2026-01-24 04:11:22', '2026-01-24 18:35:16', NULL),
+(6, 'Prof. Doe', 'BSIT', 'Professor', '[\"4101\"]', '2026-01-25 08:27:39', '2026-01-26 01:14:34', NULL),
+(7, 'Bret Baa', 'BSIT', 'Industry Expert', '[\"4103\"]', '2026-01-25 20:39:44', '2026-01-25 20:49:38', NULL),
+(8, 'Mr. Andy Adovas', 'BSIT', 'Industry Expert', '[]', '2026-01-26 01:04:42', '2026-01-26 01:07:12', NULL);
 
 -- --------------------------------------------------------
 
@@ -72,7 +75,7 @@ CREATE TABLE `assignments` (
 --
 
 INSERT INTO `assignments` (`id`, `department`, `section`, `department_id`, `section_id`, `title`, `created_at`, `updated_at`, `adviser_id`) VALUES
-(2, 'BSIT', '4101', NULL, NULL, NULL, '2026-01-18 07:23:40', '2026-01-18 07:23:40', 1),
+(2, 'BSIT', '4101', NULL, NULL, NULL, '2026-01-18 07:23:40', '2026-01-25 08:34:24', 6),
 (3, 'BSIT', '4102', NULL, NULL, NULL, '2026-01-18 14:46:28', '2026-01-18 14:46:28', 2),
 (4, 'CRIM', '4101', NULL, NULL, NULL, '2026-01-18 14:54:13', '2026-01-18 14:54:13', 3);
 
@@ -95,6 +98,14 @@ CREATE TABLE `assignment_panels` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `assignment_panels`
+--
+
+INSERT INTO `assignment_panels` (`id`, `assignment_id`, `panel_id`, `name`, `availability`, `role`, `expertise`, `department`, `section`, `created_at`, `updated_at`) VALUES
+(3, 2, 1, 'Prof. Hayley Nichole Williams', '[{\"date\":\"2026-01-29\",\"time\":\"11:15 - 12:16\"},{\"date\":\"2026-01-20\",\"time\":\"13:16 - 14:16\"}]', 'Chairperson', 'Doctoral', 'BSIT', '4101', '2026-01-26 01:27:54', '2026-01-26 01:27:54'),
+(4, 2, 2, 'Prof. Jane', '[{\"date\":\"2026-01-20\",\"time\":\"13:18 - 14:18\"}]', 'Member', 'Professor', 'BSIT', '4101', '2026-01-26 01:27:54', '2026-01-26 01:27:54');
 
 -- --------------------------------------------------------
 
@@ -121,6 +132,18 @@ CREATE TABLE `cache` (
   `value` mediumtext NOT NULL,
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `cache`
+--
+
+INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
+('22018863|127.0.0.1', 'i:1;', 1769409720),
+('22018863|127.0.0.1:timer', 'i:1769409720;', 1769409720),
+('it001|127.0.0.1', 'i:1;', 1769417883),
+('it001|127.0.0.1:timer', 'i:1769417883;', 1769417883),
+('it110|127.0.0.1', 'i:1;', 1769409737),
+('it110|127.0.0.1:timer', 'i:1769409736;', 1769409736);
 
 -- --------------------------------------------------------
 
@@ -246,10 +269,10 @@ CREATE TABLE `defense_schedules` (
 --
 
 INSERT INTO `defense_schedules` (`id`, `department`, `section`, `group_id`, `defense_type`, `original_defense_type`, `assignment_id`, `defense_date`, `start_time`, `end_time`, `set_letter`, `status`, `panel_data`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'BSIT', '4101', 'A1', 'PRE-ORAL', NULL, 1, '2026-02-01', '22:56:00', '12:56:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-18 07:25:01', '2026-01-24 06:56:29', NULL),
+(1, 'BSIT', '4101', 'A1', 'PRE-ORAL', NULL, 1, '2026-02-01', '14:00:00', '15:30:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-18 07:25:01', '2026-01-26 07:16:06', NULL),
 (2, 'BSIT', '4101', 'A1', 'FINAL DEFENSE', NULL, 1, NULL, NULL, NULL, NULL, 'Pending', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-18 07:27:18', '2026-01-18 07:27:18', NULL),
 (3, 'BSIT', '4101', 'B1', 'FINAL DEFENSE', NULL, 1, NULL, NULL, NULL, NULL, 'Pending', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-18 07:27:27', '2026-01-18 07:27:27', NULL),
-(4, 'BSIT', '4101', 'A2', 'PRE-ORAL', NULL, 1, '2026-02-01', '12:56:00', '02:56:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-18 15:18:54', '2026-01-24 06:56:30', NULL),
+(4, 'BSIT', '4101', 'A2', 'PRE-ORAL', NULL, 1, '2026-02-01', '15:30:00', '17:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-18 15:18:54', '2026-01-26 07:16:06', NULL),
 (5, 'BSIT', '4101', 'A2', 'FINAL DEFENSE', NULL, 1, NULL, NULL, NULL, NULL, 'Pending', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-18 15:19:39', '2026-01-18 15:19:39', NULL),
 (6, 'BSIT', '4102', 'A1', 'PRE-ORAL', NULL, 1, '2026-01-24', '20:38:00', '21:38:00', 'A', 'Scheduled', '{\"adviser\":\"Prof. George\",\"chairperson\":\"Doc. Mikasa\",\"members\":\"Prof. Williams, Prof. Jane\"}', '2026-01-24 04:38:49', '2026-01-24 04:38:49', NULL),
 (7, 'BSIT', '4102', 'A2', 'PRE-ORAL', NULL, 1, '2026-01-24', '21:38:00', '22:38:00', 'A', 'Scheduled', '{\"adviser\":\"Prof. George\",\"chairperson\":\"Doc. Mikasa\",\"members\":\"Prof. Williams, Prof. Jane\"}', '2026-01-24 04:38:49', '2026-01-24 04:38:49', NULL),
@@ -261,9 +284,29 @@ INSERT INTO `defense_schedules` (`id`, `department`, `section`, `group_id`, `def
 (13, 'BSIT', '4102', 'B3', 'PRE-ORAL', NULL, 1, '2026-01-31', '02:39:00', '16:37:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. George\",\"chairperson\":\"Doc. Mikasa\",\"members\":\"Prof. Williams, Prof. Jane\"}', '2026-01-24 04:41:28', '2026-01-24 04:41:28', NULL),
 (14, 'BSIT', '4102', 'B4', 'PRE-ORAL', NULL, 1, '2026-01-31', '16:37:00', '06:35:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. George\",\"chairperson\":\"Doc. Mikasa\",\"members\":\"Prof. Williams, Prof. Jane\"}', '2026-01-24 04:41:28', '2026-01-24 04:41:28', NULL),
 (15, 'BSIT', '4102', 'B5', 'PRE-ORAL', NULL, 1, '2026-01-31', '06:35:00', '20:33:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. George\",\"chairperson\":\"Doc. Mikasa\",\"members\":\"Prof. Williams, Prof. Jane\"}', '2026-01-24 04:41:29', '2026-01-24 04:41:29', NULL),
-(16, 'BSIT', '4101', 'A3', 'PRE-ORAL', NULL, 1, '2026-02-01', '02:56:00', '16:56:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-24 06:56:30', '2026-01-24 06:56:30', NULL),
-(17, 'BSIT', '4101', 'A4', 'PRE-ORAL', NULL, 1, '2026-02-01', '16:56:00', '06:56:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-24 06:56:30', '2026-01-24 06:56:30', NULL),
-(18, 'BSIT', '4101', 'A5', 'PRE-ORAL', NULL, 1, '2026-02-01', '06:56:00', '20:56:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-24 06:56:30', '2026-01-24 06:56:30', NULL);
+(16, 'BSIT', '4101', 'A3', 'PRE-ORAL', NULL, 1, '2026-02-01', '17:00:00', '18:30:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-24 06:56:30', '2026-01-26 07:16:06', NULL),
+(17, 'BSIT', '4101', 'A4', 'PRE-ORAL', NULL, 1, '2026-02-01', '18:30:00', '20:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-24 06:56:30', '2026-01-26 07:16:07', NULL),
+(18, 'BSIT', '4101', 'A5', 'PRE-ORAL', NULL, 1, '2026-02-01', '20:00:00', '21:30:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"Prof. Williams\",\"members\":\"Prof. Jane, Prof. Jane\"}', '2026-01-24 06:56:30', '2026-01-26 07:16:07', NULL),
+(19, 'BSIT', '4101', 'B1', 'PRE-ORAL', NULL, 1, '2026-01-30', '13:00:00', '14:00:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. Doe\",\"chairperson\":\"Prof. Hayley Nichole Williams\",\"members\":\"Prof. Jane\"}', '2026-01-26 02:18:53', '2026-01-26 04:55:40', NULL),
+(20, 'BSIT', '4101', 'B2', 'PRE-ORAL', NULL, 1, '2026-01-30', '14:00:00', '15:00:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. Doe\",\"chairperson\":\"Prof. Hayley Nichole Williams\",\"members\":\"Prof. Jane\"}', '2026-01-26 02:18:53', '2026-01-26 04:55:40', NULL),
+(21, 'BSIT', '4101', 'B3', 'PRE-ORAL', NULL, 1, '2026-01-30', '15:00:00', '16:00:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. Doe\",\"chairperson\":\"Prof. Hayley Nichole Williams\",\"members\":\"Prof. Jane\"}', '2026-01-26 02:18:54', '2026-01-26 04:55:40', NULL),
+(22, 'BSIT', '4101', 'B4', 'PRE-ORAL', NULL, 1, '2026-01-30', '16:00:00', '17:00:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. Doe\",\"chairperson\":\"Prof. Hayley Nichole Williams\",\"members\":\"Prof. Jane\"}', '2026-01-26 02:18:54', '2026-01-26 04:55:41', NULL),
+(23, 'BSIT', '4101', 'B5', 'PRE-ORAL', NULL, 1, '2026-01-30', '17:00:00', '18:00:00', 'B', 'Scheduled', '{\"adviser\":\"Prof. Doe\",\"chairperson\":\"Prof. Hayley Nichole Williams\",\"members\":\"Prof. Jane\"}', '2026-01-26 02:18:54', '2026-01-26 04:55:41', NULL),
+(24, 'BSIT', '4104', 'A1', 'PRE-ORAL', NULL, 1, '2026-02-02', '10:00:00', '12:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:26:18', '2026-01-26 02:26:21', NULL),
+(25, 'BSIT', '4104', 'A2', 'PRE-ORAL', NULL, 1, '2026-02-02', '12:00:00', '14:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:26:19', '2026-01-26 02:26:21', NULL),
+(26, 'BSIT', '4104', 'A3', 'PRE-ORAL', NULL, 1, '2026-02-02', '14:00:00', '16:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:26:19', '2026-01-26 02:26:21', NULL),
+(27, 'BSIT', '4104', 'A4', 'PRE-ORAL', NULL, 1, '2026-02-02', '16:00:00', '18:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:26:19', '2026-01-26 02:26:22', NULL),
+(28, 'BSIT', '4104', 'A5', 'PRE-ORAL', NULL, 1, '2026-02-02', '18:00:00', '20:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:26:20', '2026-01-26 02:26:22', NULL),
+(29, 'BSIT', '4104', 'B1', 'PRE-ORAL', NULL, 1, '2026-02-01', '08:00:00', '09:30:00', 'B', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:30:12', '2026-01-26 02:30:12', NULL),
+(30, 'BSIT', '4104', 'B2', 'PRE-ORAL', NULL, 1, '2026-02-01', '09:30:00', '11:00:00', 'B', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:30:12', '2026-01-26 02:30:12', NULL),
+(31, 'BSIT', '4104', 'B3', 'PRE-ORAL', NULL, 1, '2026-02-01', '11:00:00', '12:30:00', 'B', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:30:13', '2026-01-26 02:30:13', NULL),
+(32, 'BSIT', '4104', 'B4', 'PRE-ORAL', NULL, 1, '2026-02-01', '12:30:00', '14:00:00', 'B', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:30:13', '2026-01-26 02:30:13', NULL),
+(33, 'BSIT', '4104', 'B5', 'PRE-ORAL', NULL, 1, '2026-02-01', '14:00:00', '15:30:00', 'B', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:30:13', '2026-01-26 02:30:13', NULL),
+(34, 'BSIT', '4105', 'A1', 'PRE-ORAL', NULL, 1, '2026-02-04', '13:00:00', '15:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:51:51', '2026-01-26 03:05:00', NULL),
+(35, 'BSIT', '4105', 'A2', 'PRE-ORAL', NULL, 1, '2026-02-04', '15:00:00', '17:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:51:51', '2026-01-26 03:05:00', NULL),
+(36, 'BSIT', '4105', 'A3', 'PRE-ORAL', NULL, 1, '2026-02-04', '17:00:00', '19:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:51:51', '2026-01-26 03:05:01', NULL),
+(37, 'BSIT', '4105', 'A4', 'PRE-ORAL', NULL, 1, '2026-02-04', '19:00:00', '21:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:51:52', '2026-01-26 03:05:01', NULL),
+(38, 'BSIT', '4105', 'A5', 'PRE-ORAL', NULL, 1, '2026-02-04', '21:00:00', '23:00:00', 'A', 'Scheduled', '{\"adviser\":\"No Adviser\",\"chairperson\":\"No Chairperson\",\"members\":\"No Members\"}', '2026-01-26 02:51:52', '2026-01-26 03:05:01', NULL);
 
 -- --------------------------------------------------------
 
@@ -331,6 +374,42 @@ CREATE TABLE `final_assignments` (
   `defense_time` time DEFAULT NULL,
   `defense_venue` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `groups`
+--
+
+CREATE TABLE `groups` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `group_id` varchar(255) NOT NULL,
+  `group_number` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `department` varchar(255) NOT NULL,
+  `leader_member` int(11) NOT NULL DEFAULT 1,
+  `member1_name` varchar(255) DEFAULT NULL,
+  `member1_student_id` varchar(255) DEFAULT NULL,
+  `member2_name` varchar(255) DEFAULT NULL,
+  `member2_student_id` varchar(255) DEFAULT NULL,
+  `member3_name` varchar(255) DEFAULT NULL,
+  `member3_student_id` varchar(255) DEFAULT NULL,
+  `member4_name` varchar(255) DEFAULT NULL,
+  `member4_student_id` varchar(255) DEFAULT NULL,
+  `member5_name` varchar(255) DEFAULT NULL,
+  `member5_student_id` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `groups`
+--
+
+INSERT INTO `groups` (`id`, `group_id`, `group_number`, `password`, `department`, `leader_member`, `member1_name`, `member1_student_id`, `member2_name`, `member2_student_id`, `member3_name`, `member3_student_id`, `member4_name`, `member4_student_id`, `member5_name`, `member5_student_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'IT001', '1', '$2y$12$A2WAM7B87SIUcs8FDVDOq.RahtRS90iETFIsY75i4TWPh6mVQlk/a', 'BSIT', 1, 'Jairo Luis L. Indoso', '22018863', 'Bret Baa', '22018696', 'Kim Elacion', '2209654', 'Angelo Michael Amata', '22087815', 'Princess Ana Juego', '2203484', '2026-01-25 22:00:00', '2026-01-26 00:57:22', NULL),
+(2, 'IT002', '2', '$2y$12$RrlKM7BrGB0wNQjZ3SbwNeK4BJfXBG7pUHY/9TXKMaNg7j.wuZpsG', 'BSIT', 1, 'Andrei Soriano', '2200000', 'Clarisse Sang-olan', '2000001', 'Ronald Ampo', '2000002', 'Vincent Basa', '2000003', 'Mark Apuli', '2000004', '2026-01-26 02:46:15', '2026-01-26 02:47:50', NULL);
 
 -- --------------------------------------------------------
 
@@ -434,7 +513,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (48, '2026_01_18_000002_add_adviser_id_to_assignments_table', 5),
 (50, '2026_01_18_000003_create_assignment_panels_table', 6),
 (51, '2026_01_25_035908_add_role_contact_to_users_table', 6),
-(52, '2026_01_25_063213_increase_otp_column_length_on_users_table', 7);
+(52, '2026_01_25_063213_increase_otp_column_length_on_users_table', 7),
+(53, '2026_01_25_081054_add_soft_deletes_to_users_table', 8),
+(54, '2026_01_26_055005_create_groups_table', 9),
+(55, '2026_01_26_060646_add_group_number_and_leader_to_groups_table', 10);
 
 -- --------------------------------------------------------
 
@@ -510,7 +592,7 @@ INSERT INTO `panels` (`id`, `name`, `department`, `expertise`, `contact_number`,
 (2, 'Prof. Jane', 'BSIT', 'Professor', '09532147988', '[{\"date\":\"2026-01-20\",\"time\":\"13:18 - 14:18\"}]', '2026-01-18 07:18:47', '2026-01-24 05:30:42', NULL, 'Member'),
 (3, 'Prof. Jane', 'BSIT', 'Research Specialist', '09532147989', '[{\"date\":\"2026-01-31\",\"time\":\"11:22 - 12:22\"}]', '2026-01-18 07:22:51', '2026-01-24 05:33:04', NULL, 'Member'),
 (4, 'Doc. Mikasa', 'BSIT', 'Doctoral', '09532147985', '[{\"date\":\"2026-01-31\",\"time\":\"07:00 - 10:00\"}]', '2026-01-18 14:45:55', '2026-01-24 05:30:18', NULL, 'Chairperson'),
-(5, 'Doc. Eren', 'CRIM', 'Doctoral', '09532147984', '[{\"date\":\"2026-02-01\",\"time\":\"06:00 - 12:00\"}]', '2026-01-18 14:51:13', '2026-01-18 14:51:13', NULL, 'Chairperson'),
+(5, 'Doc. Eren', 'CRIM', 'Doctoral', '09532147984', '[{\"date\":\"2026-02-01\",\"time\":\"06:00 - 12:00\"}]', '2026-01-18 14:51:13', '2026-01-26 06:06:56', '2026-01-26 06:06:56', 'Chairperson'),
 (6, 'Doc. Ignacio', 'CRIM', 'Industry Expert', '09532147986', '[{\"date\":\"2026-03-02\",\"time\":\"07:00 - 15:00\"}]', '2026-01-18 14:52:22', '2026-01-18 14:52:22', NULL, 'Member'),
 (7, 'Prof. Fugaku', 'CRIM', 'Industry Expert', '09532147982', '[{\"date\":\"2026-02-03\",\"time\":\"06:00 - 11:00\"}]', '2026-01-18 14:54:00', '2026-01-24 09:13:40', NULL, 'Member');
 
@@ -607,8 +689,9 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('a9lU2EzTW0NFFFrQgnyaEEab4CpTxjAsPFTMk0DG', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiWW5vaDhFTm81b05JYkNvZmpWc25PVVcydVRkY25qc0FEQlJKV1VWRSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7fX0=', 1769320279),
-('rCKx2U26p0trepaL8LOBuvR7etVjuYQI83XhHZVs', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiQkY2RFpKdXJ1SHFQU0lCR0xNQTRJdHE5QkxIdTlwY0xCa1pKZ1Q5TCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mzc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hZG1pbi1kYXNoYm9hcmQiO31zOjE0OiJvdHBfZXhwaXJlc19hdCI7aToxNzY5MzI0MTYzO3M6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7fQ==', 1769323575);
+('9c7MZHYNLqzX7ahM2W2vPJCfPuW9BG13zEZbqs0z', 15, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoia2tWelo4N3RUR0MwdDRCY284TEJkbGlieDN3Tlk1U2s0TEljaDRUcSI7czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czozMjoiaHR0cDovLzEyNy4wLjAuMTo4MDAwL3N1Ym1pc3Npb24iO31zOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czozNToiaHR0cDovLzEyNy4wLjAuMTo4MDAwL3N0ZC1kYXNoYm9hcmQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxNTt9', 1769439690),
+('h55fS1qrmyOkqRpXhz9jdGEeBsh79Ds70gsUTfa8', 5, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiUldDaXNZTDZ1ZWI2bHFRc3RlR3pYaGw5ZXVZVVZtczlGTDZ5S2pzUiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9jb29yZGluYXRvci1tYW5hZ2UtZ3JvdXBzIjt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6NTt9', 1769440309),
+('IwAl951WOPNPRWqYsaUjx9S63hPBLLvafrYysQhu', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWFdWeGRMd3ZLN3FqbHh6d1RCRmJQOUxaUzIwOWVweTNhZmFReDVWVCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzU6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9wYW5lbC1hZHZpc2VyIjt9czoxNDoib3RwX2V4cGlyZXNfYXQiO2k6MTc2OTQwMjYyMztzOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=', 1769440658);
 
 -- --------------------------------------------------------
 
@@ -646,7 +729,8 @@ INSERT INTO `submissions` (`id`, `documents`, `defense_type`, `user_id`, `title`
 (4, 'Manuscript Chapter 1-5', 'Final Defense', 2, 'Manuscript Chapter 1-5', 'submissions/tWrTcReS9b8Q7TrA3vhZbOgYln21kWzJixHArVTc.pdf', 'BSIT', 4101, 1, 'Approved', 2, 'Good', '2026-01-18 08:14:39', '2026-01-18 20:41:57', NULL, NULL),
 (5, 'Clearance', 'Final Defense', 2, 'Clearance', 'submissions/vdBlYSmMcD80Mzrst4nWyNucUmVqMNEOOloJGg9Q.pdf', 'BSIT', 4101, 1, 'Rejected', 2, 'Not properly arrange', '2026-01-18 20:40:53', '2026-01-18 20:45:27', NULL, NULL),
 (6, 'Research Title Proposal', 'Pre-Oral', 2, 'Research Title Proposal', 'submissions/yJ2Yg8jXDOnKTao2rUH90K3BAzOM9IH907oKG6rN.pdf', 'BSIT', 4101, 1, 'Pending', 2, NULL, '2026-01-24 03:21:36', '2026-01-24 03:21:36', NULL, NULL),
-(7, 'Research Title Proposal', 'Pre-Oral', 2, 'Research Title Proposal', 'submissions/bXk6cXU9yojZw9xCKfqotJw2WAJclK5PLOPZLmA4.pdf', 'BSIT', 4101, 1, 'Pending', 2, NULL, '2026-01-24 21:48:48', '2026-01-24 21:48:48', NULL, NULL);
+(7, 'Research Title Proposal', 'Pre-Oral', 2, 'Research Title Proposal', 'submissions/bXk6cXU9yojZw9xCKfqotJw2WAJclK5PLOPZLmA4.pdf', 'BSIT', 4101, 1, 'Pending', 2, NULL, '2026-01-24 21:48:48', '2026-01-24 21:48:48', NULL, NULL),
+(8, 'Research Title Proposal', 'Pre-Oral', 13, 'Research Title Proposal', 'submissions/hov9gv6iSacNOQW7e7DxMbFMHiibjlRFgsyILeFB.pdf', 'BSIT', 4101, 110, 'Pending', 13, NULL, '2026-01-25 22:47:56', '2026-01-25 22:47:56', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -690,19 +774,30 @@ CREATE TABLE `users` (
   `department` varchar(255) DEFAULT NULL,
   `contact` varchar(255) DEFAULT NULL,
   `cluster` int(11) DEFAULT NULL,
-  `group_no` int(11) DEFAULT NULL
+  `group_no` int(11) DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `role`, `otp`, `otp_expires_at`, `remember_token`, `created_at`, `updated_at`, `department`, `contact`, `cluster`, `group_no`) VALUES
-(1, 'Admin', 'crad7465@gmail.com', '2026-01-24 22:46:14', '$2y$12$ehP0WKuvbFwz6x94sas5H.wPQO58q6HSUu4OZA9ybX50nR3tDk/9C', 1, 'admin', NULL, NULL, NULL, '2026-01-18 06:59:25', '2026-01-24 22:46:14', NULL, NULL, NULL, NULL),
-(2, 'Juan DelaCruz', 'juandelacruz@gmail.com', NULL, '$2y$12$2t1RCGl0lv6Wl4LZ/TLPTONMvVXv92XuXCz3ecBwaEjO5mFqW4AOC', 0, 'student', NULL, NULL, NULL, '2026-01-18 07:02:46', '2026-01-18 07:02:46', 'BSIT', NULL, 4101, 1),
-(3, 'Maria Santos', 'mariasantos@gmail.com', NULL, '$2y$12$m3z/8iWBvVZA408M0x.Rfend7KIIu4IdrM36Dz0bsY6ORAcuK9JBW', 0, 'student', NULL, NULL, NULL, '2026-01-18 07:02:46', '2026-01-18 07:02:46', 'CRIM', NULL, 4102, 2),
-(4, 'Pedro Cruz', 'pedrocruz@gmail.com', NULL, '$2y$12$VBqKos6kcsfbLTwZ2l0mf.EvwiV3/YKmpcZiuQqLj/C2i/JZ2YXIu', 0, 'student', NULL, NULL, NULL, '2026-01-18 07:02:46', '2026-01-18 07:02:46', 'EDUC', NULL, 4103, 1),
-(5, 'Mr. Raymon Loria', 'raymon@gmail.com', NULL, '$2y$12$3.kDyj.5pspPoJfb3afnm.UbgQsob3cam.nPrg0YUy5RrbKCY1ddm', 0, 'coordinator', NULL, NULL, NULL, '2026-01-24 19:57:18', '2026-01-24 19:57:18', 'BSIT', '+63 912 345 6789', NULL, NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `is_admin`, `role`, `otp`, `otp_expires_at`, `remember_token`, `created_at`, `updated_at`, `department`, `contact`, `cluster`, `group_no`, `deleted_at`) VALUES
+(1, 'Admin', 'crad7465@gmail.com', '2026-01-25 20:34:39', '$2y$12$ehP0WKuvbFwz6x94sas5H.wPQO58q6HSUu4OZA9ybX50nR3tDk/9C', 1, 'admin', NULL, NULL, NULL, '2026-01-18 06:59:25', '2026-01-25 20:34:39', NULL, NULL, NULL, NULL, NULL),
+(2, 'Juan DelaCruz', 'juandelacruz@gmail.com', NULL, '$2y$12$2t1RCGl0lv6Wl4LZ/TLPTONMvVXv92XuXCz3ecBwaEjO5mFqW4AOC', 0, 'student', NULL, NULL, NULL, '2026-01-18 07:02:46', '2026-01-18 07:02:46', 'BSIT', NULL, 4101, 1, NULL),
+(3, 'Maria Santos', 'mariasantos@gmail.com', NULL, '$2y$12$m3z/8iWBvVZA408M0x.Rfend7KIIu4IdrM36Dz0bsY6ORAcuK9JBW', 0, 'student', NULL, NULL, NULL, '2026-01-18 07:02:46', '2026-01-18 07:02:46', 'CRIM', NULL, 4102, 2, NULL),
+(4, 'Pedro Cruz', 'pedrocruz@gmail.com', NULL, '$2y$12$VBqKos6kcsfbLTwZ2l0mf.EvwiV3/YKmpcZiuQqLj/C2i/JZ2YXIu', 0, 'student', NULL, NULL, NULL, '2026-01-18 07:02:46', '2026-01-18 07:02:46', 'EDUC', NULL, 4103, 1, NULL),
+(5, 'Mr. Raymon Loria', 'raymon@gmail.com', NULL, '$2y$12$vyK4uAzYakgCR7zUeWEZiey1gcw3IIveg6ZZ4rAucLrPjPAl27VF.', 0, 'coordinator', NULL, NULL, NULL, '2026-01-24 19:57:18', '2026-01-25 00:30:14', 'BSIT', '09645633237', NULL, NULL, NULL),
+(6, 'Ms. Jenny Bigcas', 'jenny123@gmail.com', NULL, '$2y$12$JzvL.mJutZC86G3G.M2yMOlX//gXbaHFQPE4Oukz1S3jPE1hhkmv2', 0, 'coordinator', NULL, NULL, NULL, '2026-01-24 23:17:36', '2026-01-25 00:02:51', 'CRIM', '09696969696', NULL, NULL, NULL),
+(7, 'Mr. Kim Elacion', 'kim1234@gmail.com', NULL, '$2y$12$.hLgpUciBnr5FjFA78.zwuF9pumfiImN7VbAaGJXg7dXJLK4OMq.q', 0, 'coordinator', NULL, NULL, NULL, '2026-01-24 23:28:14', '2026-01-25 23:02:49', 'BSIT', '09645633232', NULL, NULL, '2026-01-25 23:02:49'),
+(8, 'Jairo Luis L. Indoso', '22018863', NULL, '$2y$12$3UUhhAhMR.4JTK9oO5LDdOjp3KUcrf8P.UZQSOEq6B2ValG.QqEoi', 0, 'student', NULL, NULL, NULL, '2026-01-25 22:32:25', '2026-01-25 22:32:25', 'BSIT', NULL, NULL, 110, NULL),
+(9, 'Bret Baa', '22018696', NULL, '$2y$12$3UUhhAhMR.4JTK9oO5LDdOjp3KUcrf8P.UZQSOEq6B2ValG.QqEoi', 0, 'student', NULL, NULL, NULL, '2026-01-25 22:32:25', '2026-01-25 22:32:25', 'BSIT', NULL, NULL, 110, NULL),
+(10, 'Kim Elacion', '2209654', NULL, '$2y$12$3UUhhAhMR.4JTK9oO5LDdOjp3KUcrf8P.UZQSOEq6B2ValG.QqEoi', 0, 'student', NULL, NULL, NULL, '2026-01-25 22:32:25', '2026-01-25 22:32:25', 'BSIT', NULL, NULL, 110, NULL),
+(11, 'Angelo Michael Amata', '22087815', NULL, '$2y$12$3UUhhAhMR.4JTK9oO5LDdOjp3KUcrf8P.UZQSOEq6B2ValG.QqEoi', 0, 'student', NULL, NULL, NULL, '2026-01-25 22:32:25', '2026-01-25 22:32:25', 'BSIT', NULL, NULL, 110, NULL),
+(12, 'Princess Ana Juego', '2203484', NULL, '$2y$12$3UUhhAhMR.4JTK9oO5LDdOjp3KUcrf8P.UZQSOEq6B2ValG.QqEoi', 0, 'student', NULL, NULL, NULL, '2026-01-25 22:32:26', '2026-01-25 22:32:26', 'BSIT', NULL, NULL, 110, NULL),
+(13, 'IT110', 'sIT110', NULL, '$2y$12$3vZaxAlfpxdMWDAY4IHjX.aSW7A14RD4PEm5Vx7Ji9J69ZWjM6RJa', 0, 'student', NULL, NULL, NULL, '2026-01-25 22:37:20', '2026-01-25 22:46:19', 'BSIT', NULL, NULL, 110, NULL),
+(14, 'IT001', 'sIT001', NULL, '$2y$12$A2WAM7B87SIUcs8FDVDOq.RahtRS90iETFIsY75i4TWPh6mVQlk/a', 0, 'student', NULL, NULL, NULL, '2026-01-26 00:56:13', '2026-01-26 00:57:22', 'BSIT', NULL, NULL, 1, NULL),
+(15, 'IT002', 'sIT002', NULL, '$2y$12$RrlKM7BrGB0wNQjZ3SbwNeK4BJfXBG7pUHY/9TXKMaNg7j.wuZpsG', 0, 'student', NULL, NULL, NULL, '2026-01-26 02:46:15', '2026-01-26 02:47:50', 'BSIT', NULL, NULL, 2, NULL);
 
 --
 -- Indexes for dumped tables
@@ -809,6 +904,13 @@ ALTER TABLE `files`
 --
 ALTER TABLE `final_assignments`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `groups`
+--
+ALTER TABLE `groups`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `groups_group_id_unique` (`group_id`);
 
 --
 -- Indexes for table `jobs`
@@ -919,7 +1021,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `advisers`
 --
 ALTER TABLE `advisers`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `assignments`
@@ -931,7 +1033,7 @@ ALTER TABLE `assignments`
 -- AUTO_INCREMENT for table `assignment_panels`
 --
 ALTER TABLE `assignment_panels`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `assignment_panel_member`
@@ -967,7 +1069,7 @@ ALTER TABLE `defense_evaluations`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `departments`
@@ -994,6 +1096,12 @@ ALTER TABLE `final_assignments`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `groups`
+--
+ALTER TABLE `groups`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
@@ -1003,7 +1111,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -1051,7 +1159,7 @@ ALTER TABLE `sections`
 -- AUTO_INCREMENT for table `submissions`
 --
 ALTER TABLE `submissions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `submission_histories`
@@ -1063,7 +1171,7 @@ ALTER TABLE `submission_histories`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Constraints for dumped tables
