@@ -280,10 +280,30 @@ class DefenseScheduleController extends Controller
         foreach ($validated['panel_names'] as $panelName) {
             $availability[$panelName] = [];
             
+            // Get panel availability from Panel model
+            $panel = Panel::where('name', $panelName)
+                ->where('department', $validated['department'])
+                ->whereNull('deleted_at')
+                ->first();
+            
+            $panelAvailability = [];
+            if ($panel && $panel->availability) {
+                $panelAvailability = is_string($panel->availability) ? json_decode($panel->availability, true) : $panel->availability;
+            }
+            
             foreach ($validated['dates'] as $date) {
                 $conflicts = [];
                 
-                // Check for existing schedules on this date
+                // Check panel's set availability
+                if (!empty($panelAvailability)) {
+                    foreach ($panelAvailability as $avail) {
+                        if (isset($avail['date']) && $avail['date'] === $date) {
+                            $conflicts[] = 'Available: ' . ($avail['start_time'] ?? '') . '-' . ($avail['end_time'] ?? '');
+                        }
+                    }
+                }
+                
+                // Check for existing defense schedules on this date
                 $existingSchedules = DefenseSchedule::where('defense_date', $date)
                     ->whereNotNull('start_time')
                     ->whereNotNull('end_time')
@@ -308,7 +328,7 @@ class DefenseScheduleController extends Controller
                         }
                         
                         if ($isInvolved) {
-                            $conflicts[] = $schedule->defense_type . ' (' . $role . ') ' . $schedule->start_time . '-' . $schedule->end_time . ' Group ' . $schedule->group_id;
+                            $conflicts[] = 'Scheduled: ' . $schedule->defense_type . ' (' . $role . ') ' . $schedule->start_time . '-' . $schedule->end_time . ' Group ' . $schedule->group_id;
                         }
                     }
                 }
@@ -322,5 +342,21 @@ class DefenseScheduleController extends Controller
         return response()->json([
             'availability' => $availability
         ]);
+    }
+
+    public function resetSchedules(Request $request)
+    {
+        $validated = $request->validate([
+            'department' => 'required|string',
+            'section' => 'required|string',
+            'defense_type' => 'required|string'
+        ]);
+
+        DefenseSchedule::where('department', $validated['department'])
+            ->where('section', $validated['section'])
+            ->where('defense_type', $validated['defense_type'])
+            ->delete();
+
+        return response()->json(['success' => true]);
     }
 }

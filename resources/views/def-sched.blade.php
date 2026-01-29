@@ -450,9 +450,12 @@
     </div>
 
     <div id="schedule-view" style="display: none;">
-        <div class="d-flex align-items-center mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
             <button class="btn btn-outline-secondary" id="backToFilterFromSchedule">
                 <i class="bi bi-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-danger" id="resetAllSchedulesBtn">
+                <i class="bi bi-trash"></i> Reset All Schedules
             </button>
         </div>
         <h2 class="text-center mb-4" id="dept-header"></h2>
@@ -469,6 +472,7 @@
                             <th style="width: 15%;">Status</th>
                             <th style="width: 14%;">Set Schedule</th>
                         </tr>
+                    </thead>
                     </thead>
                     <tbody id="schedule-table-body">
                         @php
@@ -643,6 +647,7 @@
                         </div>
                     </div>
                 </form>
+
             </div>
             <button class="btn btn-schedule-fixed text-white" id="schedule-button" data-group-target="">Set Schedule</button>
         </div>
@@ -1145,7 +1150,7 @@
         });
     }
 
-    function setupAvailabilityModal(cluster, set, names) {
+    function setupAvailabilityModal(cluster, groupId, names, dept) {
         const tableHeadRow = document.querySelector('#infoModal thead tr');
         const tbody = document.getElementById('availability-table-body');
         const display = document.getElementById('info-set-display');
@@ -1155,7 +1160,7 @@
             tableHeadRow.removeChild(tableHeadRow.lastChild);
         }
 
-        display.textContent = `Cluster ${cluster} Set ${set}`;
+        display.textContent = `Cluster ${cluster} Group ${groupId}`;
 
         const today = new Date();
         const dates = [];
@@ -1175,8 +1180,8 @@
             tableHeadRow.appendChild(th);
         });
 
-        // Fetch actual panel availability data
-        const dept = document.getElementById('dept-select').value;
+        // Fetch actual panel availability data - only for panels in the selected department
+        const deptParam = dept || document.getElementById('dept-select').value;
         
         fetch('/api/panel-availability-schedule', {
             method: 'POST',
@@ -1187,7 +1192,7 @@
             body: JSON.stringify({
                 panel_names: names,
                 dates: dates.map(d => d.toISOString().split('T')[0]),
-                department: dept
+                department: deptParam
             })
         })
         .then(response => response.json())
@@ -1660,6 +1665,48 @@
     
     document.addEventListener('DOMContentLoaded', function () {
 
+        const resetBtn = document.getElementById('resetAllSchedulesBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', async function() {
+                const dept = document.getElementById('dept-select').value;
+                const cluster = document.getElementById('cluster-select').value;
+                const defenseType = currentDefenseType === 'REDEFENSE' ? document.getElementById('redefense-type-select').value : currentDefenseType;
+                
+                const confirmed = await showConfirm('Reset All Schedules?', `This will delete all schedules for ${defenseType} in ${dept} (${cluster}). This action cannot be undone.`, 'Reset All', 'Cancel');
+                if (!confirmed) return;
+                
+                fetch(`/defense-schedules/reset?department=${dept}&section=${cluster}&defense_type=${defenseType}`, {
+                    method: 'DELETE',
+                    headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')}
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelectorAll('.schedule-cell').forEach(cell => {
+                        const groupId = cell.getAttribute('data-schedule-target');
+                        const set = groupId.charAt(0);
+                        const group = groupId.substring(1);
+                        const row = cell.closest('tr');
+                        const btn = row.querySelector('.btn-set-schedule, .scheduled-container');
+                        const adviser = btn?.getAttribute('data-adviser') || 'No Adviser';
+                        const chair = btn?.getAttribute('data-chair') || 'No Chairperson';
+                        const members = btn?.getAttribute('data-members') || 'No Members';
+                        
+                        cell.innerHTML = `<button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                            data-group="${group}" data-cluster="" data-set="${set}" 
+                            data-adviser="${adviser}" data-chair="${chair}" data-members="${members}">
+                            <i class="bi bi-calendar-plus"></i> Set Schedule
+                        </button>`;
+                        updateGroupStatus(groupId, currentDefenseType, false, null);
+                    });
+                    showAlert('success', 'Schedules Reset', 'All schedules have been deleted successfully.');
+                })
+                .catch(error => {
+                    console.error('Error resetting schedules:', error);
+                    showAlert('error', 'Reset Failed', 'Failed to reset schedules.');
+                });
+            });
+        }
+
         document.getElementById('aiScheduleBtn').addEventListener('click', async function() {
             const adviser = document.getElementById('modal-adviser').textContent;
             const chair = document.getElementById('modal-chairperson').textContent;
@@ -1720,11 +1767,12 @@
             const chair = document.getElementById('modal-chairperson').textContent;
             const members = document.getElementById('modal-members').textContent;
             const cluster = clusterSelect.value;
-            const set = document.getElementById('set-input').value;
+            const dept = deptSelect.value;
+            const groupTarget = scheduleButton.getAttribute('data-group-target');
             
             const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
             
-            setupAvailabilityModal(cluster, set, panelNames);
+            setupAvailabilityModal(cluster, groupTarget, panelNames, dept);
             
             bootstrap.Modal.getInstance(scheduleModalEl).hide();
             setTimeout(() => {
@@ -2283,7 +2331,7 @@
             document.getElementById('set-input').value = set;
             
             const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
-            setupAvailabilityModal(cluster, set, panelNames);
+            setupAvailabilityModal(cluster, targetId, panelNames, deptSelect.value);
         });
 
         panelEditModal.addEventListener('show.bs.modal', function(event) {

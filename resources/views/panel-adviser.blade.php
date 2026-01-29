@@ -228,31 +228,29 @@
                                             <td>
                                                 @php
                                                     $adviserSections = is_array($adviser->sections) ? $adviser->sections : [$adviser->sections];
+                                                    // Group sections by cluster
+                                                    $groupedByCluster = [];
+                                                    foreach($adviserSections as $group) {
+                                                        if (is_numeric($group) && $group > 0) {
+                                                            $cluster = 4101 + floor(($group - 1) / 10);
+                                                            if (!isset($groupedByCluster[$cluster])) {
+                                                                $groupedByCluster[$cluster] = [];
+                                                            }
+                                                            $groupedByCluster[$cluster][] = $group;
+                                                        }
+                                                    }
                                                 @endphp
-                                                @foreach($adviserSections as $section)
-                                                    @php
-                                                        $assignedToThis = $assignments->where('department', $adviser->department)
-                                                                                ->where('section', $section)
-                                                                                ->where('adviser_id', $adviser->id)
-                                                                                ->first();
-                                                        $assignedToOther = $assignments->where('department', $adviser->department)
-                                                                                ->where('section', $section)
-                                                                                ->where('adviser_id', '!=', $adviser->id)
-                                                                                ->first();
-                                                    @endphp
-                                                    @if($assignedToThis)
-                                                        <span class="badge bg-success me-1">
-                                                            {{ $section }} <i class="bi bi-check-circle ms-1"></i>
+                                                @foreach($groupedByCluster as $cluster => $groups)
+                                                    <div>
+                                                        <span class="badge bg-primary me-1 section-badge" style="cursor:pointer;" data-adviser-id="{{ $adviser->id }}" data-cluster="{{ $cluster }}">
+                                                            {{ $cluster }} <i class="bi bi-chevron-down" id="icon_{{ $adviser->id }}_{{ $cluster }}"></i>
                                                         </span>
-                                                    @elseif($assignedToOther)
-                                                        <span class="badge bg-danger me-1">
-                                                            {{ $section }} <i class="bi bi-x-circle ms-1"></i>
-                                                        </span>
-                                                    @else
-                                                        <span class="badge bg-secondary me-1">
-                                                            {{ $section }}
-                                                        </span>
-                                                    @endif
+                                                    </div>
+                                                    <div id="groups_{{ $adviser->id }}_{{ $cluster }}" style="display:none;" class="ms-4">
+                                                        @foreach($groups as $group)
+                                                            <div><span class="badge bg-secondary me-1">G{{ $group }}</span></div>
+                                                        @endforeach
+                                                    </div>
                                                 @endforeach
                                             </td>
                                         </tr>
@@ -391,7 +389,40 @@
                                     @forelse($assignments as $assignment)
                                         <tr>
                                             <td>{{ $assignment->department }}</td>
-                                            <td>{{ $assignment->section }}</td>
+                                            <td>
+                                                @php
+                                                    $assignmentGroups = is_array($assignment->group_number) ? $assignment->group_number : (isset($assignment->group_number) ? [$assignment->group_number] : []);
+                                                    if (empty($assignmentGroups) && $assignment->section) {
+                                                        $cluster = (int)$assignment->section;
+                                                        $offset = ($cluster - 4101) * 10;
+                                                        for ($i = 1; $i <= 10; $i++) {
+                                                            $assignmentGroups[] = $offset + $i;
+                                                        }
+                                                    }
+                                                    $groupedByCluster = [];
+                                                    foreach($assignmentGroups as $group) {
+                                                        if (is_numeric($group) && $group > 0) {
+                                                            $cluster = 4101 + floor(($group - 1) / 10);
+                                                            if (!isset($groupedByCluster[$cluster])) {
+                                                                $groupedByCluster[$cluster] = [];
+                                                            }
+                                                            $groupedByCluster[$cluster][] = $group;
+                                                        }
+                                                    }
+                                                @endphp
+                                                @foreach($groupedByCluster as $cluster => $groups)
+                                                    <div>
+                                                        <span class="badge bg-primary me-1 section-badge" style="cursor:pointer;" data-assignment-id="{{ $assignment->id }}" data-cluster="{{ $cluster }}">
+                                                            {{ $cluster }} <i class="bi bi-chevron-down" id="icon_assignment_{{ $assignment->id }}_{{ $cluster }}"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div id="groups_assignment_{{ $assignment->id }}_{{ $cluster }}" style="display:none;" class="ms-4">
+                                                        @foreach($groups as $group)
+                                                            <div><span class="badge bg-secondary me-1">G{{ $group }}</span></div>
+                                                        @endforeach
+                                                    </div>
+                                                @endforeach
+                                            </td>
                                             <td>{{ $assignment->adviser ? $assignment->adviser->name : 'No Adviser' }}</td>
                                             <td>{{ $assignment->adviser ? $assignment->adviser->expertise : 'N/A' }}</td>
                                             <td>
@@ -957,14 +988,18 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Section/Cluster *</label>
-                                <select name="section" class="form-select" required onchange="filterModalMembers()">
+                                <select id="assignmentClusterSelect" class="form-select" required onchange="showAssignmentGroups()">
                                     <option value="">Select Section</option>
                                     @foreach(['4101', '4102', '4103', '4104', '4105', '4106', '4107', '4108', '4109', '4110'] as $section)
-                                        <option value="{{ $section }}" data-section="{{ $section }}">
-                                            {{ $section }}
-                                        </option>
+                                        <option value="{{ $section }}">{{ $section }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="assignmentGroupsContainer" style="display:none;">
+                            <label class="form-label">Select Groups *</label>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                <div class="row" id="assignmentGroupsList"></div>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -982,10 +1017,12 @@
                             <label class="form-label">Chairperson *</label>
                             <select name="chairperson_id" class="form-select" required>
                                 <option value="">Select Chairperson</option>
-                                @foreach($panels->where('role', 'Chairperson') as $chairperson)
-                                    <option value="{{ $chairperson->id }}" data-department="{{ $chairperson->department }}" class="modal-chairperson-option">
-                                        {{ $chairperson->name }} ({{ $chairperson->department }} - {{ $chairperson->expertise }})
-                                    </option>
+                                @foreach($panels as $panel)
+                                    @if($panel->role === 'Chairperson')
+                                        <option value="{{ $panel->id }}" data-department="{{ $panel->department }}" class="modal-chairperson-option">
+                                            {{ $panel->name }} ({{ $panel->department }} - {{ $panel->expertise }})
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -1058,16 +1095,34 @@
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Chairperson *</label>
+                                <select name="chairperson_id" class="form-select" required>
+                                    <option value="">Select Chairperson</option>
+                                    @foreach($panels as $panel)
+                                        @if($panel->role === 'Chairperson')
+                                            @php
+                                                $isChairperson = $assignment->assignmentPanels->where('role', 'Chairperson')->where('panel_id', $panel->id)->first();
+                                            @endphp
+                                            <option value="{{ $panel->id }}" {{ $isChairperson ? 'selected' : '' }}>
+                                                {{ $panel->name }} ({{ $panel->department }} - {{ $panel->expertise }})
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Panel Members *</label>
                                 <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
                                     @foreach($panels as $panel)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="panel_ids[]" value="{{ $panel->id }}" id="editPanel{{ $assignment->id }}_{{ $panel->id }}" 
-                                                {{ $assignment->assignmentPanels->contains('panel_id', $panel->id) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="editPanel{{ $assignment->id }}_{{ $panel->id }}">
-                                                {{ $panel->name }} ({{ $panel->department }} - {{ $panel->expertise }})
-                                            </label>
-                                        </div>
+                                        @if($panel->role !== 'Chairperson')
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="panel_ids[]" value="{{ $panel->id }}" id="editPanel{{ $assignment->id }}_{{ $panel->id }}" 
+                                                    {{ $assignment->assignmentPanels->contains('panel_id', $panel->id) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="editPanel{{ $assignment->id }}_{{ $panel->id }}">
+                                                    {{ $panel->name }} ({{ $panel->department }} - {{ $panel->expertise }})
+                                                </label>
+                                            </div>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
@@ -1108,6 +1163,35 @@
 
 @section('scripts')
 <script>
+    // Event delegation for section badges
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.section-badge')) {
+            const badge = e.target.closest('.section-badge');
+            const adviserId = badge.dataset.adviserId;
+            const assignmentId = badge.dataset.assignmentId;
+            const cluster = badge.dataset.cluster;
+            
+            let groupsSpan, icon;
+            if (adviserId) {
+                groupsSpan = document.getElementById(`groups_${adviserId}_${cluster}`);
+                icon = document.getElementById(`icon_${adviserId}_${cluster}`);
+            } else if (assignmentId) {
+                groupsSpan = document.getElementById(`groups_assignment_${assignmentId}_${cluster}`);
+                icon = document.getElementById(`icon_assignment_${assignmentId}_${cluster}`);
+            }
+            
+            if (groupsSpan && icon) {
+                if (groupsSpan.style.display === 'none') {
+                    groupsSpan.style.display = 'block';
+                    icon.className = 'bi bi-chevron-up';
+                } else {
+                    groupsSpan.style.display = 'none';
+                    icon.className = 'bi bi-chevron-down';
+                }
+            }
+        }
+    });
+
     // ------------------
     // Type Selection View Logic
     // ------------------
@@ -1308,43 +1392,71 @@ function filterAssignments() {
 // ------------------
 // Modal Assignment Functions
 // ------------------
+function showAssignmentGroups() {
+    const clusterSelect = document.getElementById('assignmentClusterSelect');
+    const cluster = clusterSelect.value;
+    const container = document.getElementById('assignmentGroupsContainer');
+    const groupsList = document.getElementById('assignmentGroupsList');
+    const modal = document.getElementById('addAssignmentModal');
+    const dept = modal.querySelector('select[name="department"]').value;
+    
+    if (!cluster) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const offset = (parseInt(cluster) - 4101) * 10;
+    const advisersData = @json($advisers);
+    const takenGroups = [];
+    
+    // Find groups already assigned to advisers in this department
+    advisersData.forEach(adviser => {
+        if (adviser.department === dept && adviser.sections) {
+            const sections = Array.isArray(adviser.sections) ? adviser.sections : [adviser.sections];
+            takenGroups.push(...sections.map(s => parseInt(s)));
+        }
+    });
+    
+    let html = '';
+    for (let i = 1; i <= 10; i++) {
+        const groupNum = offset + i;
+        const isTaken = takenGroups.includes(groupNum);
+        html += `
+            <div class="col-6 mb-2">
+                <div class="form-check ${isTaken ? 'section-occupied' : ''}">
+                    <input class="form-check-input assignment-group-checkbox" type="checkbox" name="group_number[]" value="${groupNum}" id="assignmentGroup${groupNum}" ${isTaken ? 'disabled' : ''}>
+                    <label class="form-check-label ${isTaken ? 'text-muted text-decoration-line-through' : ''}" for="assignmentGroup${groupNum}">
+                        Group ${groupNum} ${isTaken ? '<span class="badge bg-danger ms-1">Taken</span>' : ''}
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+    
+    groupsList.innerHTML = html;
+    container.style.display = 'block';
+    filterModalMembers();
+}
+
 function filterModalMembers() {
     const modal = document.getElementById('addAssignmentModal');
     const dept = modal.querySelector('select[name="department"]').value;
-    const section = modal.querySelector('select[name="section"]').value;
+    const cluster = document.getElementById('assignmentClusterSelect').value;
 
-    // Update section options based on department
-    const sectionSelect = modal.querySelector('select[name="section"]');
-    const sectionOptions = sectionSelect.querySelectorAll('option[data-section]');
-    const assignmentsData = @json($assignments->groupBy('department'));
-    
-    sectionOptions.forEach(option => {
-        const sectionValue = option.dataset.section;
-        const isOccupied = dept && assignmentsData[dept] && 
-            assignmentsData[dept].some(assignment => assignment.section === sectionValue);
-        
-        if (isOccupied) {
-            option.disabled = true;
-            option.textContent = sectionValue + ' (Occupied)';
-        } else {
-            option.disabled = false;
-            option.textContent = sectionValue;
-        }
-    });
+    // Get selected groups
+    const selectedGroups = Array.from(modal.querySelectorAll('.assignment-group-checkbox:checked')).map(cb => cb.value);
 
-    // Auto-fill adviser based on cluster selection
+    // Auto-fill adviser based on cluster and groups selection
     const adviserSelect = modal.querySelector('select[name="adviser_id"]');
     const adviserOptions = adviserSelect.querySelectorAll('option[data-department]');
     
-    // Reset adviser selection
     adviserSelect.value = '';
     
-    if (dept && section) {
-        // Find adviser assigned to this cluster
+    if (dept && selectedGroups.length > 0) {
         const matchingAdviser = Array.from(adviserOptions).find(option => {
             const optionDept = option.dataset.department;
             const optionSections = option.dataset.sections.split(',').map(s => s.trim());
-            return optionDept === dept && optionSections.includes(section);
+            return optionDept === dept && selectedGroups.some(g => optionSections.includes(g));
         });
         
         if (matchingAdviser) {
@@ -1352,21 +1464,19 @@ function filterModalMembers() {
         }
     }
     
-    // Filter adviser options
     adviserOptions.forEach(option => {
         const optionDept = option.dataset.department;
         const optionSections = option.dataset.sections.split(',').map(s => s.trim());
         
-        if (dept && section && optionDept === dept && optionSections.includes(section)) {
+        if (dept && selectedGroups.length > 0 && optionDept === dept && selectedGroups.some(g => optionSections.includes(g))) {
             option.style.display = 'block';
-        } else if (!dept || !section) {
+        } else if (!dept || selectedGroups.length === 0) {
             option.style.display = 'block';
         } else {
             option.style.display = 'none';
         }
     });
 
-    // Filter chairperson options
     const chairpersonSelect = modal.querySelector('select[name="chairperson_id"]');
     const chairpersonOptions = chairpersonSelect.querySelectorAll('.modal-chairperson-option');
     
@@ -1375,7 +1485,6 @@ function filterModalMembers() {
         option.style.display = (dept && optionDept === dept) ? 'block' : 'none';
     });
 
-    // Filter panel members
     const panelMembers = modal.querySelectorAll('.modal-panel-member');
     panelMembers.forEach(member => {
         member.style.display = (dept && member.dataset.department === dept) ? 'block' : 'none';
@@ -1570,6 +1679,14 @@ function renderEditSlots(panelId) {
 // ------------------
 // Initialize Modals
 // ------------------
+document.getElementById('addAssignmentModal').addEventListener('show.bs.modal', () => {
+    const form = document.getElementById('addAssignmentForm');
+    form.reset();
+    document.getElementById('assignmentGroupsContainer').style.display = 'none';
+    document.getElementById('assignmentGroupsList').innerHTML = '';
+    filterModalMembers();
+});
+
 document.getElementById('addPanelModal').addEventListener('show.bs.modal', () => {
     availabilitySlots = [];
     renderSlots();
@@ -1616,15 +1733,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addAssignmentForm');
     const submitBtn = document.getElementById('createAssignmentBtn');
 
+    // Add event listener to group checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('assignment-group-checkbox')) {
+            filterModalMembers();
+        }
+    });
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Check if selected section is occupied
-        const sectionSelect = form.querySelector('select[name="section"]');
-        const selectedOption = sectionSelect.options[sectionSelect.selectedIndex];
-        
-        if (selectedOption && selectedOption.disabled) {
-            alert('❌ This section is already occupied by another adviser. Please select a different section.');
+        // Validate at least one group is selected
+        const selectedGroups = form.querySelectorAll('.assignment-group-checkbox:checked');
+        if (selectedGroups.length === 0) {
+            alert('Please select at least one group.');
             return;
         }
         
@@ -1648,17 +1770,15 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Server response:', data);
             
             if (data.success) {
-                // Show success modal
                 const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                 document.getElementById('successModalTitle').textContent = 'Assignment Created Successfully!';
                 document.getElementById('successModalMessage').textContent = 'Your assignment has been created successfully.';
                 successModal.show();
                 
-                // Close the add assignment modal
                 bootstrap.Modal.getInstance(document.getElementById('addAssignmentModal')).hide();
                 
-                // Reset form
                 form.reset();
+                document.getElementById('assignmentGroupsContainer').style.display = 'none';
                 filterModalMembers();
             } else {
                 alert('⚠️ Error: ' + (data.message || data.error || 'Please try again.'));

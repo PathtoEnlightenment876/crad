@@ -9,7 +9,7 @@ class Assignment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['department', 'section', 'adviser_id'];
+    protected $fillable = ['department', 'section', 'group_number', 'adviser_id'];
 
     public function panels()
     {

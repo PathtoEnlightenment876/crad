@@ -119,6 +119,7 @@ class AssignmentController extends Controller
                 'department' => 'required|string',
                 'section' => 'required|string',
                 'adviser_id' => 'required|integer',
+                'chairperson_id' => 'required|integer',
                 'panel_ids' => 'required|array',
                 'panel_ids.*' => 'integer',
             ]);
@@ -131,6 +132,22 @@ class AssignmentController extends Controller
 
             AssignmentPanel::where('assignment_id', $assignment->id)->delete();
 
+            // Add chairperson
+            $chairperson = Panel::find($validated['chairperson_id']);
+            if ($chairperson) {
+                AssignmentPanel::create([
+                    'assignment_id' => $assignment->id,
+                    'panel_id' => $validated['chairperson_id'],
+                    'name' => $chairperson->name,
+                    'availability' => is_array($chairperson->availability) ? json_encode($chairperson->availability) : $chairperson->availability,
+                    'role' => 'Chairperson',
+                    'expertise' => $chairperson->expertise,
+                    'department' => $validated['department'],
+                    'section' => $validated['section'],
+                ]);
+            }
+
+            // Add panel members
             foreach ($validated['panel_ids'] as $panelId) {
                 $panel = Panel::find($panelId);
                 if ($panel) {
@@ -139,7 +156,7 @@ class AssignmentController extends Controller
                         'panel_id' => $panelId,
                         'name' => $panel->name,
                         'availability' => is_array($panel->availability) ? json_encode($panel->availability) : $panel->availability,
-                        'role' => $panel->role ?? 'Member',
+                        'role' => 'Member',
                         'expertise' => $panel->expertise,
                         'department' => $validated['department'],
                         'section' => $validated['section'],

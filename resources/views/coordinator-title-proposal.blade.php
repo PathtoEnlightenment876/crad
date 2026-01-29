@@ -16,14 +16,7 @@
                 <div class="col-md-6">
                     <label class="form-label">Department</label>
                     <select name="department" id="departmentFilter" class="form-select">
-                        <option value="">All</option>
-                        <option value="BSIT">BSIT</option>
-                        <option value="CRIM">CRIM</option>
-                        <option value="EDUC">EDUC</option>
-                        <option value="BSBA">BSBA</option>
-                        <option value="Psychology">Psychology</option>
-                        <option value="BSHM">BSHM</option>
-                        <option value="BSTM">BSTM</option>
+                        <option value="{{ Auth::user()->department }}" selected>{{ Auth::user()->department }}</option>
                     </select>
                 </div>
                 <div class="col-md-6">
@@ -58,6 +51,13 @@
                 <div class="col-md-4">
                     <select id="groupSelect" class="form-select">
                         <option value="">Select a Group</option>
+                        @foreach($groups as $group)
+                            <option value="{{ $group->group_number }}" 
+                                data-cluster="{{ $group->cluster_or_section }}" 
+                                data-department="{{ $group->department }}">
+                                Group {{ $group->group_number }} - {{ $group->cluster_or_section }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -239,15 +239,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     groupSelect.addEventListener('change', function() {
         if (this.value) {
-            fetch(`/admin/submissions/group/${this.value}`)
+            fetch(`/coordinator/submissions/group/${this.value}`)
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.success && data.submissions.length > 0) {
                         updateRequirementsContainer(data.submissions);
+                        requirementsContainer.style.display = 'block';
+                    } else {
+                        requirementsContainer.innerHTML = '<div class="alert alert-info">No submissions found for this group.</div>';
                         requirementsContainer.style.display = 'block';
                     }
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.error('Error:', err);
                     requirementsContainer.innerHTML = '<div class="alert alert-danger">Error loading submissions.</div>';
                     requirementsContainer.style.display = 'block';
                 });
@@ -301,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentSubmissionId = id;
         
         if (t.classList.contains('view-btn')) {
-            document.getElementById('downloadBtn').href = `/admin/submissions/${id}/download`;
+            document.getElementById('downloadBtn').href = `/coordinator/submissions/${id}/download`;
             new bootstrap.Modal(document.getElementById('viewModal')).show();
         }
         if (t.classList.contains('approve-btn')) new bootstrap.Modal(document.getElementById('approveModal')).show();
@@ -310,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('confirmApprove').addEventListener('click', function() {
-        fetch(`/admin/submissions/${currentSubmissionId}/update-status`, {
+        fetch(`/coordinator/submissions/${currentSubmissionId}/update-status`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content},
             body: JSON.stringify({status: 'Approved'})
@@ -324,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('confirmReject').addEventListener('click', function() {
         const reason = document.getElementById('rejectReason').value;
         if (!reason.trim()) return alert('Provide reason');
-        fetch(`/admin/submissions/${currentSubmissionId}/update-status`, {
+        fetch(`/coordinator/submissions/${currentSubmissionId}/update-status`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content},
             body: JSON.stringify({status: 'Rejected', feedback: reason})
@@ -338,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveFeedback').addEventListener('click', function() {
         const feedback = document.getElementById('feedbackText').value;
         if (!feedback.trim()) return alert('Enter feedback');
-        fetch(`/admin/submissions/${currentSubmissionId}/update-status`, {
+        fetch(`/coordinator/submissions/${currentSubmissionId}/update-status`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content},
             body: JSON.stringify({feedback: feedback})

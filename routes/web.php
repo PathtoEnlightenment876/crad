@@ -130,6 +130,7 @@ Route::put('/student/files/{id}/resubmit', [StudentSubmissionController::class, 
     //Adviser & Panel
 Route::post('/advisers', [AdviserController::class, 'store'])->name('advisers.store');
 Route::put('/advisers/{adviser}', [AdviserController::class, 'update'])->name('advisers.update');
+Route::post('/advisers/{adviser}/manage-advisory', [AdviserController::class, 'manageAdvisory'])->name('advisers.manageAdvisory');
 Route::delete('/advisers/{adviser}', [AdviserController::class, 'destroy'])->name('advisers.destroy');
 Route::get('/advisers/archived', [AdviserController::class, 'archived'])->name('advisers.archived');
 Route::post('/advisers/{id}/restore', [AdviserController::class, 'restore'])->name('advisers.restore');
@@ -195,6 +196,7 @@ Route::post('/defense-schedules', [DefenseScheduleController::class, 'store']);
 Route::get('/defense-schedules/by-type', [DefenseScheduleController::class, 'getByType']);
 Route::put('/defense-schedules/{id}/status', [DefenseScheduleController::class, 'updateStatus']);
 Route::get('/defense-schedules/check-eligibility', [DefenseScheduleController::class, 'checkEligibility']);
+Route::delete('/defense-schedules/reset', [DefenseScheduleController::class, 'resetSchedules']);
 
 // Defense Evaluation Routes  
 Route::get('/def-eval', function () {
@@ -224,9 +226,21 @@ Route::get('/coordinator-dashboard', function () {
     return view('coordinator-dashboard');
 })->middleware('auth', 'coordinator')->name('coordinator-dashboard');
 
-Route::get('/coordinator-title-proposal', function () {
-    return view('coordinator-title-proposal');
-})->middleware('auth', 'coordinator')->name('coordinator-title-proposal');
+Route::get('/coordinator-title-proposal', [CoordinatorController::class, 'titleProposal'])
+    ->middleware('auth', 'coordinator')
+    ->name('coordinator-title-proposal');
+
+Route::get('/coordinator/submissions/group/{group}', [CoordinatorController::class, 'getSubmissionsByGroup'])
+    ->middleware('auth', 'coordinator')
+    ->name('coordinator.submissions.group');
+
+Route::post('/coordinator/submissions/{id}/update-status', [CoordinatorController::class, 'updateSubmissionStatus'])
+    ->middleware('auth', 'coordinator')
+    ->name('coordinator.submissions.updateStatus');
+
+Route::get('/coordinator/submissions/{id}/download', [CoordinatorController::class, 'downloadSubmission'])
+    ->middleware('auth', 'coordinator')
+    ->name('coordinator.submissions.download');
 
 Route::get('/coordinator-manage-adviser', [CoordinatorController::class, 'manageAdviser'])
     ->middleware('auth', 'coordinator')

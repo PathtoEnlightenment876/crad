@@ -92,8 +92,61 @@ class CoordinatorController extends Controller
     public function manageAdviser()
     {
         $coordinator = Auth::user();
-        $advisers = Adviser::where('department', $coordinator->department)->whereNull('deleted_at')->get();
+        $advisers = Adviser::where('department', $coordinator->department)->whereNull('deleted_at')->orderBy('id')->get();
         $assignments = Assignment::where('department', $coordinator->department)->get();
         return view('coordinator-manage-adviser', compact('advisers', 'assignments'));
+    }
+
+    public function titleProposal()
+    {
+        $coordinator = Auth::user();
+        $groups = \App\Models\Group::where('department', $coordinator->department)
+            ->whereNull('deleted_at')
+            ->orderBy('group_number')
+            ->get();
+        return view('coordinator-title-proposal', compact('groups'));
+    }
+
+    public function getSubmissionsByGroup($group)
+    {
+        $coordinator = Auth::user();
+        $submissions = \App\Models\Submission::with('user')
+            ->where('group_no', $group)
+            ->where('department', $coordinator->department)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return response()->json([
+            'success' => $submissions->isNotEmpty(),
+            'submissions' => $submissions
+        ]);
+    }
+
+    public function updateSubmissionStatus(Request $request, $id)
+    {
+        $submission = \App\Models\Submission::findOrFail($id);
+        
+        if ($request->has('status')) {
+            $submission->status = $request->status;
+        }
+        
+        if ($request->has('feedback')) {
+            $submission->feedback = $request->feedback;
+        }
+        
+        $submission->save();
+        return response()->json(['success' => true]);
+    }
+
+    public function downloadSubmission($id)
+    {
+        $submission = \App\Models\Submission::findOrFail($id);
+        $filePath = storage_path('app/public/' . $submission->file_path);
+        
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+        
+        return response()->download($filePath, basename($submission->file_path));
     }
 }

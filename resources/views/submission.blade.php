@@ -2,20 +2,19 @@
 
 @push('styles')
 <style>
+    /* v4.0 - Ultra Modern Design */
     :root {
         --bs-primary-dark: #284b9a;
         --bs-primary-light: #3B71CA;
-        --bs-border-color: #dee2e6;
         --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        --hover-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
 
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        font-family: 'Poppins', sans-serif;
-        font-weight: 300;
-        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background-attachment: fixed !important;
+        font-family: 'Poppins', sans-serif !important;
+        min-height: 100vh !important;
     }
 
     h1, h2, h3, h4, h5, h6, .fw-bold {
@@ -43,16 +42,25 @@
     }
     
     .stage-box {
-        border: none;
-        padding: 30px; 
-        margin-bottom: 40px; 
-        border-radius: 20px; 
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        border: none !important;
+        padding: 45px !important; 
+        margin-bottom: 50px !important; 
+        border-radius: 30px !important; 
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(30px) saturate(180%) !important;
+        box-shadow: 
+            0 35px 100px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+            0 0 60px rgba(102, 126, 234, 0.3) !important;
+        transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        position: relative !important;
+        overflow: visible !important;
+        animation: slideInUp 0.8s ease-out !important;
+    }
+    
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     .stage-box::before {
@@ -61,34 +69,50 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 8px;
         background: var(--gradient-bg);
+        border-radius: 30px 30px 0 0;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
     }
     
     .stage-box:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--hover-shadow);
+        transform: translateY(-20px) scale(1.02) !important;
+        box-shadow: 
+            0 50px 140px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+            0 0 80px rgba(102, 126, 234, 0.5) !important;
     }
 
     .stage-title {
         text-align: center;
-        font-weight: 700;
-        margin-bottom: 30px;
-        font-size: 2rem; 
-        color: var(--bs-primary-dark);
+        font-weight: 800 !important;
+        margin-bottom: 45px;
+        font-size: 3rem !important; 
+        background: var(--gradient-bg);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         position: relative;
+        letter-spacing: -1px;
+        animation: fadeIn 1s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     
     .stage-title::after {
         content: '';
         position: absolute;
-        bottom: -10px;
+        bottom: -18px;
         left: 50%;
         transform: translateX(-50%);
-        width: 60px;
-        height: 3px;
-        background: var(--bs-primary-light);
-        border-radius: 2px;
+        width: 100px;
+        height: 5px;
+        background: var(--gradient-bg);
+        border-radius: 3px;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.6);
     }
 
     .defense-section {
@@ -130,15 +154,17 @@
     }
 
     .document-item {
-        border: none;
-        padding: 18px 20px; 
-        margin-bottom: 12px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        border: none !important;
+        padding: 22px 28px !important; 
+        margin-bottom: 18px !important;
+        border-radius: 18px !important;
+        background: linear-gradient(145deg, #ffffff, #f5f7fa) !important;
+        box-shadow: 
+            0 10px 30px rgba(0, 0, 0, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
     
     .document-item::before {
@@ -147,16 +173,18 @@
         left: 0;
         top: 0;
         bottom: 0;
-        width: 4px;
-        background: var(--bs-primary-light);
+        width: 6px;
+        background: var(--gradient-bg);
         transform: scaleY(0);
-        transition: transform 0.3s ease;
+        transition: transform 0.5s ease;
     }
     
     .document-item:hover {
-        background: rgba(255, 255, 255, 1);
-        transform: translateX(5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        background: linear-gradient(145deg, #ffffff, #ffffff) !important;
+        transform: translateX(12px) scale(1.03) !important;
+        box-shadow: 
+            0 20px 50px rgba(0, 0, 0, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 1) !important;
     }
     
     .document-item:hover::before {
