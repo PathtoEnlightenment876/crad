@@ -11,7 +11,7 @@ class Admin
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check() || auth()->user()->role !== 'admin') {
-            abort(403);
+            abort(403, 'Unauthorized access.');
         }
 
         return $next($request);

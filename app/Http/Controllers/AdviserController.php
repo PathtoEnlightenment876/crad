@@ -97,6 +97,12 @@ class AdviserController extends Controller
         return response()->json($advisers);
     }
 
+    public function apiAdvisers()
+    {
+        $advisers = Adviser::whereNull('deleted_at')->get();
+        return response()->json($advisers);
+    }
+
     public function destroy(Adviser $adviser)
     {
         try {

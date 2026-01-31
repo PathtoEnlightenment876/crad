@@ -183,6 +183,9 @@ Route::post('/submissions/{submission}/panels/ajax', [PanelAdviserController::cl
 Route::get('/api/assignments', [PanelAdviserController::class, 'apiAssignments'])
     ->name('api.assignments');
 
+Route::get('/api/advisers', [AdviserController::class, 'apiAdvisers'])
+    ->name('api.advisers');
+
     Route::post('/assignments/store', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');

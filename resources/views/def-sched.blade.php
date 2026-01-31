@@ -2059,86 +2059,97 @@
             const tbody = document.getElementById('schedule-table-body');
             tbody.innerHTML = '';
             
-            // Use first assignment for consistent data across all groups
-            const firstAssignment = assignments && assignments.length > 0 ? assignments[0] : null;
-            let adviser = 'No Adviser';
-            let chairName = 'No Chairperson';
-            let memberNames = 'No Members';
+            // Fetch fresh assignment data from API
+            const dept = deptSelect.value;
+            const cluster = clusterSelect.value;
             
-            if (firstAssignment) {
-                const panels = firstAssignment.panels || [];
-                const chairperson = panels.find(p => p.role === 'Chairperson');
-                const members = panels.filter(p => p.role === 'Member' || (p.role && p.role !== 'Chairperson'));
-                adviser = firstAssignment.adviser || 'No Adviser';
-                chairName = chairperson ? chairperson.name : 'No Chairperson';
-                memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
-            }
-            
-            // Generate Set A: Groups 1-5
-            for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
-                const groupId = 'A' + groupNumber;
-                const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
-                const groupOffset = getGroupOffset(clusterSelect.value);
-                const displayNumber = groupNumber + groupOffset;
-                
-                const dividerClass = groupNumber === 5 ? 'class="set-divider"' : '';
-                const row = `
-                    <tr data-group-id="${groupId}" data-set="A" ${dividerClass}>
-                        ${clusterCell}
-                        <td class="set-value">A</td>
-                        <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        <td class="status-column" id="status-${groupId}">
-                            <span class="status-badge status-pending">Pending</span>
-                        </td>
-                        <td class="schedule-cell" data-schedule-target="${groupId}">
-                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
-                                    data-group="${groupNumber}" data-cluster="" data-set="A" 
-                                    data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
-                                <i class="bi bi-calendar-plus"></i> Set Schedule
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            }
-            
-            // Add divider row
-            const dividerRow = `
-                <tr class="divider-row">
-                    <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
-                </tr>
-            `;
-            tbody.innerHTML += dividerRow;
-            
-            // Generate Set B: Groups 6-10
-            for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
-                const groupId = 'B' + groupNumber;
-                const borderStyle = groupNumber === 1 ? 'style="border-top: 3px solid #333;"' : '';
-                const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
-                const groupOffset = getGroupOffset(clusterSelect.value);
-                const displayNumber = groupNumber + 5 + groupOffset;
-                
-                const row = `
-                    <tr data-group-id="${groupId}" data-set="B" ${borderStyle}>
-                        ${clusterCell}
-                        <td class="set-value">B</td>
-                        <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        <td class="status-column" id="status-${groupId}">
-                            <span class="status-badge status-pending">Pending</span>
-                        </td>
-                        <td class="schedule-cell" data-schedule-target="${groupId}">
-                            <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
-                                    data-group="${groupNumber}" data-cluster="" data-set="B" 
-                                    data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
-                                <i class="bi bi-calendar-plus"></i> Set Schedule
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            }
+            fetch('/api/assignments')
+                .then(response => response.json())
+                .then(apiAssignments => {
+                    const assignment = apiAssignments.find(a => a.department === dept && a.section === cluster);
+                    
+                    let adviser = 'No Adviser';
+                    let chairName = 'No Chairperson';
+                    let memberNames = 'No Members';
+                    
+                    if (assignment) {
+                        adviser = assignment.adviser || 'No Adviser';
+                        const panels = assignment.panels || [];
+                        const chairperson = panels.find(p => p.role === 'Chairperson');
+                        const members = panels.filter(p => p.role === 'Member');
+                        chairName = chairperson ? chairperson.name : 'No Chairperson';
+                        memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
+                    }
+                    
+                    // Generate Set A: Groups 1-5
+                    for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
+                        const groupId = 'A' + groupNumber;
+                        const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
+                        const groupOffset = getGroupOffset(clusterSelect.value);
+                        const displayNumber = groupNumber + groupOffset;
+                        
+                        const dividerClass = groupNumber === 5 ? 'class="set-divider"' : '';
+                        const row = `
+                            <tr data-group-id="${groupId}" data-set="A" ${dividerClass}>
+                                ${clusterCell}
+                                <td class="set-value">A</td>
+                                <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
+                                <td><span class="status-badge status-completed">Completed</span></td>
+                                <td class="status-column" id="status-${groupId}">
+                                    <span class="status-badge status-pending">Pending</span>
+                                </td>
+                                <td class="schedule-cell" data-schedule-target="${groupId}">
+                                    <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                            data-group="${groupNumber}" data-cluster="" data-set="A" 
+                                            data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
+                                        <i class="bi bi-calendar-plus"></i> Set Schedule
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    }
+                    
+                    // Add divider row
+                    const dividerRow = `
+                        <tr class="divider-row">
+                            <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += dividerRow;
+                    
+                    // Generate Set B: Groups 6-10
+                    for (let groupNumber = 1; groupNumber <= 5; groupNumber++) {
+                        const groupId = 'B' + groupNumber;
+                        const borderStyle = groupNumber === 1 ? 'style="border-top: 3px solid #333;"' : '';
+                        const clusterCell = groupNumber === 1 ? `<td class="merged-cell cluster-value" rowspan="5">${clusterSelect.value}</td>` : '';
+                        const groupOffset = getGroupOffset(clusterSelect.value);
+                        const displayNumber = groupNumber + 5 + groupOffset;
+                        
+                        const row = `
+                            <tr data-group-id="${groupId}" data-set="B" ${borderStyle}>
+                                ${clusterCell}
+                                <td class="set-value">B</td>
+                                <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
+                                <td><span class="status-badge status-completed">Completed</span></td>
+                                <td class="status-column" id="status-${groupId}">
+                                    <span class="status-badge status-pending">Pending</span>
+                                </td>
+                                <td class="schedule-cell" data-schedule-target="${groupId}">
+                                    <button class="btn btn-set-schedule" data-bs-toggle="modal" data-bs-target="#scheduleModal" 
+                                            data-group="${groupNumber}" data-cluster="" data-set="B" 
+                                            data-adviser="${adviser}" data-chair="${chairName}" data-members="${memberNames}">
+                                        <i class="bi bi-calendar-plus"></i> Set Schedule
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching assignments:', error);
+                });
         }
 
         // Navigation functions
@@ -2520,86 +2531,75 @@
                 const set = row.querySelector('.set-value')?.textContent || '-';
                 const status = row.querySelector('.status-badge')?.textContent || 'Pending';
                 
-                // Get cluster from the merged cell in the same set or use selected cluster
                 let cluster = clusterSelect.value || '-';
                 const clusterCell = row.querySelector('.cluster-value');
                 if (clusterCell) {
                     cluster = clusterCell.textContent;
                 }
                 
-                // Fetch actual group data from database
-                fetch(`/api/groups/${displayNumber}?department=${dept}`)
-                    .then(response => response.json())
-                    .then(groupData => {
-                        if (groupData && groupData.group) {
-                            const group = groupData.group;
-                            
-                            // Display group members
-                            let membersHtml = '<ul class="list-unstyled mb-0">';
-                            for (let i = 1; i <= 5; i++) {
-                                const memberName = group[`member${i}_name`];
-                                const memberStudentId = group[`member${i}_student_id`];
-                                if (memberName) {
-                                    const isLeader = i == group.leader_member;
-                                    membersHtml += `<li>${memberName} (${memberStudentId})${isLeader ? ' <span class="badge bg-primary">Leader</span>' : ''}</li>`;
-                                }
+                // Fetch fresh assignment data and group data with cache busting
+                const timestamp = new Date().getTime();
+                Promise.all([
+                    fetch(`/api/assignments?_=${timestamp}`).then(r => r.json()),
+                    fetch(`/api/groups/${displayNumber}?department=${dept}&_=${timestamp}`).then(r => r.json())
+                ])
+                .then(([assignments, groupData]) => {
+                    console.log('Fresh assignments data:', assignments);
+                    const assignment = assignments.find(a => a.department === dept && a.section === cluster);
+                    console.log('Matched assignment:', assignment);
+                    
+                    let adviser = 'No Adviser';
+                    let chairName = 'No Chairperson';
+                    let memberNames = 'No Members';
+                    
+                    if (assignment) {
+                        adviser = assignment.adviser || 'No Adviser';
+                        const panels = assignment.panels || [];
+                        const chairperson = panels.find(p => p.role === 'Chairperson');
+                        const members = panels.filter(p => p.role === 'Member');
+                        chairName = chairperson ? chairperson.name : 'No Chairperson';
+                        memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
+                    }
+                    
+                    let membersHtml = '<ul class="list-unstyled mb-0">';
+                    if (groupData && groupData.group) {
+                        const group = groupData.group;
+                        for (let i = 1; i <= 5; i++) {
+                            const memberName = group[`member${i}_name`];
+                            const memberStudentId = group[`member${i}_student_id`];
+                            if (memberName) {
+                                const isLeader = i == group.leader_member;
+                                membersHtml += `<li>${memberName} (${memberStudentId})${isLeader ? ' <span class="badge bg-primary">Leader</span>' : ''}</li>`;
                             }
-                            membersHtml += '</ul>';
-                            
-                            document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
-                            document.getElementById('groupDept').textContent = dept || '-';
-                            document.getElementById('groupCluster').textContent = cluster;
-                            document.getElementById('groupSet').textContent = set;
-                            document.getElementById('groupStatus').textContent = status;
-                            document.getElementById('groupMembers').innerHTML = membersHtml;
-                            
-                            // Get panel data from schedule button or use defaults
-                            const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
-                            const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
-                            const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
-                            const members = scheduleBtn?.getAttribute('data-members') || 'No Members';
-                            
-                            document.getElementById('groupAdviser').textContent = adviser;
-                            document.getElementById('groupChair').textContent = chair;
-                            document.getElementById('groupMembers').innerHTML = membersHtml;
-                        } else {
-                            // Fallback to default display
-                            document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
-                            document.getElementById('groupDept').textContent = dept || '-';
-                            document.getElementById('groupCluster').textContent = cluster;
-                            document.getElementById('groupSet').textContent = set;
-                            document.getElementById('groupStatus').textContent = status;
-                            document.getElementById('groupMembers').textContent = 'No group data found';
-                            
-                            const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
-                            const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
-                            const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
-                            
-                            document.getElementById('groupAdviser').textContent = adviser;
-                            document.getElementById('groupChair').textContent = chair;
                         }
-                        
-                        new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching group data:', error);
-                        // Fallback display
-                        document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
-                        document.getElementById('groupDept').textContent = dept || '-';
-                        document.getElementById('groupCluster').textContent = cluster;
-                        document.getElementById('groupSet').textContent = set;
-                        document.getElementById('groupStatus').textContent = status;
-                        document.getElementById('groupMembers').textContent = 'Error loading group data';
-                        
-                        const scheduleBtn = row.querySelector('.btn-set-schedule, .scheduled-container');
-                        const adviser = scheduleBtn?.getAttribute('data-adviser') || 'No Adviser';
-                        const chair = scheduleBtn?.getAttribute('data-chair') || 'No Chairperson';
-                        
-                        document.getElementById('groupAdviser').textContent = adviser;
-                        document.getElementById('groupChair').textContent = chair;
-                        
-                        new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
-                    });
+                    } else {
+                        membersHtml += '<li>No group data found</li>';
+                    }
+                    membersHtml += '</ul>';
+                    
+                    document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
+                    document.getElementById('groupDept').textContent = dept || '-';
+                    document.getElementById('groupCluster').textContent = cluster;
+                    document.getElementById('groupSet').textContent = set;
+                    document.getElementById('groupStatus').textContent = status;
+                    document.getElementById('groupAdviser').textContent = adviser;
+                    document.getElementById('groupChair').textContent = chairName;
+                    document.getElementById('groupMembers').innerHTML = membersHtml;
+                    
+                    new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
+                    document.getElementById('groupDept').textContent = dept || '-';
+                    document.getElementById('groupCluster').textContent = cluster;
+                    document.getElementById('groupSet').textContent = set;
+                    document.getElementById('groupStatus').textContent = status;
+                    document.getElementById('groupAdviser').textContent = 'Error loading data';
+                    document.getElementById('groupChair').textContent = 'Error loading data';
+                    document.getElementById('groupMembers').textContent = 'Error loading data';
+                    new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                });
             }
         });
 

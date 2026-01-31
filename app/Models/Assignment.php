@@ -11,6 +11,10 @@ class Assignment extends Model
 
     protected $fillable = ['department', 'section', 'group_number', 'adviser_id'];
 
+    protected $casts = [
+        'group_number' => 'array',
+    ];
+
     public function panels()
     {
         return $this->hasMany(AssignmentPanel::class);
@@ -18,7 +22,7 @@ class Assignment extends Model
 
     public function adviser()
     {
-        return $this->belongsTo(Adviser::class);
+        return $this->belongsTo(Adviser::class)->withTrashed();
     }
 
     public function assignmentPanels()

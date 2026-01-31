@@ -22,18 +22,6 @@ class AssignmentController extends Controller
                 'panel_ids.*' => 'integer',
             ]);
 
-            // Check if an assignment already exists for this department and section
-            $existingAssignment = Assignment::where('department', $validated['department'])
-                ->where('section', $validated['section'])
-                ->first();
-
-            if ($existingAssignment) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'An adviser is already assigned to ' . $validated['department'] . ' section ' . $validated['section'] . '. Please choose a different section or update the existing assignment.'
-                ]);
-            }
-
             // Create the main assignment
             $assignment = Assignment::create([
                 'department' => $validated['department'],
