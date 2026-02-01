@@ -101,14 +101,11 @@
         box-sizing: border-box;
     }
     
-    /* Ensure consistent column widths for all rows */
-    .table-custom tbody tr td:nth-child(1) { width: 8% !important; }
-    .table-custom tbody tr td:nth-child(2) { width: 8% !important; }
-    .table-custom tbody tr td:nth-child(3) { width: 8% !important; }
-    .table-custom tbody tr td:nth-child(4) { width: 12% !important; }
-    .table-custom tbody tr td:nth-child(5) { width: 35% !important; }
-    .table-custom tbody tr td:nth-child(6) { width: 15% !important; }
-    .table-custom tbody tr td:nth-child(7) { width: 14% !important; }
+    .table-custom tbody tr td:nth-child(1) { width: 15% !important; }
+    .table-custom tbody tr td:nth-child(2) { width: 10% !important; }
+    .table-custom tbody tr td:nth-child(3) { width: 15% !important; }
+    .table-custom tbody tr td:nth-child(4) { width: 20% !important; }
+    .table-custom tbody tr td:nth-child(5) { width: 40% !important; }
     .table-custom thead th { 
         background-color: var(--dark-blue-button);
         color: white; 
@@ -466,7 +463,6 @@
                     <thead>
                         <tr>
                             <th style="width: 8%;" id="cluster-header">Cluster/Section</th>
-                            <th style="width: 8%;">Set</th> 
                             <th style="width: 8%;">Group</th>
                             <th style="width: 12%;">Documents</th>
                             <th style="width: 15%;">Status</th>
@@ -507,7 +503,6 @@
                                 @if($groupNumber == 1)
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
-                                <td class="set-value">A</td> 
                                 <td class="group-number" data-group-id="{{ $groupId }}">{{ $displayNumber }}</td> 
                                 <td><span class="status-badge status-completed">Completed</span></td>
 
@@ -527,7 +522,7 @@
                         
                         {{-- Divider Row --}}
                         <tr class="divider-row">
-                            <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                            <td colspan="5" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
                         </tr>
                         
                         {{-- Set B: Groups 6-10 --}}
@@ -540,7 +535,6 @@
                                 @if($groupNumber == 1)
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
-                                <td class="set-value">B</td> 
                                 <td class="group-number" data-group-id="{{ $groupId }}">{{ $displayNumber }}</td> 
                                 <td><span class="status-badge status-completed">Completed</span></td>
 
@@ -583,13 +577,15 @@
                 <h6 class="fw-bold mb-3" id="groupInfoTitle">Group A1</h6>
                 <p><strong>Department:</strong> <span id="groupDept">-</span></p>
                 <p><strong>Cluster:</strong> <span id="groupCluster">-</span></p>
-                <p><strong>Set:</strong> <span id="groupSet">-</span></p>
                 <p><strong>Status:</strong> <span id="groupStatus">-</span></p>
                 <hr>
                 <h6 class="fw-bold mb-2">Panel & Adviser</h6>
                 <p><strong>Adviser:</strong> <span id="groupAdviser">-</span></p>
                 <p><strong>Chairperson:</strong> <span id="groupChair">-</span></p>
-                <p><strong>Members:</strong> <span id="groupMembers">-</span></p>
+                <p><strong>Panel Members:</strong> <span id="groupPanelMembers">-</span></p>
+                <hr>
+                <h6 class="fw-bold mb-2">Group Students</h6>
+                <div id="groupMembers">-</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -711,7 +707,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <h6 class="mb-3 fw-bold" style="color: var(--dark-text);">Availability for <span id="info-set-display" class="text-primary">Cluster 7 Set A</span> (Next 5 Work Days):</h6>
+                <h6 class="mb-3 fw-bold" style="color: var(--dark-text);">Availability for <span id="info-set-display" class="text-primary">Cluster 7 Set A</span>:</h6>
                 
                 <div class="table-responsive">
                     <table class="table table-sm table-availability table-custom">
@@ -1155,113 +1151,96 @@
         const tbody = document.getElementById('availability-table-body');
         const display = document.getElementById('info-set-display');
         
-        tbody.innerHTML = '';
+        tbody.innerHTML = '<tr><td colspan="100%" class="text-center">Loading...</td></tr>';
         while (tableHeadRow.children.length > 1) {
             tableHeadRow.removeChild(tableHeadRow.lastChild);
         }
 
-        display.textContent = `Cluster ${cluster} Group ${groupId}`;
+        display.textContent = `Cluster ${cluster} Group ${groupId.substring(1)}`;
 
-        const today = new Date();
-        const dates = [];
-        let date = new Date(today);
-        let count = 0;
-        while (count < 5) {
-            date.setDate(date.getDate() + 1);
-            if (date.getDay() !== 0 && date.getDay() !== 6) { 
-                dates.push(new Date(date));
-                count++;
-            }
-        }
-
-        dates.forEach(d => {
-            const th = document.createElement('th');
-            th.textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: '2-digit', day: '2-digit' });
-            tableHeadRow.appendChild(th);
-        });
-
-        // Fetch actual panel availability data - only for panels in the selected department
         const deptParam = dept || document.getElementById('dept-select').value;
         
-        fetch('/api/panel-availability-schedule', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                panel_names: names,
-                dates: dates.map(d => d.toISOString().split('T')[0]),
-                department: deptParam
-            })
-        })
-        .then(response => response.json())
-        .then(async data => {
-            console.log('Panel availability data:', data);
-            const panelAvailability = {
-                recommended_time: null,
-                participants: {
-                    panel_member_1: { availability: "", time_zone: "" },
-                    panel_member_2: { availability: "", time_zone: "" },
-                    chairperson: { availability: "", time_zone: "" }
-                },
-                notes: "Recommended time will be generated once all participant availabilities and time zones are provided. No conflicting or out-of-availability times will be suggested."
-            };
-            names.forEach((name, index) => {
-                const row = tbody.insertRow();
-                row.insertCell().textContent = name;
-                const availableDates = [];
-                dates.forEach(d => {
-                    const cell = row.insertCell();
-                    const dateStr = d.toISOString().split('T')[0];
-                    const panelData = data.availability && data.availability[name] && data.availability[name][dateStr];
-                    if (panelData && panelData.conflicts && panelData.conflicts.length > 0) {
-                        cell.textContent = 'Conflict';
-                        cell.classList.add('availability-unavailable');
-                        cell.title = panelData.conflicts.join('; ');
-                    } else {
-                        cell.textContent = 'Available';
-                        cell.classList.add('availability-available');
-                        availableDates.push(dateStr);
+        fetch('/api/panels?department=' + deptParam)
+            .then(r => r.json())
+            .then(allPanels => {
+                const allDates = new Set();
+                
+                names.forEach(name => {
+                    const panel = allPanels.find(p => p.name === name);
+                    if (panel && panel.availability) {
+                        const availability = Array.isArray(panel.availability) ? panel.availability : [];
+                        availability.forEach(avail => {
+                            if (avail.date) allDates.add(avail.date);
+                        });
                     }
                 });
-                const availabilityStr = availableDates.length > 0 ? availableDates.join(', ') : 'No available dates';
-                const memberKey = index === names.length - 1 ? 'chairperson' : `panel_member_${index + 1}`;
-                panelAvailability.participants[memberKey] = { availability: availabilityStr, time_zone: 'Asia/Manila' };
-            });
-            const aiRecommendation = await getAIRecommendation(panelAvailability);
-            if (aiRecommendation && aiRecommendation.recommended_time) {
-                const aiRow = tbody.insertRow(0);
-                const aiCell = aiRow.insertCell();
-                aiCell.colSpan = dates.length + 1;
-                aiCell.style.backgroundColor = '#e7f1ff';
-                aiCell.style.fontWeight = 'bold';
-                aiCell.style.padding = '1rem';
-                const recTime = aiRecommendation.recommended_time;
-                const recDate = new Date(recTime);
-                const formattedTime = recDate.toLocaleString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                
+                const sortedDates = Array.from(allDates).sort();
+                
+                tbody.innerHTML = '';
+                
+                if (sortedDates.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="100%" class="text-center">No availability set for these panels</td></tr>';
+                    return;
+                }
+                
+                sortedDates.forEach(dateStr => {
+                    const d = new Date(dateStr);
+                    const th = document.createElement('th');
+                    th.textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: '2-digit', day: '2-digit' });
+                    tableHeadRow.appendChild(th);
                 });
-                aiCell.innerHTML = `<i class="bi bi-robot" style="color: var(--primary-blue); font-size: 1.2rem;"></i> <strong>AI Recommendation:</strong> ${formattedTime}`;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching panel availability:', error);
-            // Fallback to basic display
-            names.forEach(name => {
-                const row = tbody.insertRow();
-                row.insertCell().textContent = name;
-                dates.forEach(d => {
-                    const cell = row.insertCell();
-                    cell.textContent = 'Available';
-                    cell.classList.add('availability-available');
+                
+                names.forEach(name => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = name;
+                    
+                    sortedDates.forEach(() => {
+                        const cell = row.insertCell();
+                        cell.textContent = 'Available';
+                        cell.classList.add('availability-available');
+                    });
                 });
+                
+                fetch('/api/panel-availability-schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        panel_names: names,
+                        dates: sortedDates,
+                        department: deptParam
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const rows = tbody.querySelectorAll('tr');
+                    names.forEach((name, idx) => {
+                        const row = rows[idx];
+                        if (!row) return;
+                        
+                        const cells = row.querySelectorAll('td');
+                        sortedDates.forEach((dateStr, dateIdx) => {
+                            const cell = cells[dateIdx + 1];
+                            if (!cell) return;
+                            
+                            const panelData = data.availability && data.availability[name] && data.availability[name][dateStr];
+                            
+                            if (panelData && panelData.conflicts && panelData.conflicts.length > 0) {
+                                cell.textContent = 'Conflict';
+                                cell.className = 'availability-unavailable';
+                                cell.title = panelData.conflicts.join('; ');
+                            }
+                        });
+                    });
+                })
+                .catch(() => {});
+            })
+            .catch(() => {
+                tbody.innerHTML = '<tr><td colspan="100%" class="text-center text-danger">Error loading availability</td></tr>';
             });
-        });
     }
     
     function queueForRedefense(groupId, currentType) {
@@ -1763,21 +1742,39 @@
         
         document.getElementById('showAvailabilityBtn').addEventListener('click', function() {
             const scheduleModalEl = document.getElementById('scheduleModal');
-            const adviser = document.getElementById('modal-adviser').textContent;
-            const chair = document.getElementById('modal-chairperson').textContent;
-            const members = document.getElementById('modal-members').textContent;
             const cluster = clusterSelect.value;
             const dept = deptSelect.value;
             const groupTarget = scheduleButton.getAttribute('data-group-target');
             
-            const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
-            
-            setupAvailabilityModal(cluster, groupTarget, panelNames, dept);
-            
-            bootstrap.Modal.getInstance(scheduleModalEl).hide();
-            setTimeout(() => {
-                new bootstrap.Modal(document.getElementById('infoModal')).show();
-            }, 300);
+            // Fetch panels assigned to this specific group
+            fetch(`/api/assignments?department=${dept}&section=${cluster}`)
+                .then(r => r.json())
+                .then(assignments => {
+                    const assignment = assignments.find(a => a.department === dept && a.section === cluster);
+                    
+                    let panelNames = [];
+                    if (assignment) {
+                        const adviser = assignment.adviser || 'No Adviser';
+                        const panels = assignment.panels || [];
+                        const chairperson = panels.find(p => p.role === 'Chairperson');
+                        const members = panels.filter(p => p.role === 'Member');
+                        
+                        if (adviser && adviser !== 'No Adviser') panelNames.push(adviser);
+                        if (chairperson && chairperson.name) panelNames.push(chairperson.name);
+                        members.forEach(m => { if (m.name) panelNames.push(m.name); });
+                    }
+                    
+                    setupAvailabilityModal(cluster, groupTarget, panelNames, dept);
+                    
+                    bootstrap.Modal.getInstance(scheduleModalEl).hide();
+                    setTimeout(() => {
+                        new bootstrap.Modal(document.getElementById('infoModal')).show();
+                    }, 300);
+                })
+                .catch(error => {
+                    console.error('Error fetching assignment panels:', error);
+                    showAlert('error', 'Error', 'Failed to load panel information.');
+                });
         });
         
         // Check for URL parameters from panel-adviser or redefense redirect
@@ -2092,7 +2089,6 @@
                         const row = `
                             <tr data-group-id="${groupId}" data-set="A" ${dividerClass}>
                                 ${clusterCell}
-                                <td class="set-value">A</td>
                                 <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
                                 <td><span class="status-badge status-completed">Completed</span></td>
                                 <td class="status-column" id="status-${groupId}">
@@ -2113,7 +2109,7 @@
                     // Add divider row
                     const dividerRow = `
                         <tr class="divider-row">
-                            <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                            <td colspan="5" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
                         </tr>
                     `;
                     tbody.innerHTML += dividerRow;
@@ -2129,7 +2125,6 @@
                         const row = `
                             <tr data-group-id="${groupId}" data-set="B" ${borderStyle}>
                                 ${clusterCell}
-                                <td class="set-value">B</td>
                                 <td class="group-number" data-group-id="${groupId}">${displayNumber}</td>
                                 <td><span class="status-badge status-completed">Completed</span></td>
                                 <td class="status-column" id="status-${groupId}">
@@ -2340,9 +2335,6 @@
             }
             
             document.getElementById('set-input').value = set;
-            
-            const panelNames = [adviser, chair].concat(members.split(',').map(m => m.trim())).filter(name => name && name !== 'No Adviser' && name !== 'No Chairperson' && name !== 'No Members');
-            setupAvailabilityModal(cluster, targetId, panelNames, deptSelect.value);
         });
 
         panelEditModal.addEventListener('show.bs.modal', function(event) {
@@ -2552,52 +2544,68 @@
                     let chairName = 'No Chairperson';
                     let memberNames = 'No Members';
                     
-                    if (assignment) {
-                        adviser = assignment.adviser || 'No Adviser';
-                        const panels = assignment.panels || [];
-                        const chairperson = panels.find(p => p.role === 'Chairperson');
-                        const members = panels.filter(p => p.role === 'Member');
-                        chairName = chairperson ? chairperson.name : 'No Chairperson';
-                        memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
-                    }
-                    
-                    let membersHtml = '<ul class="list-unstyled mb-0">';
-                    if (groupData && groupData.group) {
-                        const group = groupData.group;
-                        for (let i = 1; i <= 5; i++) {
-                            const memberName = group[`member${i}_name`];
-                            const memberStudentId = group[`member${i}_student_id`];
-                            if (memberName) {
-                                const isLeader = i == group.leader_member;
-                                membersHtml += `<li>${memberName} (${memberStudentId})${isLeader ? ' <span class="badge bg-primary">Leader</span>' : ''}</li>`;
+                    // Fetch adviser for this specific group
+                    fetch(`/api/advisers?department=${dept}`)
+                        .then(r => r.json())
+                        .then(advisers => {
+                            const groupOffset = (parseInt(cluster) - 4101) * 10;
+                            const actualGroupNumber = parseInt(displayNumber);
+                            
+                            const groupAdviser = advisers.find(adv => {
+                                const sections = Array.isArray(adv.sections) ? adv.sections : [];
+                                return sections.includes(actualGroupNumber);
+                            });
+                            
+                            if (groupAdviser) {
+                                adviser = groupAdviser.name;
                             }
-                        }
-                    } else {
-                        membersHtml += '<li>No group data found</li>';
-                    }
-                    membersHtml += '</ul>';
-                    
-                    document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
-                    document.getElementById('groupDept').textContent = dept || '-';
-                    document.getElementById('groupCluster').textContent = cluster;
-                    document.getElementById('groupSet').textContent = set;
-                    document.getElementById('groupStatus').textContent = status;
-                    document.getElementById('groupAdviser').textContent = adviser;
-                    document.getElementById('groupChair').textContent = chairName;
-                    document.getElementById('groupMembers').innerHTML = membersHtml;
-                    
-                    new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                            
+                            if (assignment) {
+                                const panels = assignment.panels || [];
+                                const chairperson = panels.find(p => p.role === 'Chairperson');
+                                const members = panels.filter(p => p.role === 'Member');
+                                chairName = chairperson ? chairperson.name : 'No Chairperson';
+                                memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
+                            }
+                            
+                            let membersHtml = '<ul class="list-unstyled mb-0">';
+                            if (groupData && groupData.group) {
+                                const group = groupData.group;
+                                for (let i = 1; i <= 5; i++) {
+                                    const memberName = group[`member${i}_name`];
+                                    const memberStudentId = group[`member${i}_student_id`];
+                                    if (memberName) {
+                                        const isLeader = i == group.leader_member;
+                                        membersHtml += `<li>${memberName} (${memberStudentId})${isLeader ? ' <span class="badge bg-primary">Leader</span>' : ''}</li>`;
+                                    }
+                                }
+                            } else {
+                                membersHtml += '<li>No group data found</li>';
+                            }
+                            membersHtml += '</ul>';
+                            
+                            document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
+                            document.getElementById('groupDept').textContent = dept || '-';
+                            document.getElementById('groupCluster').textContent = cluster;
+                            document.getElementById('groupStatus').textContent = status;
+                            document.getElementById('groupAdviser').textContent = adviser;
+                            document.getElementById('groupChair').textContent = chairName;
+                            document.getElementById('groupPanelMembers').textContent = memberNames;
+                            document.getElementById('groupMembers').innerHTML = membersHtml;
+                            
+                            new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
+                        });
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                     document.getElementById('groupInfoTitle').textContent = `Group ${displayNumber}`;
                     document.getElementById('groupDept').textContent = dept || '-';
                     document.getElementById('groupCluster').textContent = cluster;
-                    document.getElementById('groupSet').textContent = set;
                     document.getElementById('groupStatus').textContent = status;
                     document.getElementById('groupAdviser').textContent = 'Error loading data';
                     document.getElementById('groupChair').textContent = 'Error loading data';
-                    document.getElementById('groupMembers').textContent = 'Error loading data';
+                    document.getElementById('groupPanelMembers').textContent = 'Error loading data';
+                    document.getElementById('groupMembers').innerHTML = 'Error loading data';
                     new bootstrap.Modal(document.getElementById('groupInfoModal')).show();
                 });
             }
@@ -2606,6 +2614,7 @@
     });
 </script>
 @endsection
+
 
 
 

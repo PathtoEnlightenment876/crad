@@ -293,12 +293,14 @@ class DefenseScheduleController extends Controller
             
             foreach ($validated['dates'] as $date) {
                 $conflicts = [];
+                $isAvailable = false;
                 
                 // Check panel's set availability
                 if (!empty($panelAvailability)) {
                     foreach ($panelAvailability as $avail) {
                         if (isset($avail['date']) && $avail['date'] === $date) {
-                            $conflicts[] = 'Available: ' . ($avail['start_time'] ?? '') . '-' . ($avail['end_time'] ?? '');
+                            $isAvailable = true;
+                            break;
                         }
                     }
                 }
@@ -334,6 +336,7 @@ class DefenseScheduleController extends Controller
                 }
                 
                 $availability[$panelName][$date] = [
+                    'available' => $isAvailable,
                     'conflicts' => $conflicts
                 ];
             }

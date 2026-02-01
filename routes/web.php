@@ -156,6 +156,7 @@ Route::prefix('api')->group(function () {
 
 Route::get('/api/advisers/{clusterId}', [AdviserController::class, 'getAdvisersByCluster']);
 Route::get('/api/panels/{clusterId}', [PanelController::class, 'getPanelsByCluster']);
+Route::get('/api/panels', [PanelController::class, 'getPanels']);
 
 
 Route::post('/adviser', [AdviserController::class, 'store'])->name('adviser.store');

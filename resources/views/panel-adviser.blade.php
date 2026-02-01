@@ -2307,28 +2307,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     function() {
                         fetch(formAction, {
                             method: 'POST',
-                            body: formData
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
                         })
                         .then(response => {
-                            if (response.ok) {
-                                // Close the edit modal
+                            if (response.redirected || response.url.includes('panel-adviser')) {
                                 const modal = bootstrap.Modal.getInstance(modalElement);
-                                if (modal) {
-                                    modal.hide();
-                                }
-                                
-                                // Show success modal
+                                if (modal) modal.hide();
                                 document.getElementById('successMessage').textContent = 'Panel member information has been successfully updated!';
                                 const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                                 successModal.show();
-                                
-                                // Reload page after modal is dismissed
                                 document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
                                     location.reload();
                                 }, { once: true });
-                            } else {
-                                alert('Error updating panel member. Please try again.');
+                                return;
                             }
+                            if (!response.ok) throw new Error('Update failed');
                         })
                         .catch(error => {
                             console.error('Error:', error);

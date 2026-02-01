@@ -95,12 +95,11 @@
         box-sizing: border-box;
     }
     
-    .table-custom tbody tr td:nth-child(1) { width: 8% !important; }
-    .table-custom tbody tr td:nth-child(2) { width: 8% !important; }
-    .table-custom tbody tr td:nth-child(3) { width: 8% !important; }
-    .table-custom tbody tr td:nth-child(4) { width: 35% !important; }
-    .table-custom tbody tr td:nth-child(5) { width: 15% !important; }
-    .table-custom tbody tr td:nth-child(6) { width: 18% !important; }
+    .table-custom tbody tr td:nth-child(1) { width: 10% !important; }
+    .table-custom tbody tr td:nth-child(2) { width: 10% !important; }
+    .table-custom tbody tr td:nth-child(3) { width: 40% !important; }
+    .table-custom tbody tr td:nth-child(4) { width: 20% !important; }
+    .table-custom tbody tr td:nth-child(5) { width: 20% !important; }
     .table-custom thead th { 
         background-color: var(--dark-blue-button);
         color: white; 
@@ -142,10 +141,7 @@
         font-weight: 600;
     }
     
-    #schedule-table-body tr[data-set="B"],
-    #schedule-table-body tr[data-set="B"] .cluster-value,
-    #schedule-table-body tr[data-set="B"] .panel-details-table,
-    #schedule-table-body tr[data-set="B"] .status-column {
+    #schedule-table-body tr:nth-child(n+7):nth-child(-n+11) {
         background-color: var(--group-stripe) !important;
     }
     
@@ -320,12 +316,11 @@
                 <table class="table table-custom align-middle">
                     <thead>
                         <tr>
-                            <th style="width: 8%;">Cluster</th>
-                            <th style="width: 8%;">Set</th> 
-                            <th style="width: 8%;">Group</th>
-                            <th style="width: 35%;">Panels & Adviser</th>
-                            <th style="width: 15%;">Status</th>
-                            <th style="width: 18%;">Defense Evaluation</th>
+                            <th>Cluster</th>
+                            <th>Group</th>
+                            <th>Panels & Adviser</th>
+                            <th>Status</th>
+                            <th>Defense Evaluation</th>
                         </tr>
                     </thead>
                     <tbody id="schedule-table-body">
@@ -335,16 +330,14 @@
                             $memberNames = 'No Members';
                         @endphp
                         
-                        {{-- Set A: Groups 1-5 --}}
                         @for($groupNumber = 1; $groupNumber <= 5; $groupNumber++)
                             @php
                                 $groupId = 'A' . $groupNumber;
                             @endphp
-                            <tr data-group-id="{{ $groupId }}" data-set="A" @if($groupNumber == 5) class="set-divider" @endif>
+                            <tr data-group-id="{{ $groupId }}" @if($groupNumber == 5) class="set-divider" @endif>
                                 @if($groupNumber == 1)
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
-                                <td class="set-value">A</td> 
                                 <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
                                 
                                 @if($groupNumber == 1)
@@ -352,7 +345,7 @@
                                         data-adviser="{{ $adviser }}" 
                                         data-chair="{{ $chairName }}" 
                                         data-members="{{ $memberNames }}" 
-                                        data-panel-set="A">
+                                        data-panel-group="A">
                                         <div>
                                             <strong>Adviser:</strong> {{ $adviser }} <br>
                                             <strong>Chairperson:</strong> {{ $chairName }} <br>
@@ -376,21 +369,18 @@
                             </tr>
                         @endfor
                         
-                        {{-- Divider Row --}}
                         <tr class="divider-row">
-                            <td colspan="6" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
+                            <td colspan="5" style="height: 1px; padding: 0; border-bottom: 1px solid #666; background-color: transparent;"></td>
                         </tr>
                         
-                        {{-- Set B: Groups 1-5 --}}
                         @for($groupNumber = 1; $groupNumber <= 5; $groupNumber++)
                             @php
                                 $groupId = 'B' . $groupNumber;
                             @endphp
-                            <tr data-group-id="{{ $groupId }}" data-set="B" @if($groupNumber == 1) style="border-top: 3px solid #333;" @endif>
+                            <tr data-group-id="{{ $groupId }}" @if($groupNumber == 1) style="border-top: 3px solid #333;" @endif>
                                 @if($groupNumber == 1)
                                     <td class="merged-cell cluster-value" rowspan="5">{{ request('cluster') ?? '' }}</td>
                                 @endif
-                                <td class="set-value">B</td> 
                                 <td class="group-number" data-group-id="{{ $groupId }}">{{ $groupNumber }}</td> 
                                 
                                 @if($groupNumber == 1)
@@ -398,7 +388,7 @@
                                         data-adviser="{{ $adviser }}" 
                                         data-chair="{{ $chairName }}" 
                                         data-members="{{ $memberNames }}" 
-                                        data-panel-set="B">
+                                        data-panel-group="B">
                                         <div>
                                             <strong>Adviser:</strong> {{ $adviser }} <br>
                                             <strong>Chairperson:</strong> {{ $chairName }} <br>
@@ -506,7 +496,6 @@
             <div class="modal-body">
                 <p><strong>Department:</strong> <span id="modalDepartment"></span></p>
                 <p><strong>Cluster:</strong> <span id="modalCluster"></span></p>
-                <p><strong>Set:</strong> <span id="modalSet"></span></p>
                 <p><strong>Group:</strong> <span id="modalGroup"></span></p>
                 <p><strong>Status:</strong> <span id="modalStatus"></span></p>
                 <hr>
@@ -1119,9 +1108,8 @@
             const group = groupId.substring(1);
             
             const row = `
-                <tr data-group-id="${groupId}" data-set="${set}">
+                <tr data-group-id="${groupId}">
                     <td class="cluster-value">${cluster}</td>
-                    <td class="set-value">${set}</td>
                     <td>${group}</td>
                     <td class="panel-details-table">
                         <div>
@@ -1149,61 +1137,79 @@
     }
     
     function updateTableWithAssignments(assignments, dept, cluster) {
-        // Update cluster values in existing table
         document.querySelectorAll('.cluster-value').forEach(cell => {
             cell.textContent = cluster;
         });
         
-        // Use first assignment for consistent data across all groups
-        const firstAssignment = assignments[0] || null;
-        let adviser = 'No Adviser';
-        let chairName = 'No Chairperson';
-        let memberNames = 'No Members';
+        const groupOffset = (parseInt(cluster) - 4101) * 10;
         
-        if (firstAssignment) {
-            const panels = firstAssignment.panels || [];
-            const chairperson = panels.find(p => p.role === 'Chairperson');
-            const members = panels.filter(p => p.role === 'Member' || (p.role && p.role !== 'Chairperson'));
-            adviser = firstAssignment.adviser || 'No Adviser';
-            chairName = chairperson ? chairperson.name : 'No Chairperson';
-            memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
-        }
-        
-        // Update panel details in existing table
-        document.querySelectorAll('.panel-details-table').forEach(cell => {
-            cell.innerHTML = `
+        ['A', 'B'].forEach(panelGroup => {
+            const panelCell = document.querySelector(`[data-panel-group="${panelGroup}"]`);
+            if (!panelCell) return;
+            
+            const groupNumbers = panelGroup === 'A' ? 
+                [1, 2, 3, 4, 5].map(g => g + groupOffset) : 
+                [6, 7, 8, 9, 10].map(g => g + groupOffset);
+            
+            let assignment = null;
+            for (let i = 0; i < assignments.length; i++) {
+                const a = assignments[i];
+                const groupNumbers = Array.isArray(a.group_number) ? a.group_number : [];
+                for (let j = 0; j < groupNumbers.length; j++) {
+                    if (groupNumbers.includes(groupNumbers[j])) {
+                        assignment = a;
+                        break;
+                    }
+                }
+                if (assignment) break;
+            }
+            
+            if (!assignment) assignment = assignments[0];
+            
+            let adviser = 'No Adviser';
+            let chairName = 'No Chairperson';
+            let memberNames = 'No Members';
+            
+            if (assignment) {
+                const panels = assignment.panels || [];
+                const chairperson = panels.find(p => p.role === 'Chairperson');
+                const members = panels.filter(p => p.role === 'Member' || (p.role && p.role !== 'Chairperson'));
+                adviser = assignment.adviser || 'No Adviser';
+                chairName = chairperson ? chairperson.name : 'No Chairperson';
+                memberNames = members.length > 0 ? members.map(m => m.name).join(', ') : 'No Members';
+            }
+            
+            panelCell.innerHTML = `
                 <div>
                     <strong>Adviser:</strong> ${adviser} <br>
                     <strong>Chairperson:</strong> ${chairName} <br>
                     Members: ${memberNames}
                 </div>
             `;
-            cell.setAttribute('data-adviser', adviser);
-            cell.setAttribute('data-chair', chairName);
-            cell.setAttribute('data-members', memberNames);
+            panelCell.setAttribute('data-adviser', adviser);
+            panelCell.setAttribute('data-chair', chairName);
+            panelCell.setAttribute('data-members', memberNames);
         });
     }
 
-    // Group number click handler
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('group-number')) {
             const groupId = e.target.getAttribute('data-group-id');
             const row = e.target.closest('tr');
-            const set = row.getAttribute('data-set');
+            const panelGroup = groupId.charAt(0);
             const groupNumber = e.target.textContent.trim();
             const dept = document.getElementById('dept-select').value;
             const cluster = document.querySelectorAll('.cluster-value')[0]?.textContent || '';
             const statusCell = document.getElementById(`status-${groupId}`);
             const status = statusCell ? statusCell.textContent.trim() : 'Pending';
             
-            const panelCell = row.querySelector('.panel-details-table') || document.querySelector(`[data-panel-set="${set}"]`);
+            const panelCell = document.querySelector(`[data-panel-group="${panelGroup}"]`);
             const adviser = panelCell?.getAttribute('data-adviser') || 'No Adviser';
             const chair = panelCell?.getAttribute('data-chair') || 'No Chairperson';
             const members = panelCell?.getAttribute('data-members') || 'No Members';
             
             document.getElementById('modalDepartment').textContent = dept;
             document.getElementById('modalCluster').textContent = cluster;
-            document.getElementById('modalSet').textContent = set;
             document.getElementById('modalGroup').textContent = groupNumber;
             document.getElementById('modalStatus').textContent = status;
             document.getElementById('modalAdviser').textContent = adviser;
